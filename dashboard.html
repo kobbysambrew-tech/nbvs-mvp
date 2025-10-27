@@ -76,6 +76,16 @@
     .badge.verified { background-color: #006b3f; }
     .badge.pending { background-color: #f0ad4e; }
 
+    #adminPanel {
+      display: none;
+      margin: 2em auto;
+      max-width: 500px;
+      background: white;
+      padding: 1.5em;
+      border-radius: 12px;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.15);
+    }
+
     footer {
       margin-top: 3em;
       background-color: #eee;
@@ -99,9 +109,13 @@
     <input type="text" id="search" placeholder="Enter name..." />
     <button onclick="searchRecords()">Search</button>
     <div id="results"></div>
+
+    <br><br>
+    <button id="loginBtn" onclick="adminLogin()">🔐 Admin Login</button>
+    <button id="logoutBtn" onclick="adminLogout()" style="display:none;">🚪 Logout</button>
   </div>
 
-  <div id="adminPanel" style="display:none;">
+  <div id="adminPanel">
     <h3>Add New Record</h3>
     <input type="text" id="newName" placeholder="Full name" /><br><br>
     <input type="text" id="newID" placeholder="NIA ID (e.g., TEST-GHA-0001001)" /><br><br>
@@ -142,7 +156,7 @@
     const app = firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    // Search function
+    // 🔍 Search records
     async function searchRecords() {
       const query = document.getElementById("search").value.toLowerCase().trim();
       const resultsDiv = document.getElementById("results");
@@ -171,7 +185,7 @@
       `;
     }
 
-    // Add new record
+    // ➕ Add record
     async function addRecord() {
       const newRecord = {
         name: document.getElementById("newName").value || "Not available",
@@ -190,10 +204,37 @@
       document.querySelectorAll('#adminPanel input').forEach(i => i.value = "");
     }
 
-    // Show admin panel if logged in
+    // 🔐 Admin login
+    function adminLogin() {
+      const password = prompt("Enter Admin Password:");
+      const correctPassword = "NBVS2025"; // ← You can change this
+
+      if (password === correctPassword) {
+        localStorage.setItem("isAdmin", "true");
+        document.getElementById("adminPanel").style.display = "block";
+        document.getElementById("loginBtn").style.display = "none";
+        document.getElementById("logoutBtn").style.display = "inline-block";
+        alert("✅ Admin mode activated.");
+      } else {
+        alert("❌ Incorrect password.");
+      }
+    }
+
+    // 🚪 Admin logout
+    function adminLogout() {
+      localStorage.removeItem("isAdmin");
+      document.getElementById("adminPanel").style.display = "none";
+      document.getElementById("loginBtn").style.display = "inline-block";
+      document.getElementById("logoutBtn").style.display = "none";
+      alert("Logged out.");
+    }
+
+    // Auto-show admin panel if logged in
     window.onload = () => {
       if (localStorage.getItem("isAdmin") === "true") {
         document.getElementById("adminPanel").style.display = "block";
+        document.getElementById("loginBtn").style.display = "none";
+        document.getElementById("logoutBtn").style.display = "inline-block";
       }
     };
   </script>
