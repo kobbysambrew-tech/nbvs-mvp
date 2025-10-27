@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NBVS Ghana - Verification Portal</title>
+  <style>
+    body {
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      background: #f3f4f6;
+      color: #111827;
+      margin: 0;
+      padding: 0;
+    }
+
+    header {
+      background-color: #006b3f;
+      color: white;
+      padding: 1rem 2rem;
+      text-align: center;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 1.8rem;
+    }
+
+    main {
+      max-width: 600px;
+      background: white;
+      margin: 3rem auto;
+      padding: 2rem;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    h2 {
+      text-align: center;
+      color: #006b3f;
+    }
+
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+
+    input[type="text"] {
+      padding: 0.8rem;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 1rem;
+    }
+
+    button {
+      background-color: #fcd116;
+      color: #000;
+      border: none;
+      padding: 0.8rem;
+      border-radius: 6px;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #ffd43b;
+    }
+
+    .results {
+      margin-top: 2rem;
+      background: #f9fafb;
+      border-radius: 8px;
+      padding: 1.5rem;
+      border: 1px solid #e5e7eb;
+    }
+
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>NBVS Ghana Verification Portal</h1>
+  </header>
+
+  <main>
+    <h2>Check Background Information</h2>
+    <form id="verificationForm">
+      <input type="text" id="searchInput" placeholder="Enter Ghana Card Number or Name" required />
+      <button type="submit">Search</button>
+    </form>
+
+    <div id="results" class="results hidden">
+      <h3>Verification Results</h3>
+      <p><strong>Name:</strong> <span id="name"></span></p>
+      <p><strong>NIA ID:</strong> <span id="nia"></span></p>
+      <p><strong>Criminal Record:</strong> <span id="criminal"></span></p>
+      <p><strong>Driving License:</strong> <span id="driving"></span></p>
+    </div>
+  </main>
+
+  <script>
+    const form = document.getElementById("verificationForm");
+    const resultsDiv = document.getElementById("results");
+
+    const mockData = [
+      {
+        name: "Kofi Mensah",
+        nia: "GHA-4592039485",
+        criminal: "None",
+        driving: "Valid (Expires: 2027)"
+      },
+      {
+        name: "Ama Serwaa",
+        nia: "GHA-2094830291",
+        criminal: "None",
+        driving: "Suspended (Reinstatement Pending)"
+      },
+      {
+        name: "Kwame Boateng",
+        nia: "GHA-1293847563",
+        criminal: "1 Record Found (Minor Traffic Violation)",
+        driving: "Valid (Expires: 2026)"
+      }
+    ];
+
+    form.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const searchTerm = document.getElementById("searchInput").value.toLowerCase();
+      const record = mockData.find(
+        (r) => r.name.toLowerCase().includes(searchTerm) || r.nia.includes(searchTerm)
+      );
+
+      if (record) {
+        document.getElementById("name").textContent = record.name;
+        document.getElementById("nia").textContent = record.nia;
+        document.getElementById("criminal").textContent = record.criminal;
+        document.getElementById("driving").textContent = record.driving;
+        resultsDiv.classList.remove("hidden");
+      } else {
+        resultsDiv.classList.remove("hidden");
+        document.getElementById("name").textContent = "No record found";
+        document.getElementById("nia").textContent = "-";
+        document.getElementById("criminal").textContent = "-";
+        document.getElementById("driving").textContent = "-";
+      }
+    });
+  </script>
+</body>
+</html>
