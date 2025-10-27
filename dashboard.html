@@ -132,104 +132,132 @@
     © 2025 NBVS Ghana — National Background Verification System<br />
     📧 <a href="mailto:nbvsghana@nbvsghana.com">nbvsghana@nbvsghana.com</a>
   </footer>
-
-  <script>
-    const records = [
-      {
-        name: "Ama Serwaa",
-        nia: "GHA-2039485",
-        dob: "1994-07-12",
-        region: "Greater Accra",
-        status: "Verified",
-        criminal: "Clean",
-        driving: "Valid",
-        address: "Accra, Ghana",
-        credit: "750"
-      },
-      {
-        name: "Kofi Mensah",
-        nia: "GHA-3948571",
-        dob: "1990-03-21",
-        region: "Ashanti",
-        status: "Verified",
-        criminal: "Clean",
-        driving: "Suspended (Minor offense)",
-        address: "Kumasi, Ghana",
-        credit: "710"
-      },
-      {
-        name: "Abena Owusu",
-        nia: "GHA-9384756",
-        dob: "1988-09-10",
-        region: "Western",
-        status: "Pending",
-        criminal: "Under Review",
-        driving: "Valid",
-        address: "Takoradi, Ghana",
-        credit: "680"
-      }
-    ];
-
-    function searchRecords() {
-      const query = document.getElementById("search").value.toLowerCase().trim();
-      const record = records.find(r => r.name.toLowerCase().includes(query));
-      const resultsDiv = document.getElementById("results");
-
-      if (!record) {
-        resultsDiv.style.opacity = "1";
-        resultsDiv.innerHTML = "<p style='color:red;'>System not found.</p>";
-        return;
-      }
-
-      const badgeClass = record.status === "Verified" ? "verified" : "pending";
-
-      resultsDiv.style.opacity = "0";
-      setTimeout(() => {
-        resultsDiv.innerHTML = `
-          <h3 style="color:#006b3f;">Verification Results</h3>
-          <span class="badge ${badgeClass}">${record.status}</span>
-          <p><strong>Name:</strong> ${record.name}</p>
-          <p><strong>NIA ID:</strong> ${record.nia}</p>
-          <p><strong>Date of Birth:</strong> ${record.dob}</p>
-          <p><strong>Region:</strong> ${record.region}</p>
-          <p><strong>Criminal Record:</strong> ${record.criminal}</p>
-          <p><strong>Driving License:</strong> ${record.driving}</p>
-          <p><strong>Address:</strong> ${record.address}</p>
-          <p><strong>Credit Score:</strong> ${record.credit}</p>
-        `;
-        resultsDiv.style.opacity = "1";
-      }, 200);
+<script>
+  // --- Step 1: Initial records (fake database) ---
+  let records = [
+    {
+      name: "Ama Serwaa",
+      nia: "GHA-2039485",
+      dob: "1994-07-12",
+      region: "Greater Accra",
+      status: "Verified",
+      criminal: "Clean",
+      driving: "Valid",
+      address: "Accra, Ghana",
+      credit: "750"
+    },
+    {
+      name: "Kofi Mensah",
+      nia: "GHA-3948571",
+      dob: "1990-03-21",
+      region: "Ashanti",
+      status: "Verified",
+      criminal: "Clean",
+      driving: "Suspended (Minor offense)",
+      address: "Kumasi, Ghana",
+      credit: "710"
+    },
+    {
+      name: "Abena Owusu",
+      nia: "GHA-9384756",
+      dob: "1988-09-10",
+      region: "Western",
+      status: "Pending",
+      criminal: "Under Review",
+      driving: "Valid",
+      address: "Takoradi, Ghana",
+      credit: "680"
     }
-  </script>
-  <script>
-  // Step 1: redirect if not logged in
+  ];
+
+  // --- Step 2: Redirect if not logged in ---
   if (localStorage.getItem("loggedIn") !== "true") {
     window.location.href = "login.html";
   }
 
-  // Step 2: check if admin
+  // --- Step 3: Check if admin ---
   const isAdmin = localStorage.getItem("isAdmin") === "true";
   const addSection = document.getElementById("addRecordSection");
 
   if (isAdmin) {
-    addSection.style.display = "block"; // show add record
+    addSection.style.display = "block"; // show "Add Record" section
   } else {
-    addSection.style.display = "none"; // hide from normal users
+    addSection.style.display = "none";
   }
 
-  // Step 3: simple add record function
-  function addRecord() {
-    const name = document.getElementById("newName").value;
-    const nia = document.getElementById("newNia").value;
-    const region = document.getElementById("newRegion").value;
+  // --- Step 4: Search Function ---
+  function searchRecords() {
+    const query = document.getElementById("search").value.toLowerCase().trim();
+    const record = records.find(r => r.name.toLowerCase().includes(query));
+    const resultsDiv = document.getElementById("results");
 
-    if (!name || !nia || !region) {
-      document.getElementById("addMsg").innerText = "Please fill all fields.";
+    if (!record) {
+      resultsDiv.style.opacity = "1";
+      resultsDiv.innerHTML = "<p style='color:red;'>System not found.</p>";
       return;
     }
 
-    document.getElementById("addMsg").innerText = `✅ Record for ${name} added successfully!`;
+    const badgeClass = record.status === "Verified" ? "verified" : "pending";
+
+    resultsDiv.style.opacity = "0";
+    setTimeout(() => {
+      resultsDiv.innerHTML = `
+        <h3 style="color:#006b3f;">Verification Results</h3>
+        <span class="badge ${badgeClass}">${record.status}</span>
+        <p><strong>Name:</strong> ${record.name}</p>
+        <p><strong>NIA ID:</strong> ${record.nia}</p>
+        <p><strong>Date of Birth:</strong> ${record.dob}</p>
+        <p><strong>Region:</strong> ${record.region}</p>
+        <p><strong>Criminal Record:</strong> ${record.criminal}</p>
+        <p><strong>Driving License:</strong> ${record.driving}</p>
+        <p><strong>Address:</strong> ${record.address}</p>
+        <p><strong>Credit Score:</strong> ${record.credit}</p>
+      `;
+      resultsDiv.style.opacity = "1";
+    }, 200);
   }
+
+  // --- Step 5: Add New Record (Admin only) ---
+  function addRecord() {
+    const name = document.getElementById("newName").value.trim();
+    const nia = document.getElementById("newNia").value.trim();
+    const region = document.getElementById("newRegion").value.trim();
+    const msg = document.getElementById("addMsg");
+
+    if (!name || !nia || !region) {
+      msg.style.color = "red";
+      msg.innerText = "⚠️ Please fill all fields.";
+      return;
+    }
+
+    const newRecord = {
+      name,
+      nia,
+      dob: "Not specified",
+      region,
+      status: "Pending",
+      criminal: "Clean",
+      driving: "Valid",
+      address: "Not specified",
+      credit: "N/A"
+    };
+
+    // Save to array
+    records.push(newRecord);
+
+    msg.style.color = "green";
+    msg.innerText = `✅ Record for ${name} added successfully!`;
+
+    // Clear inputs
+    document.getElementById("newName").value = "";
+    document.getElementById("newNia").value = "";
+    document.getElementById("newRegion").value = "";
+
+    console.log("Updated records:", records);
+  }
+</script>
+
+  
 </script>
 
 </body>
