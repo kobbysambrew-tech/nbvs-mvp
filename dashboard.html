@@ -3,35 +3,141 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>NBVS Dashboard</title>
-  <link rel="stylesheet" href="style.css" />
+  <title>NBVS Ghana - Admin Dashboard</title>
+  <style>
+    body {
+      font-family: "Segoe UI", Arial, sans-serif;
+      margin: 0;
+      background: #f8f9fa;
+      color: #333;
+    }
+
+    header {
+      background: linear-gradient(to right, #ce1126, #fcd116, #006b3f);
+      color: white;
+      text-align: center;
+      padding: 1.2em;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 1.8em;
+    }
+
+    main {
+      padding: 2em;
+      max-width: 800px;
+      margin: auto;
+    }
+
+    section {
+      margin-bottom: 3em;
+      background: white;
+      padding: 1.5em;
+      border-radius: 10px;
+      box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+    }
+
+    input, select {
+      width: 100%;
+      padding: 10px;
+      margin: 8px 0;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      font-size: 1em;
+    }
+
+    button {
+      background-color: #006b3f;
+      color: white;
+      padding: 10px 18px;
+      border: none;
+      border-radius: 6px;
+      font-size: 1em;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+
+    button:hover {
+      background-color: #004f2e;
+    }
+
+    .record {
+      border-top: 3px solid #006b3f;
+      padding: 10px;
+      margin-top: 15px;
+      background: #f9f9f9;
+      border-radius: 6px;
+    }
+
+    footer {
+      text-align: center;
+      background-color: #eee;
+      padding: 1em;
+      margin-top: 3em;
+      color: #333;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-size: 0.9em;
+      color: #fff;
+    }
+
+    .badge.Verified {
+      background-color: #006b3f;
+    }
+
+    .badge.Pending {
+      background-color: #f0ad4e;
+    }
+  </style>
 </head>
 <body>
-  <h1>National Background Verification System</h1>
+  <header>
+    <h1>NBVS Ghana - Admin Dashboard</h1>
+  </header>
 
-  <div id="search-section">
-    <input type="text" id="searchInput" placeholder="Enter name..." />
-    <button id="searchBtn">Search</button>
-  </div>
+  <main>
+    <!-- 🔍 Search Section -->
+    <section>
+      <h2>Search Record</h2>
+      <input type="text" id="searchInput" placeholder="Enter name to search..." />
+      <button id="searchBtn">Search</button>
+      <div id="results"></div>
+    </section>
 
-  <div id="results"></div>
+    <!-- 🧾 Admin Add Record Section -->
+    <section id="adminPanel">
+      <h2>Add New Record</h2>
 
-  <hr />
+      <input type="text" id="name" placeholder="Full Name" />
+      <input type="text" id="nia" placeholder="NIA ID (e.g., GHA-2039485)" />
+      <input type="date" id="dob" placeholder="Date of Birth" />
+      <input type="text" id="region" placeholder="Region" />
+      <input type="text" id="criminal" placeholder="Criminal Record (e.g., Clean, Under Review)" />
+      <input type="text" id="driving" placeholder="Driving License (e.g., Valid, Suspended)" />
+      <input type="text" id="address" placeholder="Address (e.g., Accra, Ghana)" />
+      <input type="number" id="credit" placeholder="Credit Score (e.g., 700)" />
 
-  <!-- Admin Panel -->
-  <div id="adminPanel" style="display:none;">
-    <h2>Add New Record</h2>
-    <input type="text" id="name" placeholder="Full name" /><br />
-    <input type="text" id="nia" placeholder="NIA ID" /><br />
-    <input type="text" id="dob" placeholder="Date of Birth" /><br />
-    <input type="text" id="region" placeholder="Region" /><br />
-    <input type="text" id="status" placeholder="Status (Verified/Pending)" /><br />
-    <input type="text" id="criminal" placeholder="Criminal Record" /><br />
-    <input type="text" id="driving" placeholder="Driving License" /><br />
-    <button id="addRecordBtn">Add Record</button>
-  </div>
+      <select id="status">
+        <option value="Verified">Verified</option>
+        <option value="Pending">Pending</option>
+      </select>
 
+      <button id="addRecordBtn">Add Record</button>
+    </section>
+  </main>
+
+  <footer>
+    © 2025 NBVS Ghana — National Background Verification System
+  </footer>
+
+  <!-- Connect external script -->
   <script type="module" src="script.js"></script>
-
 </body>
 </html>
+
