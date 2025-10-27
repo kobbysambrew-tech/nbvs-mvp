@@ -145,8 +145,8 @@
     📧 <a href="mailto:nbvsghana@nbvsghana.com">nbvsghana@nbvsghana.com</a>
   </footer>
 <script>
-  // --- Step 1: Initial records (fake database) ---
-  let records = [
+  // --- Step 1: Load saved data or use defaults ---
+  let records = JSON.parse(localStorage.getItem("nbvsRecords")) || [
     {
       name: "Ama Serwaa",
       nia: "GHA-2039485",
@@ -182,22 +182,12 @@
     }
   ];
 
-  // --- Step 2: Redirect if not logged in ---
-  if (localStorage.getItem("loggedIn") !== "true") {
-    window.location.href = "login.html";
+  // --- Step 2: Save data ---
+  function saveRecords() {
+    localStorage.setItem("nbvsRecords", JSON.stringify(records));
   }
 
-  // --- Step 3: Check if admin ---
-  const isAdmin = localStorage.getItem("isAdmin") === "true";
-  const addSection = document.getElementById("addRecordSection");
-
-  if (isAdmin) {
-    addSection.style.display = "block"; // show "Add Record" section
-  } else {
-    addSection.style.display = "none";
-  }
-
-  // --- Step 4: Search Function ---
+  // --- Step 3: Search system ---
   function searchRecords() {
     const query = document.getElementById("search").value.toLowerCase().trim();
     const record = records.find(r => r.name.toLowerCase().includes(query));
@@ -218,56 +208,45 @@
         <span class="badge ${badgeClass}">${record.status}</span>
         <p><strong>Name:</strong> ${record.name}</p>
         <p><strong>NIA ID:</strong> ${record.nia}</p>
-        <p><strong>Date of Birth:</strong> ${record.dob}</p>
-        <p><strong>Region:</strong> ${record.region}</p>
-        <p><strong>Criminal Record:</strong> ${record.criminal}</p>
-        <p><strong>Driving License:</strong> ${record.driving}</p>
-        <p><strong>Address:</strong> ${record.address}</p>
-        <p><strong>Credit Score:</strong> ${record.credit}</p>
+        <p><strong>Date of Birth:</strong> ${record.dob || "Not available"}</p>
+        <p><strong>Region:</strong> ${record.region || "Not available"}</p>
+        <p><strong>Criminal Record:</strong> ${record.criminal || "Not available"}</p>
+        <p><strong>Driving License:</strong> ${record.driving || "Not available"}</p>
+        <p><strong>Address:</strong> ${record.address || "Not available"}</p>
+        <p><strong>Credit Score:</strong> ${record.credit || "Not available"}</p>
       `;
       resultsDiv.style.opacity = "1";
     }, 200);
   }
 
-  // --- Step 5: Add New Record (Admin only) ---
+  // --- Step 4: Admin add record ---
   function addRecord() {
-    const name = document.getElementById("newName").value.trim();
-    const nia = document.getElementById("newNia").value.trim();
-    const region = document.getElementById("newRegion").value.trim();
-    const msg = document.getElementById("addMsg");
-
-    if (!name || !nia || !region) {
-      msg.style.color = "red";
-      msg.innerText = "⚠️ Please fill all fields.";
-      return;
-    }
-
     const newRecord = {
-      name,
-      nia,
-      dob: "Not specified",
-      region,
-      status: "Pending",
-      criminal: "Clean",
-      driving: "Valid",
-      address: "Not specified",
-      credit: "N/A"
+      name: document.getElementById("newName").value || "Not available",
+      nia: document.getElementById("newID").value || "Not available",
+      dob: document.getElementById("newDOB").value || "Not available",
+      region: document.getElementById("newRegion").value || "Not available",
+      criminal: document.getElementById("newCriminal").value || "Not available",
+      driving: document.getElementById("newDriving").value || "Not available",
+      address: document.getElementById("newAddress").value || "Not available",
+      credit: document.getElementById("newCredit").value || "Not available",
+      status: document.getElementById("newStatus").value || "Pending"
     };
 
-    // Save to array
     records.push(newRecord);
-
-    msg.style.color = "green";
-    msg.innerText = `✅ Record for ${name} added successfully!`;
-
-    // Clear inputs
-    document.getElementById("newName").value = "";
-    document.getElementById("newNia").value = "";
-    document.getElementById("newRegion").value = "";
-
-    console.log("Updated records:", records);
+    saveRecords();
+    alert("✅ Record added successfully!");
+    document.querySelectorAll('#adminPanel input').forEach(i => i.value = "");
   }
+
+  // --- Step 5: Show admin panel if admin logged in ---
+  window.onload = () => {
+    if (localStorage.getItem("isAdmin") === "true") {
+      document.getElementById("adminPanel").style.display = "block";
+    }
+  };
 </script>
+
 
   
 </script>
