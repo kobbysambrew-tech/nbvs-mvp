@@ -100,12 +100,13 @@
     background-color: #a71d1d;
   }
 </style>
-
+<script>
 <body>
    // Redirect to login page if not logged in
     if (localStorage.getItem("loggedIn") !== "true") {
       window.location.href = "index.html";
     }
+  </script>
   <div id="logout-container">
   <button id="logout-btn" onclick="logout()">Logout</button>
 </div>
