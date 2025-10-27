@@ -3,30 +3,41 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>NBVS Ghana - Verification System</title>
+  <title>NBVS Ghana - National Background Verification</title>
   <style>
     body {
-      font-family: Arial, sans-serif;
-      background-color: #f4f6f7;
+      font-family: "Segoe UI", Arial, sans-serif;
       margin: 0;
-      padding: 0;
-      text-align: center;
+      background: #f8f9fa url('https://upload.wikimedia.org/wikipedia/commons/1/19/Coat_of_arms_of_Ghana.svg') no-repeat center 80px;
+      background-size: 200px;
+      opacity: 0.98;
     }
+
     header {
-      background-color: #006b3f;
+      background: linear-gradient(to right, #ce1126, #fcd116, #006b3f);
       color: white;
+      text-align: center;
       padding: 1.5em 1em;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
     }
+
     h1 {
       margin: 0;
+      font-size: 2em;
+      letter-spacing: 1px;
     }
+
     .tagline {
-      font-style: italic;
       font-size: 1.1em;
+      font-style: italic;
+      margin-top: 0.4em;
     }
+
     .container {
-      margin-top: 2em;
+      text-align: center;
+      padding: 2em 1em;
     }
+
     input {
       padding: 10px;
       width: 250px;
@@ -34,18 +45,22 @@
       border-radius: 6px;
       font-size: 1em;
     }
+
     button {
-      padding: 10px 16px;
+      padding: 10px 18px;
       background-color: #006b3f;
       color: white;
       border: none;
       border-radius: 6px;
       font-size: 1em;
       cursor: pointer;
+      margin-left: 5px;
     }
+
     button:hover {
       background-color: #004f2e;
     }
+
     #results {
       margin-top: 2em;
       background: white;
@@ -55,14 +70,40 @@
       margin-right: auto;
       padding: 1.5em;
       border-radius: 12px;
-      box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+      box-shadow: 0 3px 10px rgba(0,0,0,0.15);
+      border-top: 5px solid #006b3f;
       transition: opacity 0.5s ease-in-out;
     }
+
+    .badge {
+      display: inline-block;
+      padding: 6px 10px;
+      border-radius: 8px;
+      color: white;
+      font-weight: bold;
+      font-size: 0.85em;
+    }
+
+    .badge.verified {
+      background-color: #006b3f;
+    }
+
+    .badge.pending {
+      background-color: #f0ad4e;
+    }
+
     footer {
       margin-top: 3em;
+      background-color: #eee;
       padding: 1em;
-      background-color: #f0f0f0;
       font-size: 0.9em;
+      text-align: center;
+      color: #333;
+    }
+
+    a {
+      color: #006b3f;
+      text-decoration: none;
     }
   </style>
 </head>
@@ -73,14 +114,15 @@
   </header>
 
   <div class="container">
-    <h2>Background Verification Lookup</h2>
+    <h2>Background Verification Portal</h2>
     <input type="text" id="search" placeholder="Enter name..." />
     <button onclick="searchRecords()">Search</button>
     <div id="results"></div>
   </div>
 
   <footer>
-    📧 Contact us: <a href="mailto:nbvsghana@nbvsghana.com">nbvsghana@nbvsghana.com</a>
+    © 2025 NBVS Ghana — National Background Verification System<br />
+    📧 <a href="mailto:nbvsghana@nbvsghana.com">nbvsghana@nbvsghana.com</a>
   </footer>
 
   <script>
@@ -131,19 +173,17 @@
         return;
       }
 
+      const badgeClass = record.status === "Verified" ? "verified" : "pending";
+
       resultsDiv.style.opacity = "0";
       setTimeout(() => {
         resultsDiv.innerHTML = `
           <h3 style="color:#006b3f;">Verification Results</h3>
+          <span class="badge ${badgeClass}">${record.status}</span>
           <p><strong>Name:</strong> ${record.name}</p>
           <p><strong>NIA ID:</strong> ${record.nia}</p>
           <p><strong>Date of Birth:</strong> ${record.dob}</p>
           <p><strong>Region:</strong> ${record.region}</p>
-          <p><strong>Status:</strong> 
-            <span style="color:${record.status === 'Verified' ? 'green' : 'orange'};">
-              ${record.status}
-            </span>
-          </p>
           <p><strong>Criminal Record:</strong> ${record.criminal}</p>
           <p><strong>Driving License:</strong> ${record.driving}</p>
           <p><strong>Address:</strong> ${record.address}</p>
@@ -155,5 +195,3 @@
   </script>
 </body>
 </html>
-
-      
