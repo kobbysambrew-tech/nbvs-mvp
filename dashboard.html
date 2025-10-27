@@ -1,171 +1,201 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>NBVS Ghana - Dashboard</title>
   <style>
     body {
-      font-family: Arial, sans-serif;
-      background: #f2f2f2;
+      font-family: "Segoe UI", Arial, sans-serif;
       margin: 0;
-      padding: 0;
+      background: #f8f9fa;
     }
+
     header {
-      background: #006b3f;
+      background: linear-gradient(to right, #ce1126, #fcd116, #006b3f);
       color: white;
       text-align: center;
-      padding: 15px;
-      font-size: 20px;
+      padding: 1.5em 1em;
     }
+
+    h1 {
+      margin: 0;
+      font-size: 2em;
+    }
+
     .container {
-      max-width: 600px;
-      margin: 30px auto;
-      background: white;
-      padding: 20px;
-      border-radius: 10px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      text-align: center;
+      padding: 2em 1em;
     }
-    input, select, button {
-      width: 100%;
+
+    input, select {
       padding: 10px;
-      margin-top: 8px;
+      width: 250px;
       border: 1px solid #ccc;
-      border-radius: 5px;
+      border-radius: 6px;
+      font-size: 1em;
     }
+
     button {
-      background: #006b3f;
+      padding: 10px 18px;
+      background-color: #006b3f;
       color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 1em;
       cursor: pointer;
+      margin-left: 5px;
     }
+
     button:hover {
-      background: #00994c;
+      background-color: #004f2e;
     }
+
     #results {
-      margin-top: 20px;
-      padding: 10px;
+      margin-top: 2em;
+      background: white;
+      width: 90%;
+      max-width: 500px;
+      margin-left: auto;
+      margin-right: auto;
+      padding: 1.5em;
+      border-radius: 12px;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.15);
     }
+
+    .badge {
+      display: inline-block;
+      padding: 6px 10px;
+      border-radius: 8px;
+      color: white;
+      font-weight: bold;
+      font-size: 0.85em;
+    }
+
+    .verified { background-color: #006b3f; }
+    .pending { background-color: #f0ad4e; }
+
     #adminPanel {
-      margin-top: 40px;
-      border-top: 2px solid #ccc;
-      padding-top: 20px;
+      display: none;
+      background: white;
+      width: 90%;
+      max-width: 500px;
+      margin: 2em auto;
+      padding: 1.5em;
+      border-radius: 12px;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.15);
     }
   </style>
 </head>
 <body>
-  <header>NBVS Ghana Dashboard</header>
+  <header>
+    <h1>NBVS Ghana Dashboard</h1>
+  </header>
 
   <div class="container">
-    <h2>Search Citizen Record</h2>
-    <input type="text" id="searchName" placeholder="Enter full name" />
-    <button onclick="searchRecord()">Search</button>
-
+    <h2>Search Records</h2>
+    <input type="text" id="search" placeholder="Enter name..." />
+    <button onclick="searchRecords()">Search</button>
     <div id="results"></div>
-
-    <div id="adminPanel" style="display:none;">
-      <h2>Admin Panel - Add New Record</h2>
-      <input type="text" id="newName" placeholder="Full Name" />
-      <input type="text" id="newID" placeholder="NIA ID Number" />
-      <input type="text" id="newDOB" placeholder="Date of Birth (e.g. 2001-05-21)" />
-      <input type="text" id="newRegion" placeholder="Region" />
-      <input type="text" id="newAddress" placeholder="Address" />
-      <input type="text" id="newCredit" placeholder="Credit Score" />
-      <input type="text" id="newCriminal" placeholder="Criminal Record (Yes/No)" />
-      <input type="text" id="newDriving" placeholder="Driving License (Yes/No)" />
-      <select id="newStatus">
-        <option value="Verified">Verified</option>
-        <option value="Pending">Pending</option>
-      </select>
-      <button onclick="addRecord()">Add Record</button>
-    </div>
   </div>
 
-  <!-- Firebase SDK -->
+  <div id="adminPanel">
+    <h3>Add New Record (Admin)</h3>
+    <input type="text" id="newName" placeholder="Full Name"><br><br>
+    <input type="text" id="newID" placeholder="NIA ID"><br><br>
+    <input type="date" id="newDOB"><br><br>
+    <input type="text" id="newRegion" placeholder="Region"><br><br>
+    <input type="text" id="newCriminal" placeholder="Criminal Record"><br><br>
+    <input type="text" id="newDriving" placeholder="Driving License"><br><br>
+    <input type="text" id="newAddress" placeholder="Address"><br><br>
+    <input type="number" id="newCredit" placeholder="Credit Score"><br><br>
+    <select id="newStatus">
+      <option value="Verified">Verified</option>
+      <option value="Pending">Pending</option>
+    </select><br><br>
+    <button onclick="addRecord()">Add Record</button>
+  </div>
+
+  <footer style="text-align:center; padding:1em; background:#eee;">
+    <button onclick="logout()">Logout</button>
+  </footer>
+
+  <!-- Firebase SDKs -->
   <script src="https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js"></script>
+
   <script>
-    // ✅ Firebase configuration
+    // --- Firebase Config ---
     const firebaseConfig = {
       apiKey: "AIzaSyCDh_qL3jiCMHROK0_Soul2Wsv3t3y4wv0",
       authDomain: "nbvs-ghana.firebaseapp.com",
       projectId: "nbvs-ghana",
       storageBucket: "nbvs-ghana.firebasestorage.app",
       messagingSenderId: "702636577113",
-      appId: "1:702636577113:web:8369b43a2aa43aeb95fc48",
-      measurementId: "G-2FHFSQRMZX"
+      appId: "1:702636577113:web:8369b43a2aa43aeb95fc48"
     };
-
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
-  </script>
 
-  <script>
-    // ✅ Show admin panel if logged in as admin
+    // --- Check admin ---
     const isAdmin = localStorage.getItem("admin") === "true";
     if (isAdmin) {
       document.getElementById("adminPanel").style.display = "block";
     }
 
-    // ✅ Search record
-    async function searchRecord() {
-      const name = document.getElementById("searchName").value.trim();
-      const resultsDiv = document.getElementById("results");
-      resultsDiv.innerHTML = "Searching...";
+    // --- Add record ---
+    async function addRecord() {
+      const newRecord = {
+        name: document.getElementById("newName").value,
+        nia: document.getElementById("newID").value,
+        dob: document.getElementById("newDOB").value,
+        region: document.getElementById("newRegion").value,
+        criminal: document.getElementById("newCriminal").value,
+        driving: document.getElementById("newDriving").value,
+        address: document.getElementById("newAddress").value,
+        credit: document.getElementById("newCredit").value,
+        status: document.getElementById("newStatus").value
+      };
 
-      if (!name) {
-        resultsDiv.innerHTML = "<p style='color:red;'>Please enter a name.</p>";
+      await db.collection("records").add(newRecord);
+      alert("✅ Record added to Firebase!");
+      document.querySelectorAll('#adminPanel input').forEach(i => i.value = "");
+    }
+
+    // --- Search records ---
+    async function searchRecords() {
+      const query = document.getElementById("search").value.toLowerCase().trim();
+      const resultsDiv = document.getElementById("results");
+
+      const snapshot = await db.collection("records").get();
+      const allRecords = snapshot.docs.map(doc => doc.data());
+      const record = allRecords.find(r => r.name.toLowerCase().includes(query));
+
+      if (!record) {
+        resultsDiv.innerHTML = "<p style='color:red;'>No record found.</p>";
         return;
       }
 
-      try {
-        const snapshot = await db.collection("records").where("name", "==", name).get();
-        if (snapshot.empty) {
-          resultsDiv.innerHTML = "<p style='color:red;'>❌ Record not found</p>";
-          return;
-        }
+      const badgeClass = record.status === "Verified" ? "verified" : "pending";
 
-        snapshot.forEach(doc => {
-          const record = doc.data();
-          resultsDiv.innerHTML = `
-            <h3 style="color:#006b3f;">Verification Results</h3>
-            <p><strong>Name:</strong> ${record.name}</p>
-            <p><strong>NIA ID:</strong> ${record.nia}</p>
-            <p><strong>Date of Birth:</strong> ${record.dob}</p>
-            <p><strong>Region:</strong> ${record.region}</p>
-            <p><strong>Address:</strong> ${record.address}</p>
-            <p><strong>Credit Score:</strong> ${record.credit}</p>
-            <p><strong>Status:</strong> <span style="color:${record.status === 'Verified' ? 'green' : 'orange'}">${record.status}</span></p>
-            <p><strong>Criminal Record:</strong> ${record.criminal}</p>
-            <p><strong>Driving License:</strong> ${record.driving}</p>
-          `;
-        });
-      } catch (error) {
-        resultsDiv.innerHTML = `<p style='color:red;'>Error: ${error.message}</p>`;
-      }
+      resultsDiv.innerHTML = `
+        <h3>Verification Results</h3>
+        <span class="badge ${badgeClass}">${record.status}</span>
+        <p><strong>Name:</strong> ${record.name}</p>
+        <p><strong>NIA ID:</strong> ${record.nia}</p>
+        <p><strong>Date of Birth:</strong> ${record.dob}</p>
+        <p><strong>Region:</strong> ${record.region}</p>
+        <p><strong>Criminal Record:</strong> ${record.criminal}</p>
+        <p><strong>Driving License:</strong> ${record.driving}</p>
+        <p><strong>Address:</strong> ${record.address}</p>
+        <p><strong>Credit Score:</strong> ${record.credit}</p>
+      `;
     }
 
-    // ✅ Add new record (admin only)
-    async function addRecord() {
-      const newRecord = {
-        name: document.getElementById("newName").value || "Not available",
-        nia: document.getElementById("newID").value || "Not available",
-        dob: document.getElementById("newDOB").value || "Not available",
-        region: document.getElementById("newRegion").value || "Not available",
-        address: document.getElementById("newAddress").value || "Not available",
-        credit: document.getElementById("newCredit").value || "Not available",
-        criminal: document.getElementById("newCriminal").value || "Not available",
-        driving: document.getElementById("newDriving").value || "Not available",
-        status: document.getElementById("newStatus").value || "Pending"
-      };
-
-      try {
-        await db.collection("records").add(newRecord);
-        alert("✅ Record successfully added to Firebase!");
-        document.querySelectorAll('#adminPanel input').forEach(i => i.value = "");
-      } catch (error) {
-        alert("❌ Failed to add record: " + error.message);
-        console.error(error);
-      }
+    // --- Logout ---
+    function logout() {
+      localStorage.clear();
+      window.location.href = "index.html";
     }
   </script>
 </body>
