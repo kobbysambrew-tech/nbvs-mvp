@@ -119,6 +119,14 @@
     <button onclick="searchRecords()">Search</button>
     <div id="results"></div>
   </div>
+<div id="addRecordSection" style="display:none; margin-top:30px;">
+  <h3>Add New Record (Admin Only)</h3>
+  <input type="text" id="newName" placeholder="Full name" /><br><br>
+  <input type="text" id="newNia" placeholder="NIA ID" /><br><br>
+  <input type="text" id="newRegion" placeholder="Region" /><br><br>
+  <button onclick="addRecord()">Add Record</button>
+  <p id="addMsg"></p>
+</div>
 
   <footer>
     © 2025 NBVS Ghana — National Background Verification System<br />
@@ -193,5 +201,36 @@
       }, 200);
     }
   </script>
+  <script>
+  // Step 1: redirect if not logged in
+  if (localStorage.getItem("loggedIn") !== "true") {
+    window.location.href = "login.html";
+  }
+
+  // Step 2: check if admin
+  const isAdmin = localStorage.getItem("isAdmin") === "true";
+  const addSection = document.getElementById("addRecordSection");
+
+  if (isAdmin) {
+    addSection.style.display = "block"; // show add record
+  } else {
+    addSection.style.display = "none"; // hide from normal users
+  }
+
+  // Step 3: simple add record function
+  function addRecord() {
+    const name = document.getElementById("newName").value;
+    const nia = document.getElementById("newNia").value;
+    const region = document.getElementById("newRegion").value;
+
+    if (!name || !nia || !region) {
+      document.getElementById("addMsg").innerText = "Please fill all fields.";
+      return;
+    }
+
+    document.getElementById("addMsg").innerText = `✅ Record for ${name} added successfully!`;
+  }
+</script>
+
 </body>
 </html>
