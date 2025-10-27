@@ -79,6 +79,10 @@
   </style>
 </head>
 <body>
+   // Redirect to login page if not logged in
+    if (localStorage.getItem("loggedIn") !== "true") {
+      window.location.href = "index.html";
+    }
   <div class="login-box">
     <h1>NBVS Ghana</h1>
     <p>Authorized Access Only</p>
