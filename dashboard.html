@@ -21,17 +21,8 @@
       box-shadow: 0 4px 8px rgba(0,0,0,0.2);
     }
 
-    h1 {
-      margin: 0;
-      font-size: 2em;
-      letter-spacing: 1px;
-    }
-
-    .tagline {
-      font-size: 1.1em;
-      font-style: italic;
-      margin-top: 0.4em;
-    }
+    h1 { margin: 0; font-size: 2em; letter-spacing: 1px; }
+    .tagline { font-size: 1.1em; font-style: italic; margin-top: 0.4em; }
 
     .container {
       text-align: center;
@@ -57,9 +48,7 @@
       margin-left: 5px;
     }
 
-    button:hover {
-      background-color: #004f2e;
-    }
+    button:hover { background-color: #004f2e; }
 
     #results {
       margin-top: 2em;
@@ -84,13 +73,8 @@
       font-size: 0.85em;
     }
 
-    .badge.verified {
-      background-color: #006b3f;
-    }
-
-    .badge.pending {
-      background-color: #f0ad4e;
-    }
+    .badge.verified { background-color: #006b3f; }
+    .badge.pending { background-color: #f0ad4e; }
 
     footer {
       margin-top: 3em;
@@ -101,10 +85,7 @@
       color: #333;
     }
 
-    a {
-      color: #006b3f;
-      text-decoration: none;
-    }
+    a { color: #006b3f; text-decoration: none; }
   </style>
 </head>
 <body>
@@ -120,17 +101,16 @@
     <div id="results"></div>
   </div>
 
-  <!-- ADMIN PANEL -->
-  <div id="adminPanel" style="display:none; text-align:center; margin-top:2em;">
+  <div id="adminPanel" style="display:none;">
     <h3>Add New Record</h3>
     <input type="text" id="newName" placeholder="Full name" /><br><br>
     <input type="text" id="newID" placeholder="NIA ID (e.g., TEST-GHA-0001001)" /><br><br>
-    <input type="date" id="newDOB" placeholder="Date of Birth" /><br><br>
+    <input type="date" id="newDOB" /><br><br>
     <input type="text" id="newRegion" placeholder="Region" /><br><br>
     <input type="text" id="newCriminal" placeholder="Criminal Record" /><br><br>
     <input type="text" id="newDriving" placeholder="Driving License" /><br><br>
     <input type="text" id="newAddress" placeholder="Address" /><br><br>
-    <input type="number" id="newCredit" placeholder="Credit Score (e.g., 700)" /><br><br>
+    <input type="number" id="newCredit" placeholder="Credit Score" /><br><br>
     <select id="newStatus">
       <option value="Verified">Verified</option>
       <option value="Pending">Pending</option>
@@ -143,12 +123,12 @@
     📧 <a href="mailto:nbvsghana@nbvsghana.com">nbvsghana@nbvsghana.com</a>
   </footer>
 
-  <!-- ✅ Firebase SDK (browser-safe version) -->
+  <!-- Firebase SDKs -->
   <script src="https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js"></script>
 
   <script>
-    // ✅ Initialize Firebase
+    // Initialize Firebase
     const firebaseConfig = {
       apiKey: "AIzaSyCDh_qL3jiCMHROK0_Soul2Wsv3t3y4wv0",
       authDomain: "nbvs-ghana.firebaseapp.com",
@@ -162,7 +142,7 @@
     const app = firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    // ✅ Search function
+    // Search function
     async function searchRecords() {
       const query = document.getElementById("search").value.toLowerCase().trim();
       const resultsDiv = document.getElementById("results");
@@ -172,12 +152,11 @@
       const record = allRecords.find(r => r.name.toLowerCase().includes(query));
 
       if (!record) {
-        resultsDiv.innerHTML = "<p style='color:red;'>System not found.</p>";
+        resultsDiv.innerHTML = "<p style='color:red;'>Record not found.</p>";
         return;
       }
 
       const badgeClass = record.status === "Verified" ? "verified" : "pending";
-
       resultsDiv.innerHTML = `
         <h3 style="color:#006b3f;">Verification Results</h3>
         <span class="badge ${badgeClass}">${record.status}</span>
@@ -192,7 +171,7 @@
       `;
     }
 
-    // ✅ Add new record (Admin)
+    // Add new record
     async function addRecord() {
       const newRecord = {
         name: document.getElementById("newName").value || "Not available",
@@ -207,12 +186,11 @@
       };
 
       await db.collection("records").add(newRecord);
-      alert("✅ Record added successfully to Firebase!");
-
+      alert("✅ Record successfully added to Firebase!");
       document.querySelectorAll('#adminPanel input').forEach(i => i.value = "");
     }
 
-    // ✅ Show admin panel only for admins
+    // Show admin panel if logged in
     window.onload = () => {
       if (localStorage.getItem("isAdmin") === "true") {
         document.getElementById("adminPanel").style.display = "block";
