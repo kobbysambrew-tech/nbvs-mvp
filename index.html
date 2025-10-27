@@ -78,11 +78,38 @@
     }
   </style>
 </head>
+  <style>
+  #logout-container {
+    position: fixed;
+    top: 15px;
+    right: 20px;
+  }
+
+  #logout-btn {
+    background-color: #d62828;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 8px 14px;
+    font-size: 0.9em;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+  }
+
+  #logout-btn:hover {
+    background-color: #a71d1d;
+  }
+</style>
+
 <body>
    // Redirect to login page if not logged in
     if (localStorage.getItem("loggedIn") !== "true") {
       window.location.href = "index.html";
     }
+  <div id="logout-container">
+  <button id="logout-btn" onclick="logout()">Logout</button>
+</div>
+
   <div class="login-box">
     <h1>NBVS Ghana</h1>
     <p>Authorized Access Only</p>
@@ -118,6 +145,11 @@
         errorDiv.textContent = "Invalid credentials. Try again.";
       }
     }
+    function logout() {
+  localStorage.removeItem("loggedIn");
+  window.location.href = "index.html";
+}
+
   </script>
 </body>
 </html>
