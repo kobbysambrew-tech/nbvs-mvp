@@ -119,170 +119,105 @@
     <button onclick="searchRecords()">Search</button>
     <div id="results"></div>
   </div>
-<div id="adminPanel" style="display:none;">
-  <h3>Add New Record</h3>
 
-  <input type="text" id="newName" placeholder="Full name" /><br><br>
-  <input type="text" id="newID" placeholder="NIA ID (e.g., TEST-GHA-0001001)" /><br><br>
-  <input type="date" id="newDOB" placeholder="Date of Birth" /><br><br>
-  <input type="text" id="newRegion" placeholder="Region" /><br><br>
-  <input type="text" id="newCriminal" placeholder="Criminal Record (e.g., None, Under Review)" /><br><br>
-  <input type="text" id="newDriving" placeholder="Driving License (e.g., Valid, Suspended)" /><br><br>
-  <input type="text" id="newAddress" placeholder="Address" /><br><br>
-  <input type="number" id="newCredit" placeholder="Credit Score (e.g., 700)" /><br><br>
-
-  <select id="newStatus">
-    <option value="Verified">Verified</option>
-    <option value="Pending">Pending</option>
-  </select><br><br>
-
-  <button onclick="addRecord()">Add Record</button>
-</div>
-
+  <!-- ADMIN PANEL -->
+  <div id="adminPanel" style="display:none; text-align:center; margin-top:2em;">
+    <h3>Add New Record</h3>
+    <input type="text" id="newName" placeholder="Full name" /><br><br>
+    <input type="text" id="newID" placeholder="NIA ID (e.g., TEST-GHA-0001001)" /><br><br>
+    <input type="date" id="newDOB" placeholder="Date of Birth" /><br><br>
+    <input type="text" id="newRegion" placeholder="Region" /><br><br>
+    <input type="text" id="newCriminal" placeholder="Criminal Record" /><br><br>
+    <input type="text" id="newDriving" placeholder="Driving License" /><br><br>
+    <input type="text" id="newAddress" placeholder="Address" /><br><br>
+    <input type="number" id="newCredit" placeholder="Credit Score (e.g., 700)" /><br><br>
+    <select id="newStatus">
+      <option value="Verified">Verified</option>
+      <option value="Pending">Pending</option>
+    </select><br><br>
+    <button onclick="addRecord()">Add Record</button>
+  </div>
 
   <footer>
     © 2025 NBVS Ghana — National Background Verification System<br />
     📧 <a href="mailto:nbvsghana@nbvsghana.com">nbvsghana@nbvsghana.com</a>
   </footer>
-  <!-- Firebase SDKs -->
-<script src="https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js"></script>
 
-  // Import the functions you need from the SDKs you need
-import { initializeApp } from "firebase/app";
-import { getAnalytics } from "firebase/analytics";
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
+  <!-- ✅ Firebase SDK (browser-safe version) -->
+  <script src="https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js"></script>
 
-// Your web app's Firebase configuration
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
-const firebaseConfig = {
-  apiKey: "AIzaSyCDh_qL3jiCMHROK0_Soul2Wsv3t3y4wv0",
-  authDomain: "nbvs-ghana.firebaseapp.com",
-  projectId: "nbvs-ghana",
-  storageBucket: "nbvs-ghana.firebasestorage.app",
-  messagingSenderId: "702636577113",
-  appId: "1:702636577113:web:8369b43a2aa43aeb95fc48",
-  measurementId: "G-2FHFSQRMZX"
-};
+  <script>
+    // ✅ Initialize Firebase
+    const firebaseConfig = {
+      apiKey: "AIzaSyCDh_qL3jiCMHROK0_Soul2Wsv3t3y4wv0",
+      authDomain: "nbvs-ghana.firebaseapp.com",
+      projectId: "nbvs-ghana",
+      storageBucket: "nbvs-ghana.firebasestorage.app",
+      messagingSenderId: "702636577113",
+      appId: "1:702636577113:web:8369b43a2aa43aeb95fc48",
+      measurementId: "G-2FHFSQRMZX"
+    };
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
-  const app = firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
+    const app = firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
 
-<script>
-  // --- Step 1: Load saved data or use defaults ---
-  let records = JSON.parse(localStorage.getItem("nbvsRecords")) || [
-    {
-      name: "Ama Serwaa",
-      nia: "GHA-2039485",
-      dob: "1994-07-12",
-      region: "Greater Accra",
-      status: "Verified",
-      criminal: "Clean",
-      driving: "Valid",
-      address: "Accra, Ghana",
-      credit: "750"
-    },
-    {
-      name: "Kofi Mensah",
-      nia: "GHA-3948571",
-      dob: "1990-03-21",
-      region: "Ashanti",
-      status: "Verified",
-      criminal: "Clean",
-      driving: "Suspended (Minor offense)",
-      address: "Kumasi, Ghana",
-      credit: "710"
-    },
-    {
-      name: "Abena Owusu",
-      nia: "GHA-9384756",
-      dob: "1988-09-10",
-      region: "Western",
-      status: "Pending",
-      criminal: "Under Review",
-      driving: "Valid",
-      address: "Takoradi, Ghana",
-      credit: "680"
+    // ✅ Search function
+    async function searchRecords() {
+      const query = document.getElementById("search").value.toLowerCase().trim();
+      const resultsDiv = document.getElementById("results");
+
+      const snapshot = await db.collection("records").get();
+      const allRecords = snapshot.docs.map(doc => doc.data());
+      const record = allRecords.find(r => r.name.toLowerCase().includes(query));
+
+      if (!record) {
+        resultsDiv.innerHTML = "<p style='color:red;'>System not found.</p>";
+        return;
+      }
+
+      const badgeClass = record.status === "Verified" ? "verified" : "pending";
+
+      resultsDiv.innerHTML = `
+        <h3 style="color:#006b3f;">Verification Results</h3>
+        <span class="badge ${badgeClass}">${record.status}</span>
+        <p><strong>Name:</strong> ${record.name}</p>
+        <p><strong>NIA ID:</strong> ${record.nia}</p>
+        <p><strong>Date of Birth:</strong> ${record.dob}</p>
+        <p><strong>Region:</strong> ${record.region}</p>
+        <p><strong>Criminal Record:</strong> ${record.criminal}</p>
+        <p><strong>Driving License:</strong> ${record.driving}</p>
+        <p><strong>Address:</strong> ${record.address}</p>
+        <p><strong>Credit Score:</strong> ${record.credit}</p>
+      `;
     }
-  ];
 
-  // --- Step 2: Save data ---
-  function saveRecords() {
-    localStorage.setItem("nbvsRecords", JSON.stringify(records));
-  }
+    // ✅ Add new record (Admin)
+    async function addRecord() {
+      const newRecord = {
+        name: document.getElementById("newName").value || "Not available",
+        nia: document.getElementById("newID").value || "Not available",
+        dob: document.getElementById("newDOB").value || "Not available",
+        region: document.getElementById("newRegion").value || "Not available",
+        criminal: document.getElementById("newCriminal").value || "Not available",
+        driving: document.getElementById("newDriving").value || "Not available",
+        address: document.getElementById("newAddress").value || "Not available",
+        credit: document.getElementById("newCredit").value || "Not available",
+        status: document.getElementById("newStatus").value || "Pending"
+      };
 
-  // --- Step 3: Search system ---
- async function searchRecords() {
-  const query = document.getElementById("search").value.toLowerCase().trim();
-  const resultsDiv = document.getElementById("results");
+      await db.collection("records").add(newRecord);
+      alert("✅ Record added successfully to Firebase!");
 
-  const snapshot = await db.collection("records").get();
-  const allRecords = snapshot.docs.map(doc => doc.data());
-  const record = allRecords.find(r => r.name.toLowerCase().includes(query));
-
-  if (!record) {
-    resultsDiv.innerHTML = "<p style='color:red;'>System not found.</p>";
-    return;
-  }
-
-  const badgeClass = record.status === "Verified" ? "verified" : "pending";
-
-  resultsDiv.innerHTML = `
-    <h3 style="color:#006b3f;">Verification Results</h3>
-    <span class="badge ${badgeClass}">${record.status}</span>
-    <p><strong>Name:</strong> ${record.name}</p>
-    <p><strong>NIA ID:</strong> ${record.nia}</p>
-    <p><strong>Date of Birth:</strong> ${record.dob}</p>
-    <p><strong>Region:</strong> ${record.region}</p>
-    <p><strong>Criminal Record:</strong> ${record.criminal}</p>
-    <p><strong>Driving License:</strong> ${record.driving}</p>
-    <p><strong>Address:</strong> ${record.address}</p>
-    <p><strong>Credit Score:</strong> ${record.credit}</p>
-  `;
-}
-
-
-  // --- Step 4: Admin add record ---
-  async function addRecord() {
-  const newRecord = {
-    name: document.getElementById("newName").value || "Not available",
-    nia: document.getElementById("newID").value || "Not available",
-    dob: document.getElementById("newDOB").value || "Not available",
-    region: document.getElementById("newRegion").value || "Not available",
-    criminal: document.getElementById("newCriminal").value || "Not available",
-    driving: document.getElementById("newDriving").value || "Not available",
-    address: document.getElementById("newAddress").value || "Not available",
-    credit: document.getElementById("newCredit").value || "Not available",
-    status: document.getElementById("newStatus").value || "Pending"
-  };
-
-  await db.collection("records").add(newRecord);
-  alert("✅ Record added to Firebase!");
-  document.querySelectorAll('#adminPanel input').forEach(i => i.value = "");
-}
-
-
-    records.push(newRecord);
-    saveRecords();
-    alert("✅ Record added successfully!");
-    document.querySelectorAll('#adminPanel input').forEach(i => i.value = "");
-  }
-
-  // --- Step 5: Show admin panel if admin logged in ---
-  window.onload = () => {
-    if (localStorage.getItem("isAdmin") === "true") {
-      document.getElementById("adminPanel").style.display = "block";
+      document.querySelectorAll('#adminPanel input').forEach(i => i.value = "");
     }
-  };
-</script>
 
-
-  
-</script>
-
+    // ✅ Show admin panel only for admins
+    window.onload = () => {
+      if (localStorage.getItem("isAdmin") === "true") {
+        document.getElementById("adminPanel").style.display = "block";
+      }
+    };
+  </script>
 </body>
 </html>
