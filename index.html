@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -6,112 +7,67 @@
   <title>NBVS Ghana - Login</title>
   <style>
     body {
-      font-family: "Segoe UI", Arial, sans-serif;
-      background: linear-gradient(to bottom right, #ce1126, #fcd116, #006b3f);
-      color: white;
+      font-family: Arial, sans-serif;
+      background: #f0f0f0;
       display: flex;
       justify-content: center;
       align-items: center;
       height: 100vh;
-      margin: 0;
     }
-
     .login-box {
       background: white;
-      color: #333;
-      padding: 2em;
-      border-radius: 12px;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
       text-align: center;
       width: 300px;
     }
-
-    h2 {
-      color: #006b3f;
-    }
-
-    input {
+    input, button, label {
       width: 100%;
       padding: 10px;
       margin-top: 10px;
-      border: 1px solid #ccc;
-      border-radius: 6px;
     }
-
-    label {
-      display: block;
-      margin-top: 10px;
-      font-size: 0.9em;
-    }
-
     button {
-      width: 100%;
-      margin-top: 15px;
-      padding: 10px;
-      background-color: #006b3f;
+      background: #006b3f;
       color: white;
       border: none;
-      border-radius: 6px;
+      border-radius: 5px;
       cursor: pointer;
-      font-size: 1em;
     }
-
     button:hover {
-      background-color: #004f2e;
-    }
-
-    footer {
-      margin-top: 15px;
-      font-size: 0.8em;
-      color: #555;
-    }
-
-    a {
-      color: #006b3f;
-      text-decoration: none;
+      background: #00994c;
     }
   </style>
 </head>
 <body>
   <div class="login-box">
-    <h2>NBVS Ghana</h2>
-    <p>National Background Verification System</p>
-
-    <form id="loginForm">
-      <input type="email" id="email" placeholder="Email" required /><br>
-      <input type="password" id="password" placeholder="Password" required /><br>
-
-      <!-- ✅ Admin checkbox goes here -->
-      <label>
-        <input type="checkbox" id="adminCheck" />
-        Login as admin
-      </label>
-
-      <button type="submit">Login</button>
-    </form>
-
-    <footer>
-      📧 <a href="mailto:nbvsghana@nbvsghana.com">nbvsghana@nbvsghana.com</a>
-    </footer>
+    <h2>NBVS Ghana Login</h2>
+    <input type="text" id="username" placeholder="Username" />
+    <input type="password" id="password" placeholder="Password" />
+    <label>
+      <input type="checkbox" id="adminCheck" /> Login as admin
+    </label>
+    <button onclick="login()">Login</button>
+    <p id="error" style="color:red;"></p>
   </div>
 
   <script>
-    document.getElementById("loginForm").addEventListener("submit", function(event) {
-      event.preventDefault();
-
-      const email = document.getElementById("email").value;
-      const password = document.getElementById("password").value;
+    function login() {
+      const user = document.getElementById("username").value;
+      const pass = document.getElementById("password").value;
       const isAdmin = document.getElementById("adminCheck").checked;
+      const error = document.getElementById("error");
 
-      if (email && password) {
-        localStorage.setItem("loggedIn", "true");
-        localStorage.setItem("userEmail", email);
-        localStorage.setItem("isAdmin", isAdmin ? "true" : "false");
+      if (user === "nbvsadmin" && pass === "ghana2025" && isAdmin) {
+        localStorage.setItem("admin", "true");
+        window.location.href = "dashboard.html";
+      } else if (user && pass) {
+        localStorage.setItem("admin", "false");
         window.location.href = "dashboard.html";
       } else {
-        alert("Please fill in all fields");
+        error.textContent = "Please enter valid credentials";
       }
-    });
+    }
   </script>
 </body>
 </html>
