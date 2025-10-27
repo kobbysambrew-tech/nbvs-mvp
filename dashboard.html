@@ -119,14 +119,26 @@
     <button onclick="searchRecords()">Search</button>
     <div id="results"></div>
   </div>
-<div id="addRecordSection" style="display:none; margin-top:30px;">
-  <h3>Add New Record (Admin Only)</h3>
+<div id="adminPanel" style="display:none;">
+  <h3>Add New Record</h3>
+
   <input type="text" id="newName" placeholder="Full name" /><br><br>
-  <input type="text" id="newNia" placeholder="NIA ID" /><br><br>
+  <input type="text" id="newID" placeholder="NIA ID (e.g., TEST-GHA-0001001)" /><br><br>
+  <input type="date" id="newDOB" placeholder="Date of Birth" /><br><br>
   <input type="text" id="newRegion" placeholder="Region" /><br><br>
+  <input type="text" id="newCriminal" placeholder="Criminal Record (e.g., None, Under Review)" /><br><br>
+  <input type="text" id="newDriving" placeholder="Driving License (e.g., Valid, Suspended)" /><br><br>
+  <input type="text" id="newAddress" placeholder="Address" /><br><br>
+  <input type="number" id="newCredit" placeholder="Credit Score (e.g., 700)" /><br><br>
+
+  <select id="newStatus">
+    <option value="Verified">Verified</option>
+    <option value="Pending">Pending</option>
+  </select><br><br>
+
   <button onclick="addRecord()">Add Record</button>
-  <p id="addMsg"></p>
 </div>
+
 
   <footer>
     © 2025 NBVS Ghana — National Background Verification System<br />
