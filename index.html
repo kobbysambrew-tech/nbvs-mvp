@@ -3,154 +3,115 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>NBVS Ghana - Secure Login</title>
+  <title>NBVS Ghana - Login</title>
   <style>
     body {
       font-family: "Segoe UI", Arial, sans-serif;
-      background: linear-gradient(to bottom, #006b3f, #fcd116);
-      height: 100vh;
-      margin: 0;
+      background: linear-gradient(to bottom right, #ce1126, #fcd116, #006b3f);
+      color: white;
       display: flex;
       justify-content: center;
       align-items: center;
-      color: #333;
+      height: 100vh;
+      margin: 0;
     }
 
     .login-box {
       background: white;
+      color: #333;
       padding: 2em;
       border-radius: 12px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-      width: 90%;
-      max-width: 350px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
       text-align: center;
+      width: 300px;
     }
 
-    .login-box h1 {
+    h2 {
       color: #006b3f;
-      font-size: 1.8em;
-      margin-bottom: 0.5em;
-    }
-
-    .login-box p {
-      color: #555;
-      font-size: 0.9em;
-      margin-bottom: 1.5em;
     }
 
     input {
       width: 100%;
       padding: 10px;
-      margin-bottom: 1em;
+      margin-top: 10px;
       border: 1px solid #ccc;
       border-radius: 6px;
-      font-size: 1em;
+    }
+
+    label {
+      display: block;
+      margin-top: 10px;
+      font-size: 0.9em;
     }
 
     button {
       width: 100%;
+      margin-top: 15px;
+      padding: 10px;
       background-color: #006b3f;
       color: white;
       border: none;
       border-radius: 6px;
-      padding: 10px;
-      font-size: 1em;
       cursor: pointer;
+      font-size: 1em;
     }
 
     button:hover {
       background-color: #004f2e;
     }
 
-    .error {
-      color: red;
-      font-size: 0.9em;
-      margin-top: 0.5em;
+    footer {
+      margin-top: 15px;
+      font-size: 0.8em;
+      color: #555;
     }
 
-    footer {
-      position: absolute;
-      bottom: 10px;
-      text-align: center;
-      width: 100%;
-      font-size: 0.85em;
-      color: white;
+    a {
+      color: #006b3f;
+      text-decoration: none;
     }
   </style>
 </head>
-  <style>
-  #logout-container {
-    position: fixed;
-    top: 15px;
-    right: 20px;
-  }
-
-  #logout-btn {
-    background-color: #d62828;
-    color: white;
-    border: none;
-    border-radius: 6px;
-    padding: 8px 14px;
-    font-size: 0.9em;
-    cursor: pointer;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
-  }
-
-  #logout-btn:hover {
-    background-color: #a71d1d;
-  }
-</style>
-<script>
 <body>
-   // Redirect to login page if not logged in
-    if (localStorage.getItem("loggedIn") !== "true") {
-      window.location.href = "index.html";
-    }
-  </script>
-  <div id="logout-container">
-  <button id="logout-btn" onclick="logout()">Logout</button>
-</div>
-
   <div class="login-box">
-    <h1>NBVS Ghana</h1>
-    <p>Authorized Access Only</p>
-    <input type="email" id="email" placeholder="Email address" />
-    <input type="password" id="password" placeholder="Password" />
-    <button onclick="login()">Login</button>
-    <div class="error" id="error"></div>
+    <h2>NBVS Ghana</h2>
+    <p>National Background Verification System</p>
+
+    <form id="loginForm">
+      <input type="email" id="email" placeholder="Email" required /><br>
+      <input type="password" id="password" placeholder="Password" required /><br>
+
+      <!-- ✅ Admin checkbox goes here -->
+      <label>
+        <input type="checkbox" id="adminCheck" />
+        Login as admin
+      </label>
+
+      <button type="submit">Login</button>
+    </form>
+
+    <footer>
+      📧 <a href="mailto:nbvsghana@nbvsghana.com">nbvsghana@nbvsghana.com</a>
+    </footer>
   </div>
 
-  <footer>
-    © 2025 NBVS Ghana — National Background Verification System
-  </footer>
-
   <script>
-    // ✅ Check if user already logged in
-    if (localStorage.getItem("loggedIn") === "true") {
-      window.location.href = "portal.html";
-    }
+    document.getElementById("loginForm").addEventListener("submit", function(event) {
+      event.preventDefault();
 
-    function login() {
-      const email = document.getElementById("email").value.trim();
-      const password = document.getElementById("password").value.trim();
-      const errorDiv = document.getElementById("error");
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
+      const isAdmin = document.getElementById("adminCheck").checked;
 
-      const demoEmail = "admin@nbvsghana.com";
-      const demoPassword = "nbvs123";
-
-      if (email === demoEmail && password === demoPassword) {
-        // Save session
+      if (email && password) {
         localStorage.setItem("loggedIn", "true");
-        window.location.href = "portal.html";
+        localStorage.setItem("userEmail", email);
+        localStorage.setItem("isAdmin", isAdmin ? "true" : "false");
+        window.location.href = "dashboard.html";
       } else {
-        errorDiv.textContent = "Invalid credentials. Try again.";
+        alert("Please fill in all fields");
       }
-    }
-    function logout() {
-  localStorage.removeItem("loggedIn");
-  window.location.href = "index.html";
-}
-
+    });
   </script>
 </body>
 </html>
