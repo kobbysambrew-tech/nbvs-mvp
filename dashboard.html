@@ -103,33 +103,70 @@
   </main>
 
   <script>
-    const form = document.getElementById("verificationForm");
-    const resultsDiv = document.getElementById("results");
+  const form = document.getElementById("verificationForm");
+  const resultsDiv = document.getElementById("results");
 
-    const mockData = [
-      {
-        name: "Kofi Mensah",
-        nia: "GHA-4592039485",
-        criminal: "None",
-        driving: "Valid (Expires: 2027)"
-      },
-      {
-        name: "Ama Serwaa",
-        nia: "GHA-2094830291",
-        criminal: "None",
-        driving: "Suspended (Reinstatement Pending)"
-      },
-      {
-        name: "Kwame Boateng",
-        nia: "GHA-1293847563",
-        criminal: "1 Record Found (Minor Traffic Violation)",
-        driving: "Valid (Expires: 2026)"
-      }
-    ];
+  const mockData = [
+    {
+      name: "Kofi Mensah",
+      nia: "GHA-4592039485",
+      dob: "12 May 1991",
+      region: "Greater Accra",
+      status: "Verified",
+      criminal: "None",
+      driving: "Valid (Expires: 2027)"
+    },
+    {
+      name: "Ama Serwaa",
+      nia: "GHA-2094830291",
+      dob: "3 Feb 1989",
+      region: "Ashanti",
+      status: "Verified",
+      criminal: "None",
+      driving: "Suspended (Reinstatement Pending)"
+    },
+    {
+      name: "Kwame Boateng",
+      nia: "GHA-1293847563",
+      dob: "19 Nov 1993",
+      region: "Eastern Region",
+      status: "Pending Review",
+      criminal: "1 Record Found (Minor Traffic Violation)",
+      driving: "Valid (Expires: 2026)"
+    },
+    {
+      name: "Akua Nyarko",
+      nia: "GHA-8839201045",
+      dob: "7 Jul 1995",
+      region: "Northern Region",
+      status: "Verified",
+      criminal: "None",
+      driving: "Valid (Expires: 2028)"
+    }
+  ];
 
-    form.addEventListener("submit", (e) => {
-      e.preventDefault();
-      const searchTerm = document.getElementById("searchInput").value.toLowerCase();
+  const loadingDiv = document.createElement("div");
+  loadingDiv.textContent = "Verifying records...";
+  loadingDiv.style = `
+    text-align: center;
+    margin-top: 1rem;
+    color: #555;
+    font-style: italic;
+  `;
+
+  form.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const searchTerm = document.getElementById("searchInput").value.toLowerCase();
+
+    // Clear old results
+    resultsDiv.classList.add("hidden");
+    if (!document.body.contains(loadingDiv)) {
+      form.insertAdjacentElement("afterend", loadingDiv);
+    }
+
+    // Simulate loading delay
+    setTimeout(() => {
+      loadingDiv.remove();
       const record = mockData.find(
         (r) => r.name.toLowerCase().includes(searchTerm) || r.nia.includes(searchTerm)
       );
@@ -139,15 +176,29 @@
         document.getElementById("nia").textContent = record.nia;
         document.getElementById("criminal").textContent = record.criminal;
         document.getElementById("driving").textContent = record.driving;
+
+        // Add new fields dynamically
+        resultsDiv.innerHTML = `
+          <h3 style="color:#006b3f;">Verification Results</h3>
+          <p><strong>Name:</strong> ${record.name}</p>
+          <p><strong>NIA ID:</strong> ${record.nia}</p>
+          <p><strong>Date of Birth:</strong> ${record.dob}</p>
+          <p><strong>Region:</strong> ${record.region}</p>
+          <p><strong>Status:</strong> <span style="color:${record.status === 'Verified' ? 'green' : 'orange'}">${record.status}</span></p>
+          <p><strong>Criminal Record:</strong> ${record.criminal}</p>
+          <p><strong>Driving License:</strong> ${record.driving}</p>
+        `;
         resultsDiv.classList.remove("hidden");
       } else {
+        resultsDiv.innerHTML = `
+          <h3 style="color:red;">No Record Found</h3>
+          <p>No matching citizen record exists in the system.</p>
+        `;
         resultsDiv.classList.remove("hidden");
-        document.getElementById("name").textContent = "No record found";
-        document.getElementById("nia").textContent = "-";
-        document.getElementById("criminal").textContent = "-";
-        document.getElementById("driving").textContent = "-";
       }
-    });
-  </script>
+    }, 1500);
+  });
+</script>
+
 </body>
 </html>
