@@ -137,4 +137,4 @@ async function addSampleData() {
   alert("✅ Sample records added!");
 }
 // Uncomment next line once to add them automatically, then re-comment it:
-// addSampleData();
+ addSampleData();
