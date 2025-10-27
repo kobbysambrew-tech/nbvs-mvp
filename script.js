@@ -1,8 +1,10 @@
-// Firebase SDK imports
+// ✅ Import Firebase modules
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-app.js";
-import { getFirestore, collection, addDoc, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-firestore.js";
+import { 
+  getFirestore, collection, addDoc, getDocs, query, where 
+} from "https://www.gstatic.com/firebasejs/10.7.2/firebase-firestore.js";
 
-// Your Firebase config
+// ✅ Firebase configuration
 const firebaseConfig = {
   apiKey: "AIzaSyCDh_qL3jiCMHROK0_Soul2Wsv3t3y4wv0",
   authDomain: "nbvs-ghana.firebaseapp.com",
@@ -13,66 +15,126 @@ const firebaseConfig = {
   measurementId: "G-2FHFSQRMZX"
 };
 
-// Initialize Firebase
+// ✅ Initialize Firebase + Firestore
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-// Make admin panel always visible for now (for testing)
-document.getElementById("adminPanel").style.display = "block";
-
-// Add record to Firestore
+// ✅ Add a new record to Firestore
 document.getElementById("addRecordBtn").addEventListener("click", async () => {
-  const name = document.getElementById("name").value;
-  const nia = document.getElementById("nia").value;
-  const dob = document.getElementById("dob").value;
-  const region = document.getElementById("region").value;
-  const status = document.getElementById("status").value;
-  const criminal = document.getElementById("criminal").value;
-  const driving = document.getElementById("driving").value;
+  const newRecord = {
+    name: document.getElementById("name").value.trim(),
+    nia: document.getElementById("nia").value.trim(),
+    dob: document.getElementById("dob").value.trim(),
+    region: document.getElementById("region").value.trim(),
+    criminal: document.getElementById("criminal").value.trim(),
+    driving: document.getElementById("driving").value.trim(),
+    address: document.getElementById("address").value.trim(),
+    credit: document.getElementById("credit").value.trim(),
+    status: document.getElementById("status").value.trim(),
+  };
+
+  if (!newRecord.name) {
+    alert("⚠️ Please enter a name before saving!");
+    return;
+  }
 
   try {
-    await addDoc(collection(db, "records"), {
-      name, nia, dob, region, status, criminal, driving
-    });
-    alert("✅ Record added successfully!");
+    await addDoc(collection(db, "records"), newRecord);
+    alert("✅ Record saved successfully!");
+    document.querySelectorAll("input").forEach(input => input.value = "");
   } catch (error) {
-    console.error("Error adding record: ", error);
-    alert("❌ Failed to add record.");
+    console.error("Error adding record:", error);
+    alert("❌ Failed to save record.");
   }
 });
 
-// Search for a record
+// ✅ Search records (case-insensitive)
 document.getElementById("searchBtn").addEventListener("click", async () => {
-  const searchValue = document.getElementById("searchInput").value.trim();
+  const searchValue = document.getElementById("searchInput").value.trim().toLowerCase();
   const resultsDiv = document.getElementById("results");
-  resultsDiv.innerHTML = "Searching...";
+
+  if (!searchValue) {
+    resultsDiv.innerHTML = "<p>⚠️ Please enter a name to search.</p>";
+    return;
+  }
+
+  resultsDiv.innerHTML = "<p>Searching...</p>";
 
   try {
-    const q = query(collection(db, "records"), where("name", "==", searchValue));
-    const querySnapshot = await getDocs(q);
+    const snapshot = await getDocs(collection(db, "records"));
+    const records = snapshot.docs.map(doc => doc.data());
 
-    if (querySnapshot.empty) {
-      resultsDiv.innerHTML = "<p>❌ No record found.</p>";
+    // Find record by partial match
+    const found = records.filter(r => 
+      r.name && r.name.toLowerCase().includes(searchValue)
+    );
+
+    if (found.length === 0) {
+      resultsDiv.innerHTML = "<p>❌ No records found.</p>";
       return;
     }
 
-    resultsDiv.innerHTML = "";
-    querySnapshot.forEach((doc) => {
-      const r = doc.data();
-      resultsDiv.innerHTML += `
-        <div class="record">
-          <h3>${r.name}</h3>
-          <p><strong>NIA ID:</strong> ${r.nia}</p>
-          <p><strong>Date of Birth:</strong> ${r.dob}</p>
-          <p><strong>Region:</strong> ${r.region}</p>
-          <p><strong>Status:</strong> ${r.status}</p>
-          <p><strong>Criminal Record:</strong> ${r.criminal}</p>
-          <p><strong>Driving License:</strong> ${r.driving}</p>
-        </div>
-      `;
-    });
+    resultsDiv.innerHTML = found.map(r => `
+      <div class="record">
+        <h3>${r.name}</h3>
+        <p><strong>NIA ID:</strong> ${r.nia || "N/A"}</p>
+        <p><strong>DOB:</strong> ${r.dob || "N/A"}</p>
+        <p><strong>Region:</strong> ${r.region || "N/A"}</p>
+        <p><strong>Criminal Record:</strong> ${r.criminal || "N/A"}</p>
+        <p><strong>Driving License:</strong> ${r.driving || "N/A"}</p>
+        <p><strong>Address:</strong> ${r.address || "N/A"}</p>
+        <p><strong>Credit Score:</strong> ${r.credit || "N/A"}</p>
+        <span class="badge ${r.status}">${r.status}</span>
+      </div>
+    `).join("");
   } catch (error) {
-    console.error("Error fetching records: ", error);
-    resultsDiv.innerHTML = "<p>⚠️ Error fetching data.</p>";
+    console.error("Error fetching records:", error);
+    resultsDiv.innerHTML = "<p>⚠️ Error fetching data from Firebase.</p>";
   }
 });
+
+// ✅ Add sample records once (optional)
+async function addSampleData() {
+  const samples = [
+    {
+      name: "Ama Serwaa",
+      nia: "GHA-2039485",
+      dob: "1994-07-12",
+      region: "Greater Accra",
+      status: "Verified",
+      criminal: "Clean",
+      driving: "Valid",
+      address: "Accra, Ghana",
+      credit: "750"
+    },
+    {
+      name: "Kofi Mensah",
+      nia: "GHA-3948571",
+      dob: "1990-03-21",
+      region: "Ashanti",
+      status: "Verified",
+      criminal: "Clean",
+      driving: "Suspended (Minor offense)",
+      address: "Kumasi, Ghana",
+      credit: "710"
+    },
+    {
+      name: "Abena Owusu",
+      nia: "GHA-9384756",
+      dob: "1988-09-10",
+      region: "Western",
+      status: "Pending",
+      criminal: "Under Review",
+      driving: "Valid",
+      address: "Takoradi, Ghana",
+      credit: "680"
+    }
+  ];
+
+  for (const record of samples) {
+    await addDoc(collection(db, "records"), record);
+  }
+  alert("✅ Sample records added!");
+}
+// Uncomment next line once to add them automatically, then re-comment it:
+// addSampleData();
