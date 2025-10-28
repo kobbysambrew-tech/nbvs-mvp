@@ -22,7 +22,7 @@
 
     main {
       padding: 2em;
-      max-width: 850px;
+      max-width: 950px;
       margin: auto;
     }
 
@@ -77,6 +77,32 @@
       background: #f9f9f9;
       border-radius: 6px;
     }
+
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1em;
+    }
+
+    .card {
+      background: #fdfdfd;
+      padding: 1em;
+      border-radius: 8px;
+      text-align: center;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+
+    .card h3 {
+      margin: 0;
+      font-size: 1.3em;
+    }
+
+    .card p {
+      font-size: 2em;
+      margin: 10px 0 0 0;
+      color: #006b3f;
+      font-weight: bold;
+    }
   </style>
 </head>
 <body>
@@ -85,9 +111,8 @@
   </header>
 
   <main>
-    <main>
-  <button onclick="logout()" style="float:right;background:#c00;">Logout</button>
-  <h1>NBVS Admin Dashboard</h1>
+    <button onclick="logout()" style="float:right;background:#c00;">Logout</button>
+    <h1>NBVS Admin Dashboard</h1>
 
     <!-- 🔐 Login Section -->
     <section id="loginPanel">
@@ -95,6 +120,26 @@
       <input type="password" id="adminPass" placeholder="Enter admin password" />
       <button id="loginBtn">Login</button>
       <p id="loginMsg" style="color:#c00;"></p>
+    </section>
+
+    <!-- 📊 Dashboard Overview -->
+    <section id="dashboardSection" class="hidden">
+      <h2>Dashboard Overview</h2>
+      <div class="dashboard-grid">
+        <div class="card">
+          <h3>Total Records</h3>
+          <p id="totalRecords">0</p>
+        </div>
+        <div class="card">
+          <h3>Verified</h3>
+          <p id="verifiedRecords">0</p>
+        </div>
+        <div class="card">
+          <h3>Pending</h3>
+          <p id="pendingRecords">0</p>
+        </div>
+      </div>
+      <p style="margin-top:1em;">📌 *These numbers update automatically based on your Firestore “records” collection.</p>
     </section>
 
     <!-- 🧾 Admin Panel -->
@@ -108,7 +153,6 @@
       <input type="text" id="driving" placeholder="Driving License (e.g., Valid, Suspended)" />
       <input type="text" id="address" placeholder="Address (e.g., Accra, Ghana)" />
       <input type="number" id="credit" placeholder="Credit Score (e.g., 700)" />
-
       <select id="status">
         <option value="Verified">Verified</option>
         <option value="Pending">Pending</option>
@@ -134,7 +178,7 @@
   <!-- Firebase & Script -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-app.js";
-    import { getFirestore, collection, addDoc, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-firestore.js";
+    import { getFirestore, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-firestore.js";
 
     // Firebase config
     const firebaseConfig = {
@@ -150,20 +194,22 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    // 🔐 Admin Login Logic
     const loginBtn = document.getElementById("loginBtn");
     const adminPanel = document.getElementById("adminPanel");
     const loginPanel = document.getElementById("loginPanel");
+    const dashboardSection = document.getElementById("dashboardSection");
     const loginMsg = document.getElementById("loginMsg");
     const logoutBtn = document.getElementById("logoutBtn");
 
     loginBtn.addEventListener("click", () => {
       const pass = document.getElementById("adminPass").value.trim();
-      if (pass === "nbvs123") {
+      if (pass === "nbvs2008") {
         localStorage.setItem("isAdmin", "true");
         loginPanel.classList.add("hidden");
         adminPanel.classList.remove("hidden");
+        dashboardSection.classList.remove("hidden");
         alert("✅ Admin access granted");
+        loadDashboard();
       } else {
         loginMsg.textContent = "❌ Wrong password!";
       }
@@ -178,6 +224,8 @@
       if (localStorage.getItem("isAdmin") === "true") {
         loginPanel.classList.add("hidden");
         adminPanel.classList.remove("hidden");
+        dashboardSection.classList.remove("hidden");
+        loadDashboard();
       }
     };
 
@@ -199,17 +247,35 @@
       }
 
       try {
-        await addDoc(collection(db, "records"), {
-          name, nia, dob, region, criminal, driving, address, credit, status
-        });
+        await addDoc(collection(db, "records"), { name, nia, dob, region, criminal, driving, address, credit, status });
         alert("✅ Record saved successfully!");
+        loadDashboard();
       } catch (error) {
         console.error("Error adding record: ", error);
         alert("❌ Failed to save record.");
       }
     });
 
-    // 🔍 Search Records (case-insensitive)
+    // 📊 Load Dashboard Stats
+    async function loadDashboard() {
+      try {
+        const docs = await getDocs(collection(db, "records"));
+        let total = 0, verified = 0, pending = 0;
+        docs.forEach((doc) => {
+          total++;
+          const data = doc.data();
+          if (data.status === "Verified") verified++;
+          if (data.status === "Pending") pending++;
+        });
+        document.getElementById("totalRecords").textContent = total;
+        document.getElementById("verifiedRecords").textContent = verified;
+        document.getElementById("pendingRecords").textContent = pending;
+      } catch (error) {
+        console.error("Error loading dashboard:", error);
+      }
+    }
+
+    // 🔍 Search Records
     document.getElementById("searchBtn").addEventListener("click", async () => {
       const searchValue = document.getElementById("searchInput").value.trim().toLowerCase();
       const resultsDiv = document.getElementById("results");
@@ -254,8 +320,7 @@
 
         resultsDiv.innerHTML = "";
         allDocs.forEach((doc) => {
-          const r = doc.data();
-          resultsDiv.innerHTML += recordHTML(r);
+          resultsDiv.innerHTML += recordHTML(doc.data());
         });
       } catch (error) {
         console.error("Error fetching all records:", error);
@@ -263,7 +328,7 @@
       }
     });
 
-    // 🧩 Helper function
+    // 🧩 Record Template
     function recordHTML(r) {
       return `
         <div class="record">
@@ -281,3 +346,4 @@
   </script>
 </body>
 </html>
+
