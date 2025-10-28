@@ -5,104 +5,25 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>NBVS Ghana - Admin Dashboard</title>
   <style>
-    body {
-      font-family: "Segoe UI", Arial, sans-serif;
-      margin: 0;
-      background: #f8f9fa;
-      color: #333;
-    }
-
-    header {
-      background: linear-gradient(to right, #ce1126, #fcd116, #006b3f);
-      color: white;
-      text-align: center;
-      padding: 1.2em;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-    }
-
-    main {
-      padding: 2em;
-      max-width: 950px;
-      margin: auto;
-    }
-
-    section {
-      margin-bottom: 2em;
-      background: white;
-      padding: 1.5em;
-      border-radius: 10px;
-      box-shadow: 0 3px 8px rgba(0,0,0,0.1);
-    }
-
-    input, select {
-      width: 100%;
-      padding: 10px;
-      margin: 8px 0;
-      border-radius: 6px;
-      border: 1px solid #ccc;
-      font-size: 1em;
-    }
-
-    button {
-      background-color: #006b3f;
-      color: white;
-      padding: 10px 18px;
-      border: none;
-      border-radius: 6px;
-      font-size: 1em;
-      cursor: pointer;
-      margin-top: 6px;
-    }
-
-    button:hover {
-      background-color: #004f2e;
-    }
-
-    footer {
-      text-align: center;
-      background-color: #eee;
-      padding: 1em;
-      margin-top: 3em;
-      color: #333;
-    }
-
-    .hidden {
-      display: none;
-    }
-
-    .record {
-      border-top: 3px solid #006b3f;
-      padding: 10px;
-      margin-top: 15px;
-      background: #f9f9f9;
-      border-radius: 6px;
-    }
-
-    .dashboard-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 1em;
-    }
-
-    .card {
-      background: #fdfdfd;
-      padding: 1em;
-      border-radius: 8px;
-      text-align: center;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-    }
-
-    .card h3 {
-      margin: 0;
-      font-size: 1.3em;
-    }
-
-    .card p {
-      font-size: 2em;
-      margin: 10px 0 0 0;
-      color: #006b3f;
-      font-weight: bold;
-    }
+    body { font-family: "Segoe UI", Arial, sans-serif; margin: 0; background: #f8f9fa; color: #333; }
+    header { background: linear-gradient(to right, #ce1126, #fcd116, #006b3f); color: white; text-align: center; padding: 1.2em; box-shadow: 0 2px 6px rgba(0,0,0,0.2); }
+    main { padding: 2em; max-width: 950px; margin: auto; }
+    section { margin-bottom: 2em; background: white; padding: 1.5em; border-radius: 10px; box-shadow: 0 3px 8px rgba(0,0,0,0.1); }
+    input, select, button, textarea { width: 100%; padding: 10px; margin: 8px 0; border-radius: 6px; border: 1px solid #ccc; font-size: 1em; box-sizing: border-box; }
+    button { background-color: #006b3f; color: white; padding: 10px 18px; border: none; border-radius: 6px; cursor: pointer; margin-top: 6px; }
+    button:hover { background-color: #004f2e; }
+    .danger { background:#ce1126; }
+    .mutedBtn { background:#fcd116; color:#333; }
+    footer { text-align: center; background-color: #eee; padding: 1em; margin-top: 3em; color: #333; }
+    .hidden { display: none; }
+    .record { border-top: 3px solid #006b3f; padding: 10px; margin-top: 15px; background: #f9f9f9; border-radius: 6px; }
+    .dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1em; }
+    .card { background: #fdfdfd; padding: 1em; border-radius: 8px; text-align: center; box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
+    .card h3 { margin: 0; font-size: 1.1em; }
+    .card p { font-size: 1.6em; margin: 8px 0 0 0; color: #006b3f; font-weight: bold; }
+    .row { display:flex; gap:10px; flex-wrap:wrap; }
+    .small { width: 48%; }
+    .actions { margin-top:8px; display:flex; gap:8px; }
   </style>
 </head>
 <body>
@@ -111,10 +32,10 @@
   </header>
 
   <main>
-    <button onclick="logout()" style="float:right;background:#c00;">Logout</button>
+    <button onclick="logout()" style="float:right;background:#c00;color:#fff;padding:8px 12px;border-radius:6px;">Logout</button>
     <h1>NBVS Admin Dashboard</h1>
 
-    <!-- 🔐 Login Section -->
+    <!-- LOGIN -->
     <section id="loginPanel">
       <h2>Admin Login</h2>
       <input type="password" id="adminPass" placeholder="Enter admin password" />
@@ -122,7 +43,7 @@
       <p id="loginMsg" style="color:#c00;"></p>
     </section>
 
-    <!-- 📊 Dashboard Overview -->
+    <!-- DASHBOARD STATS -->
     <section id="dashboardSection" class="hidden">
       <h2>Dashboard Overview</h2>
       <div class="dashboard-grid">
@@ -139,34 +60,51 @@
           <p id="pendingRecords">0</p>
         </div>
       </div>
-      <p style="margin-top:1em;">📌 *These numbers update automatically based on your Firestore “records” collection.</p>
+      <p style="margin-top:1em;">📌 These numbers update automatically from Firestore.</p>
     </section>
 
-    <!-- 🧾 Admin Panel -->
+    <!-- ADMIN FORM -->
     <section id="adminPanel" class="hidden">
-      <h2>Add New Record</h2>
-      <input type="text" id="name" placeholder="Full Name" />
-      <input type="text" id="nia" placeholder="NIA ID (e.g., GHA-2039485)" />
-      <input type="date" id="dob" />
-      <input type="text" id="region" placeholder="Region" />
-      <input type="text" id="criminal" placeholder="Criminal Record (e.g., Clean, Under Review)" />
-      <input type="text" id="driving" placeholder="Driving License (e.g., Valid, Suspended)" />
-      <input type="text" id="address" placeholder="Address (e.g., Accra, Ghana)" />
-      <input type="number" id="credit" placeholder="Credit Score (e.g., 700)" />
+      <h2 id="formTitle">Add New Record</h2>
+
+      <input type="hidden" id="editId" value="" />
+
+      <div class="row">
+        <input id="name" placeholder="Full Name" class="small" />
+        <input id="nia" placeholder="NIA ID (e.g., GHA-2039485)" class="small" />
+      </div>
+
+      <div class="row">
+        <input id="dob" type="date" class="small" />
+        <input id="region" placeholder="Region" class="small" />
+      </div>
+
+      <input id="address" placeholder="Address (e.g., Accra, Ghana)" />
+      <div class="row">
+        <input id="credit" type="number" placeholder="Credit Score (e.g., 700)" class="small" />
+        <input id="driving" placeholder="Driving License (e.g., Valid)" class="small" />
+      </div>
+      <textarea id="criminal" placeholder="Criminal Record (e.g., Clean, Under Review)"></textarea>
+
       <select id="status">
         <option value="Verified">Verified</option>
         <option value="Pending">Pending</option>
       </select>
-      <button id="addRecordBtn">Save Record</button>
-      <button id="logoutBtn" style="background:#ce1126;">Logout</button>
+
+      <div class="actions">
+        <button id="saveBtn">Save Record</button>
+        <button id="cancelEditBtn" class="mutedBtn hidden">Cancel Edit</button>
+      </div>
     </section>
 
-    <!-- 🔍 Search -->
+    <!-- SEARCH + LIST -->
     <section>
       <h2>Search Records</h2>
-      <input type="text" id="searchInput" placeholder="Enter name to search..." />
-      <button id="searchBtn">Search</button>
-      <button id="showAllBtn" style="background:#fcd116; color:#333;">Show All Records</button>
+      <div style="display:flex; gap:8px; align-items:center;">
+        <input type="text" id="searchInput" placeholder="Enter name or NIA ID" />
+        <button id="searchBtn" style="width:140px;">Search</button>
+        <button id="showAllBtn" class="mutedBtn" style="width:140px;">Show All Records</button>
+      </div>
       <div id="results"></div>
     </section>
   </main>
@@ -175,12 +113,21 @@
     © 2025 NBVS Ghana — Admin Portal
   </footer>
 
-  <!-- Firebase & Script -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-app.js";
-    import { getFirestore, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-firestore.js";
+    import {
+      getFirestore,
+      collection,
+      addDoc,
+      getDocs,
+      doc,
+      updateDoc,
+      deleteDoc,
+      query,
+      where
+    } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-firestore.js";
 
-    // Firebase config
+    // ---------- CONFIG ----------
     const firebaseConfig = {
       apiKey: "AIzaSyCDh_qL3jiCMHROK0_Soul2Wsv3t3y4wv0",
       authDomain: "nbvs-ghana.firebaseapp.com",
@@ -190,35 +137,41 @@
       appId: "1:702636577113:web:8369b43a2aa43aeb95fc48",
       measurementId: "G-2FHFSQRMZX"
     };
-
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
+    const recordsCol = collection(db, "records");
 
-    const loginBtn = document.getElementById("loginBtn");
-    const adminPanel = document.getElementById("adminPanel");
+    // ---------- UI refs ----------
     const loginPanel = document.getElementById("loginPanel");
+    const adminPanel = document.getElementById("adminPanel");
     const dashboardSection = document.getElementById("dashboardSection");
+    const loginBtn = document.getElementById("loginBtn");
     const loginMsg = document.getElementById("loginMsg");
-    const logoutBtn = document.getElementById("logoutBtn");
+    const saveBtn = document.getElementById("saveBtn");
+    const cancelEditBtn = document.getElementById("cancelEditBtn");
+
+    // ---------- AUTH ----------
+    const ADMIN_PASSWORD = "nbvs2008"; // <-- admin password
 
     loginBtn.addEventListener("click", () => {
       const pass = document.getElementById("adminPass").value.trim();
-      if (pass === "nbvs2008") {
+      if (pass === ADMIN_PASSWORD) {
         localStorage.setItem("isAdmin", "true");
         loginPanel.classList.add("hidden");
         adminPanel.classList.remove("hidden");
         dashboardSection.classList.remove("hidden");
-        alert("✅ Admin access granted");
+        loginMsg.textContent = "";
         loadDashboard();
       } else {
         loginMsg.textContent = "❌ Wrong password!";
       }
     });
 
-    logoutBtn.addEventListener("click", () => {
+    function logout() {
       localStorage.removeItem("isAdmin");
-      location.reload();
-    });
+      // reload to show login again
+      window.location.reload();
+    }
 
     window.onload = () => {
       if (localStorage.getItem("isAdmin") === "true") {
@@ -229,120 +182,213 @@
       }
     };
 
-    // ➕ Add Record
-    document.getElementById("addRecordBtn").addEventListener("click", async () => {
-      const name = document.getElementById("name").value;
-      const nia = document.getElementById("nia").value;
-      const dob = document.getElementById("dob").value;
-      const region = document.getElementById("region").value;
-      const criminal = document.getElementById("criminal").value;
-      const driving = document.getElementById("driving").value;
-      const address = document.getElementById("address").value;
-      const credit = document.getElementById("credit").value;
-      const status = document.getElementById("status").value;
+    // ---------- Add / Update ----------
+    saveBtn.addEventListener("click", async () => {
+      const editId = document.getElementById("editId").value;
+      const record = gatherForm();
 
-      if (!name || !nia) {
-        alert("⚠️ Please fill at least Name and NIA ID");
-        return;
-      }
+      if (!record) return; // validation failed
 
       try {
-        await addDoc(collection(db, "records"), { name, nia, dob, region, criminal, driving, address, credit, status });
-        alert("✅ Record saved successfully!");
+        if (editId) {
+          // update existing
+          const docRef = doc(db, "records", editId);
+          await updateDoc(docRef, record);
+          alert("✅ Record updated");
+        } else {
+          // add new
+          await addDoc(recordsCol, record);
+          alert("✅ Record saved successfully!");
+        }
+        resetForm();
         loadDashboard();
-      } catch (error) {
-        console.error("Error adding record: ", error);
+        await listAllRecords(); // refresh list
+      } catch (err) {
+        console.error("Save error:", err);
         alert("❌ Failed to save record.");
       }
     });
 
-    // 📊 Load Dashboard Stats
+    cancelEditBtn.addEventListener("click", () => {
+      resetForm();
+    });
+
+    function gatherForm() {
+      const name = document.getElementById("name").value.trim();
+      const nia = document.getElementById("nia").value.trim();
+      if (!name || !nia) { alert("Please fill at least name and NIA ID."); return null; }
+      return {
+        name,
+        nia,
+        dob: document.getElementById("dob").value || "",
+        region: document.getElementById("region").value || "",
+        criminal: document.getElementById("criminal").value || "",
+        driving: document.getElementById("driving").value || "",
+        address: document.getElementById("address").value || "",
+        credit: document.getElementById("credit").value || "",
+        status: document.getElementById("status").value || "Pending"
+      };
+    }
+
+    function resetForm() {
+      document.getElementById("editId").value = "";
+      document.getElementById("formTitle").textContent = "Add New Record";
+      document.getElementById("saveBtn").textContent = "Save Record";
+      cancelEditBtn.classList.add("hidden");
+      document.querySelectorAll("#adminPanel input, #adminPanel textarea").forEach(i => {
+        if (i.type !== "hidden") i.value = "";
+      });
+      document.getElementById("status").value = "Verified";
+    }
+
+    // ---------- Dashboard stats ----------
     async function loadDashboard() {
       try {
-        const docs = await getDocs(collection(db, "records"));
+        const snap = await getDocs(recordsCol);
         let total = 0, verified = 0, pending = 0;
-        docs.forEach((doc) => {
+        snap.forEach(d => {
           total++;
-          const data = doc.data();
-          if (data.status === "Verified") verified++;
-          if (data.status === "Pending") pending++;
+          const s = d.data().status;
+          if (s === "Verified") verified++;
+          else if (s === "Pending") pending++;
         });
         document.getElementById("totalRecords").textContent = total;
         document.getElementById("verifiedRecords").textContent = verified;
         document.getElementById("pendingRecords").textContent = pending;
-      } catch (error) {
-        console.error("Error loading dashboard:", error);
+      } catch (err) {
+        console.error("Dashboard load error:", err);
       }
     }
 
-    // 🔍 Search Records
+    // ---------- Search (case-insensitive) ----------
     document.getElementById("searchBtn").addEventListener("click", async () => {
-      const searchValue = document.getElementById("searchInput").value.trim().toLowerCase();
+      const q = document.getElementById("searchInput").value.trim().toLowerCase();
+      if (!q) return alert("Please enter a name or NIA ID to search.");
       const resultsDiv = document.getElementById("results");
       resultsDiv.innerHTML = "Searching...";
-
       try {
-        const allDocs = await getDocs(collection(db, "records"));
+        const snap = await getDocs(recordsCol);
         const matches = [];
-        allDocs.forEach((doc) => {
-          const r = doc.data();
-          if (r.name && r.name.toLowerCase() === searchValue) {
-            matches.push(r);
+        snap.forEach(d => {
+          const r = d.data();
+          if ((r.name && r.name.toLowerCase() === q) || (r.nia && r.nia.toLowerCase() === q)) {
+            matches.push({ id: d.id, ...r });
           }
         });
-
+        resultsDiv.innerHTML = "";
         if (matches.length === 0) {
           resultsDiv.innerHTML = "<p>❌ No record found.</p>";
           return;
         }
-
-        resultsDiv.innerHTML = "";
-        matches.forEach((r) => {
-          resultsDiv.innerHTML += recordHTML(r);
-        });
-      } catch (error) {
-        console.error("Error fetching records:", error);
+        matches.forEach(r => resultsDiv.innerHTML += recordHTML(r));
+      } catch (err) {
+        console.error("Search error:", err);
         resultsDiv.innerHTML = "<p>⚠️ Error fetching data.</p>";
       }
     });
 
-    // 📋 Show All Records
-    document.getElementById("showAllBtn").addEventListener("click", async () => {
+    // ---------- Show all ----------
+    document.getElementById("showAllBtn").addEventListener("click", listAllRecords);
+
+    async function listAllRecords() {
       const resultsDiv = document.getElementById("results");
       resultsDiv.innerHTML = "Loading all records...";
-
       try {
-        const allDocs = await getDocs(collection(db, "records"));
-        if (allDocs.empty) {
-          resultsDiv.innerHTML = "<p>⚠️ No records found in database.</p>";
+        const snap = await getDocs(recordsCol);
+        if (snap.empty) {
+          resultsDiv.innerHTML = "<p>⚠️ No records found.</p>";
           return;
         }
-
         resultsDiv.innerHTML = "";
-        allDocs.forEach((doc) => {
-          resultsDiv.innerHTML += recordHTML(doc.data());
+        snap.forEach(d => {
+          const r = { id: d.id, ...d.data() };
+          resultsDiv.innerHTML += recordHTML(r);
         });
-      } catch (error) {
-        console.error("Error fetching all records:", error);
-        resultsDiv.innerHTML = "<p>⚠️ Error loading all records.</p>";
+      } catch (err) {
+        console.error("List all error:", err);
+        resultsDiv.innerHTML = "<p>⚠️ Error loading records.</p>";
       }
-    });
+    }
 
-    // 🧩 Record Template
+    // ---------- Edit & Delete handlers ----------
+    async function editRecord(id) {
+      try {
+        const dref = doc(db, "records", id);
+        const dSnap = await getDocs(query(collection(db, "records"), where("__name__", "==", id))).catch(()=>null);
+        // simpler approach: fetch all and find by id (Firestore SDK doesn't support getDoc with modular without import getDoc)
+        const all = await getDocs(recordsCol);
+        let found = null;
+        all.forEach(d => { if (d.id === id) found = { id: d.id, ...d.data() }; });
+        if (!found) return alert("Record not found for edit.");
+        // populate form
+        document.getElementById("editId").value = found.id;
+        document.getElementById("name").value = found.name || "";
+        document.getElementById("nia").value = found.nia || "";
+        document.getElementById("dob").value = found.dob || "";
+        document.getElementById("region").value = found.region || "";
+        document.getElementById("address").value = found.address || "";
+        document.getElementById("credit").value = found.credit || "";
+        document.getElementById("driving").value = found.driving || "";
+        document.getElementById("criminal").value = found.criminal || "";
+        document.getElementById("status").value = found.status || "Pending";
+        document.getElementById("formTitle").textContent = "Edit Record";
+        saveBtn.textContent = "Update Record";
+        cancelEditBtn.classList.remove("hidden");
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      } catch (err) {
+        console.error("Edit fetch error:", err);
+        alert("❌ Error loading record for edit.");
+      }
+    }
+
+    async function deleteRecord(id) {
+      if (!confirm("Delete this record? This action cannot be undone.")) return;
+      try {
+        await deleteDoc(doc(db, "records", id));
+        alert("✅ Record deleted.");
+        loadDashboard();
+        listAllRecords();
+      } catch (err) {
+        console.error("Delete error:", err);
+        alert("❌ Failed to delete record.");
+      }
+    }
+
+    // ---------- record HTML (with Edit/Delete) ----------
     function recordHTML(r) {
+      // r must include .id
+      const id = r.id || "";
       return `
         <div class="record">
-          <h3>${r.name}</h3>
-          <p><b>NIA ID:</b> ${r.nia}</p>
-          <p><b>Date of Birth:</b> ${r.dob}</p>
-          <p><b>Region:</b> ${r.region}</p>
-          <p><b>Criminal Record:</b> ${r.criminal}</p>
-          <p><b>Driving License:</b> ${r.driving}</p>
-          <p><b>Address:</b> ${r.address}</p>
-          <p><b>Credit Score:</b> ${r.credit}</p>
-          <p><b>Status:</b> ${r.status}</p>
+          <h3>${escapeHtml(r.name || "")} <small style="float:right;color:#666;">${escapeHtml(r.status||"")}</small></h3>
+          <p><b>NIA ID:</b> ${escapeHtml(r.nia||"")}</p>
+          <p><b>DOB:</b> ${escapeHtml(r.dob||"")}</p>
+          <p><b>Region:</b> ${escapeHtml(r.region||"")}</p>
+          <p><b>Address:</b> ${escapeHtml(r.address||"")}</p>
+          <p><b>Credit Score:</b> ${escapeHtml(r.credit||"")}</p>
+          <p><b>Driving:</b> ${escapeHtml(r.driving||"")}</p>
+          <p><b>Criminal:</b> ${escapeHtml(r.criminal||"")}</p>
+          <div style="margin-top:8px;">
+            <button onclick="editRecord('${id}')">Edit</button>
+            <button style="background:#ce1126;margin-left:8px;" onclick="deleteRecord('${id}')">Delete</button>
+          </div>
         </div>`;
     }
+
+    // small helper to avoid XSS if any text is rendered
+    function escapeHtml(str) {
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    // expose edit/delete to global (so button onclick can call)
+    window.editRecord = editRecord;
+    window.deleteRecord = deleteRecord;
+    window.logout = logout;
   </script>
 </body>
 </html>
