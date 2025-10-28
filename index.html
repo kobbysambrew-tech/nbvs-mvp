@@ -3,159 +3,57 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>NBVS Ghana - Admin Panel</title>
+  <title>NBVS Ghana — Home</title>
   <style>
     body {
-      font-family: "Segoe UI", Arial, sans-serif;
-      background: #f8f9fa;
       margin: 0;
-      color: #333;
-    }
-    header {
+      font-family: "Segoe UI", Arial, sans-serif;
       background: linear-gradient(to right, #ce1126, #fcd116, #006b3f);
       color: white;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
       text-align: center;
-      padding: 1.2em;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
     }
-    main {
-      max-width: 700px;
-      margin: 2em auto;
-      background: white;
-      padding: 2em;
-      border-radius: 10px;
-      box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+
+    h1 {
+      font-size: 2em;
+      margin-bottom: 20px;
     }
-    input, select {
-      width: 100%;
-      padding: 10px;
-      margin: 8px 0;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      font-size: 1em;
-    }
+
     button {
-      background-color: #006b3f;
-      color: white;
-      padding: 10px 16px;
+      background-color: white;
+      color: #006b3f;
       border: none;
-      border-radius: 6px;
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-size: 1.2em;
       cursor: pointer;
-      font-size: 1em;
-      margin-top: 8px;
+      margin: 10px;
+      width: 200px;
+      transition: 0.3s;
     }
-    button:hover { background-color: #004f2e; }
-    .hidden { display: none; }
+
+    button:hover {
+      background-color: #004f2e;
+      color: white;
+    }
+
+    footer {
+      position: absolute;
+      bottom: 20px;
+      color: white;
+      font-size: 0.9em;
+    }
   </style>
 </head>
 <body>
-  <header>
-    <h1>NBVS Ghana - Admin Panel</h1>
-  </header>
+  <h1>National Background Verification System (NBVS Ghana)</h1>
+  <button onclick="window.location.href='verify.html'">Check Background</button>
+  <button onclick="window.location.href='dashboard.html'">Admin Access</button>
 
-  <main>
-    <!-- 🔐 Login Section -->
-    <section id="loginPanel">
-      <h2>Admin Login</h2>
-      <input type="password" id="adminPass" placeholder="Enter admin password" />
-      <button id="loginBtn">Login</button>
-      <p id="loginMsg" style="color:#c00;"></p>
-    </section>
-
-    <!-- 🧾 Admin Section -->
-    <section id="adminPanel" class="hidden">
-      <h2>Add New Record</h2>
-      <input type="text" id="name" placeholder="Full Name" />
-      <input type="text" id="nia" placeholder="NIA ID (e.g., GHA-2039485)" />
-      <input type="date" id="dob" />
-      <input type="text" id="region" placeholder="Region" />
-      <input type="text" id="criminal" placeholder="Criminal Record" />
-      <input type="text" id="driving" placeholder="Driving License Status" />
-      <input type="text" id="address" placeholder="Address" />
-      <input type="number" id="credit" placeholder="Credit Score" />
-
-      <select id="status">
-        <option value="Verified">Verified</option>
-        <option value="Pending">Pending</option>
-      </select>
-
-      <button id="addRecordBtn">Save Record</button>
-      <button id="logoutBtn" style="background:#c00;">Logout</button>
-    </section>
-  </main>
-
-  <footer style="text-align:center; padding:1em; background:#eee; margin-top:2em;">
-    © 2025 NBVS Ghana — Admin Portal
-  </footer>
-
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-app.js";
-    import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-firestore.js";
-
-    const firebaseConfig = {
-      apiKey: "AIzaSyCDh_qL3jiCMHROK0_Soul2Wsv3t3y4wv0",
-      authDomain: "nbvs-ghana.firebaseapp.com",
-      projectId: "nbvs-ghana",
-      storageBucket: "nbvs-ghana.firebasestorage.app",
-      messagingSenderId: "702636577113",
-      appId: "1:702636577113:web:8369b43a2aa43aeb95fc48",
-      measurementId: "G-2FHFSQRMZX"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-
-    const loginPanel = document.getElementById("loginPanel");
-    const adminPanel = document.getElementById("adminPanel");
-
-    document.getElementById("loginBtn").addEventListener("click", () => {
-      const pass = document.getElementById("adminPass").value;
-      if (pass === "nbvs123") {
-        localStorage.setItem("isAdmin", "true");
-        loginPanel.classList.add("hidden");
-        adminPanel.classList.remove("hidden");
-        alert("✅ Logged in successfully!");
-      } else {
-        document.getElementById("loginMsg").textContent = "❌ Wrong password!";
-      }
-    });
-
-    document.getElementById("logoutBtn").addEventListener("click", () => {
-      localStorage.removeItem("isAdmin");
-      adminPanel.classList.add("hidden");
-      loginPanel.classList.remove("hidden");
-      alert("Logged out successfully!");
-    });
-
-    window.onload = () => {
-      if (localStorage.getItem("isAdmin") === "true") {
-        loginPanel.classList.add("hidden");
-        adminPanel.classList.remove("hidden");
-      }
-    };
-
-    document.getElementById("addRecordBtn").addEventListener("click", async () => {
-      const record = {
-        name: document.getElementById("name").value,
-        nia: document.getElementById("nia").value,
-        dob: document.getElementById("dob").value,
-        region: document.getElementById("region").value,
-        criminal: document.getElementById("criminal").value,
-        driving: document.getElementById("driving").value,
-        address: document.getElementById("address").value,
-        credit: document.getElementById("credit").value,
-        status: document.getElementById("status").value
-      };
-
-      try {
-        await addDoc(collection(db, "records"), record);
-        alert("✅ Record saved successfully!");
-        window.location.href = "dashboard.html"; // redirect to dashboard
-      } catch (err) {
-        alert("❌ Failed to save record");
-        console.error(err);
-      }
-    });
-  </script>
+  <footer>© 2025 NBVS Ghana — All Rights Reserved</footer>
 </body>
 </html>
