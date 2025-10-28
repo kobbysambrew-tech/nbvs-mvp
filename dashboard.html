@@ -20,19 +20,14 @@
       box-shadow: 0 2px 6px rgba(0,0,0,0.2);
     }
 
-    h1 {
-      margin: 0;
-      font-size: 1.8em;
-    }
-
     main {
       padding: 2em;
-      max-width: 800px;
+      max-width: 850px;
       margin: auto;
     }
 
     section {
-      margin-bottom: 3em;
+      margin-bottom: 2em;
       background: white;
       padding: 1.5em;
       border-radius: 10px;
@@ -55,3 +50,183 @@
       border: none;
       border-radius: 6px;
       font-size: 1em;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #004f2e;
+    }
+
+    footer {
+      text-align: center;
+      background-color: #eee;
+      padding: 1em;
+      margin-top: 3em;
+      color: #333;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    .record {
+      border-top: 3px solid #006b3f;
+      padding: 10px;
+      margin-top: 15px;
+      background: #f9f9f9;
+      border-radius: 6px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>NBVS Ghana - Admin Dashboard</h1>
+  </header>
+
+  <main>
+    <!-- 🔐 Login Section -->
+    <section id="loginPanel">
+      <h2>Admin Login</h2>
+      <input type="password" id="adminPass" placeholder="Enter admin password" />
+      <button id="loginBtn">Login</button>
+      <p id="loginMsg" style="color:#c00;"></p>
+    </section>
+
+    <!-- 🧾 Admin Panel -->
+    <section id="adminPanel" class="hidden">
+      <h2>Add New Record</h2>
+      <input type="text" id="name" placeholder="Full Name" />
+      <input type="text" id="nia" placeholder="NIA ID (e.g., GHA-2039485)" />
+      <input type="date" id="dob" />
+      <input type="text" id="region" placeholder="Region" />
+      <input type="text" id="criminal" placeholder="Criminal Record (e.g., Clean, Under Review)" />
+      <input type="text" id="driving" placeholder="Driving License (e.g., Valid, Suspended)" />
+      <input type="text" id="address" placeholder="Address (e.g., Accra, Ghana)" />
+      <input type="number" id="credit" placeholder="Credit Score (e.g., 700)" />
+
+      <select id="status">
+        <option value="Verified">Verified</option>
+        <option value="Pending">Pending</option>
+      </select>
+      <button id="addRecordBtn">Save Record</button>
+    </section>
+
+    <!-- 🔍 Search -->
+    <section>
+      <h2>Search Records</h2>
+      <input type="text" id="searchInput" placeholder="Enter name to search..." />
+      <button id="searchBtn">Search</button>
+      <div id="results"></div>
+    </section>
+  </main>
+
+  <footer>
+    © 2025 NBVS Ghana — Admin Portal
+  </footer>
+
+  <!-- Firebase & Script -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-app.js";
+    import { getFirestore, collection, addDoc, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-firestore.js";
+
+    // Firebase config
+    const firebaseConfig = {
+      apiKey: "AIzaSyCDh_qL3jiCMHROK0_Soul2Wsv3t3y4wv0",
+      authDomain: "nbvs-ghana.firebaseapp.com",
+      projectId: "nbvs-ghana",
+      storageBucket: "nbvs-ghana.firebasestorage.app",
+      messagingSenderId: "702636577113",
+      appId: "1:702636577113:web:8369b43a2aa43aeb95fc48",
+      measurementId: "G-2FHFSQRMZX"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    // 🔐 Admin Login Logic
+    const loginBtn = document.getElementById("loginBtn");
+    const adminPanel = document.getElementById("adminPanel");
+    const loginPanel = document.getElementById("loginPanel");
+    const loginMsg = document.getElementById("loginMsg");
+
+    loginBtn.addEventListener("click", () => {
+      const pass = document.getElementById("adminPass").value.trim();
+      if (pass === "nbvs123") {
+        localStorage.setItem("isAdmin", "true");
+        loginPanel.classList.add("hidden");
+        adminPanel.classList.remove("hidden");
+        alert("✅ Admin access granted");
+      } else {
+        loginMsg.textContent = "❌ Wrong password!";
+      }
+    });
+
+    window.onload = () => {
+      if (localStorage.getItem("isAdmin") === "true") {
+        loginPanel.classList.add("hidden");
+        adminPanel.classList.remove("hidden");
+      }
+    };
+
+    // ➕ Add Record
+    document.getElementById("addRecordBtn").addEventListener("click", async () => {
+      const name = document.getElementById("name").value;
+      const nia = document.getElementById("nia").value;
+      const dob = document.getElementById("dob").value;
+      const region = document.getElementById("region").value;
+      const criminal = document.getElementById("criminal").value;
+      const driving = document.getElementById("driving").value;
+      const address = document.getElementById("address").value;
+      const credit = document.getElementById("credit").value;
+      const status = document.getElementById("status").value;
+
+      try {
+        await addDoc(collection(db, "records"), { name, nia, dob, region, criminal, driving, address, credit, status });
+        alert("✅ Record saved successfully!");
+      } catch (error) {
+        console.error("Error adding record: ", error);
+        alert("❌ Failed to save record.");
+      }
+    });
+
+    // 🔍 Search
+    document.getElementById("searchBtn").addEventListener("click", async () => {
+      const searchValue = document.getElementById("searchInput").value.trim();
+      const resultsDiv = document.getElementById("results");
+      resultsDiv.innerHTML = "Searching...";
+
+      try {
+        const q = query(collection(db, "records"), where("name", "==", searchValue));
+        const querySnapshot = await getDocs(q);
+
+        if (querySnapshot.empty) {
+          resultsDiv.innerHTML = "<p>❌ No record found.</p>";
+          return;
+        }
+
+        resultsDiv.innerHTML = "";
+        querySnapshot.forEach((doc) => {
+          const r = doc.data();
+          resultsDiv.innerHTML += `
+            <div class="record">
+              <h3>${r.name}</h3>
+              <p><strong>NIA ID:</strong> ${r.nia}</p>
+              <p><strong>Date of Birth:</strong> ${r.dob}</p>
+              <p><strong>Region:</strong> ${r.region}</p>
+              <p><strong>Status:</strong> ${r.status}</p>
+              <p><strong>Criminal Record:</strong> ${r.criminal}</p>
+              <p><strong>Driving License:</strong> ${r.driving}</p>
+              <p><strong>Address:</strong> ${r.address}</p>
+              <p><strong>Credit Score:</strong> ${r.credit}</p>
+            </div>
+          `;
+        });
+      } catch (error) {
+        console.error("Error fetching records:", error);
+        resultsDiv.innerHTML = "<p>⚠️ Error fetching data.</p>";
+      }
+    });
+  </script>
+</body>
+</html>
+
