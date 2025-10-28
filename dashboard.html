@@ -109,20 +109,17 @@
       <button id="searchBtn">Search</button>
       <div id="results"></div>
     </section>
-<!-- LOGIN PANEL -->
-<div id="loginPanel" style="text-align:center; margin:1.5em 0;">
-  <h3>Admin Login</h3>
-  <input type="password" id="adminPass" placeholder="Enter admin password" />
-  <button id="loginBtn">Login</button>
-  <p id="loginMsg" style="color:#c00;"></p>
-</div>
 
-<!-- ADMIN PANEL (hidden by default) -->
-<div id="adminPanel" style="display:none; margin-top:20px;">
-  <!-- your Add Record form goes here -->
-  <!-- ... -->
-</div>
+    <!-- LOGIN PANEL -->
+    <section id="loginPanel" style="text-align:center; margin:1.5em 0;">
+      <h3>Admin Login</h3>
+      <input type="password" id="adminPass" placeholder="Enter admin password" />
+      <button id="loginBtn">Login</button>
+      <p id="loginMsg" style="color:#c00;"></p>
+    </section>
 
+    <!-- ADMIN PANEL (hidden by default) -->
+    <section id="adminPanel" style="display:none; margin-top:20px;">
       <h2>Add New Record</h2>
 
       <input type="text" id="name" placeholder="Full Name" />
@@ -147,27 +144,43 @@
     © 2025 NBVS Ghana — National Background Verification System
   </footer>
 
-  <!-- Connect external script -->
+  <!-- External script -->
   <script type="module" src="script.js"></script>
-  function loginAdmin() {
-  const pass = document.getElementById("adminPass").value;
-  if (pass === "nbvs123") { // you can change this password
-    localStorage.setItem("isAdmin", "true");
-    document.getElementById("loginPanel").style.display = "none";
-    document.getElementById("adminPanel").style.display = "block";
-    alert("✅ Admin access granted");
-  } else {
-    alert("❌ Wrong password!");
-  }
-}
 
-window.onload = () => {
-  if (localStorage.getItem("isAdmin") === "true") {
-    document.getElementById("loginPanel").style.display = "none";
-    document.getElementById("adminPanel").style.display = "block";
-  }
-};
+  <!-- Admin login script -->
+  <script>
+    (function() {
+      const ADMIN_PASSWORD = "nbvs123";
 
+      document.addEventListener("DOMContentLoaded", () => {
+        const loginPanel = document.getElementById("loginPanel");
+        const adminPanel = document.getElementById("adminPanel");
+        const loginBtn = document.getElementById("loginBtn");
+        const adminPassInput = document.getElementById("adminPass");
+        const loginMsg = document.getElementById("loginMsg");
+
+        if (localStorage.getItem("isAdmin") === "true") {
+          loginPanel.style.display = "none";
+          adminPanel.style.display = "block";
+        } else {
+          loginPanel.style.display = "block";
+          adminPanel.style.display = "none";
+        }
+
+        loginBtn.addEventListener("click", () => {
+          const pass = adminPassInput.value.trim();
+          if (pass === ADMIN_PASSWORD) {
+            localStorage.setItem("isAdmin", "true");
+            loginPanel.style.display = "none";
+            adminPanel.style.display = "block";
+            loginMsg.textContent = "";
+            alert("✅ Admin access granted");
+          } else {
+            loginMsg.textContent = "❌ Wrong password. Try again.";
+          }
+        });
+      });
+    })();
+  </script>
 </body>
 </html>
-
