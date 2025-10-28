@@ -6,54 +6,45 @@
   <title>NBVS Ghana — Home</title>
   <style>
     body {
-      margin: 0;
       font-family: "Segoe UI", Arial, sans-serif;
-      background: linear-gradient(to right, #ce1126, #fcd116, #006b3f);
+      background: linear-gradient(to bottom right, #006b3f, #fcd116, #ce1126);
       color: white;
+      text-align: center;
+      margin: 0;
+      height: 100vh;
       display: flex;
       flex-direction: column;
-      align-items: center;
       justify-content: center;
-      height: 100vh;
-      text-align: center;
+      align-items: center;
     }
 
     h1 {
-      font-size: 2em;
-      margin-bottom: 20px;
+      font-size: 2.2em;
+      margin-bottom: 1em;
     }
 
     button {
       background-color: white;
       color: #006b3f;
       border: none;
-      padding: 12px 24px;
+      padding: 15px 30px;
+      margin: 10px;
       border-radius: 8px;
       font-size: 1.2em;
       cursor: pointer;
-      margin: 10px;
-      width: 200px;
+      font-weight: 600;
       transition: 0.3s;
     }
 
     button:hover {
-      background-color: #004f2e;
-      color: white;
-    }
-
-    footer {
-      position: absolute;
-      bottom: 20px;
-      color: white;
-      font-size: 0.9em;
+      background-color: #fcd116;
+      color: #000;
     }
   </style>
 </head>
 <body>
-  <h1>National Background Verification System (NBVS Ghana)</h1>
+  <h1>Welcome to NBVS Ghana</h1>
   <button onclick="window.location.href='verify.html'">Check Background</button>
-  <button onclick="window.location.href='dashboard.html'">Admin Access</button>
-
-  <footer>© 2025 NBVS Ghana — All Rights Reserved</footer>
+  <button onclick="window.location.href='login.html'">Admin</button>
 </body>
 </html>
