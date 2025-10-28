@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>NBVS Ghana - Verify Record</title>
+  <title>NBVS Ghana — Verify Record</title>
   <style>
     body {
       font-family: "Segoe UI", Arial, sans-serif;
@@ -12,15 +12,12 @@
       padding: 0;
       color: #222;
     }
-
     header {
       background: linear-gradient(to right, #ce1126, #fcd116, #006b3f);
       color: white;
       text-align: center;
       padding: 1.5em;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
     }
-
     main {
       max-width: 700px;
       margin: 2.5em auto;
@@ -29,30 +26,21 @@
       border-radius: 12px;
       box-shadow: 0 3px 8px rgba(0,0,0,0.1);
     }
-
-    input {
+    input, button {
       width: 100%;
       padding: 12px;
       border-radius: 6px;
       border: 1px solid #ccc;
-      font-size: 1em;
       margin-bottom: 10px;
     }
-
     button {
       background-color: #006b3f;
       color: white;
-      padding: 10px 16px;
       border: none;
-      border-radius: 6px;
       cursor: pointer;
-      font-size: 1em;
+      font-weight: 600;
     }
-
-    button:hover {
-      background-color: #004f2e;
-    }
-
+    button:hover { background-color: #004f2e; }
     .record {
       background: #f9f9f9;
       border-left: 4px solid #006b3f;
@@ -60,47 +48,21 @@
       padding: 15px;
       border-radius: 8px;
     }
-
-    .badge {
-      display: inline-block;
-      padding: 4px 8px;
-      border-radius: 6px;
-      font-size: 0.9em;
-      color: #fff;
-    }
-
-    .badge.Verified { background-color: #006b3f; }
-    .badge.Pending { background-color: #f0ad4e; }
-
-    footer {
-      text-align: center;
-      background-color: #eee;
-      padding: 1em;
-      margin-top: 3em;
-      color: #333;
-      font-size: 0.9em;
-    }
+    .no-record { text-align: center; color: #c00; font-weight: 500; }
   </style>
 </head>
 <body>
-  <header>
-    <h1>NBVS Ghana — Verify Record</h1>
-  </header>
-
+  <header><h1>NBVS Ghana — Verify Record</h1></header>
   <main>
-    <h2>Search Individual Record</h2>
-    <input type="text" id="searchInput" placeholder="Enter Name or NIA ID" />
+    <h2>Search Record</h2>
+    <input type="text" id="searchInput" placeholder="Enter name or NIA ID" />
     <button id="searchBtn">Search</button>
     <div id="results"></div>
   </main>
 
-  <footer>
-    © 2025 NBVS Ghana — National Background Verification System
-  </footer>
-
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-app.js";
-    import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-firestore.js";
+    import { getFirestore, collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyCDh_qL3jiCMHROK0_Soul2Wsv3t3y4wv0",
@@ -116,34 +78,39 @@
     const db = getFirestore(app);
 
     document.getElementById("searchBtn").addEventListener("click", async () => {
-      const queryValue = document.getElementById("searchInput").value.trim().toLowerCase();
+      const searchValue = document.getElementById("searchInput").value.trim();
       const resultsDiv = document.getElementById("results");
       resultsDiv.innerHTML = "Searching...";
 
-      const snapshot = await getDocs(collection(db, "records"));
-      let found = false;
-      resultsDiv.innerHTML = "";
+      try {
+        const q = query(collection(db, "records"), where("name", "==", searchValue));
+        const querySnapshot = await getDocs(q);
 
-      snapshot.forEach((doc) => {
-        const r = doc.data();
-        if (r.name.toLowerCase() === queryValue || r.nia.toLowerCase() === queryValue) {
-          found = true;
+        if (querySnapshot.empty) {
+          resultsDiv.innerHTML = "<p class='no-record'>❌ No record found.</p>";
+          return;
+        }
+
+        resultsDiv.innerHTML = "";
+        querySnapshot.forEach((doc) => {
+          const r = doc.data();
           resultsDiv.innerHTML += `
             <div class="record">
-              <h3>${r.name} <span class="badge ${r.status}">${r.status}</span></h3>
-              <p><b>NIA ID:</b> ${r.nia}</p>
-              <p><b>DOB:</b> ${r.dob}</p>
-              <p><b>Region:</b> ${r.region}</p>
-              <p><b>Address:</b> ${r.address}</p>
-              <p><b>Credit Score:</b> ${r.credit}</p>
-              <p><b>Driving License:</b> ${r.driving}</p>
-              <p><b>Criminal Record:</b> ${r.criminal}</p>
-            </div>`;
-        }
-      });
-
-      if (!found) {
-        resultsDiv.innerHTML = "<p style='color:#c00;'>❌ No record found.</p>";
+              <h3>${r.name}</h3>
+              <p><strong>NIA ID:</strong> ${r.nia}</p>
+              <p><strong>Date of Birth:</strong> ${r.dob}</p>
+              <p><strong>Region:</strong> ${r.region}</p>
+              <p><strong>Status:</strong> ${r.status}</p>
+              <p><strong>Criminal Record:</strong> ${r.criminal}</p>
+              <p><strong>Driving License:</strong> ${r.driving}</p>
+              <p><strong>Address:</strong> ${r.address}</p>
+              <p><strong>Credit Score:</strong> ${r.credit}</p>
+            </div>
+          `;
+        });
+      } catch (error) {
+        console.error(error);
+        resultsDiv.innerHTML = "<p>⚠️ Error fetching data.</p>";
       }
     });
   </script>
