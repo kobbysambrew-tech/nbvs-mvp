@@ -109,6 +109,11 @@
       <button id="searchBtn">Search</button>
       <div id="results"></div>
     </section>
+<div id="loginPanel">
+  <h3>Admin Login</h3>
+  <input type="password" id="adminPass" placeholder="Enter admin password" />
+  <button onclick="loginAdmin()">Login</button>
+</div>
 
     <!-- 🧾 Admin Add Record Section -->
     <section id="adminPanel">
@@ -138,6 +143,25 @@
 
   <!-- Connect external script -->
   <script type="module" src="script.js"></script>
+  function loginAdmin() {
+  const pass = document.getElementById("adminPass").value;
+  if (pass === "NBVSsecure123") { // you can change this password
+    localStorage.setItem("isAdmin", "true");
+    document.getElementById("loginPanel").style.display = "none";
+    document.getElementById("adminPanel").style.display = "block";
+    alert("✅ Admin access granted");
+  } else {
+    alert("❌ Wrong password!");
+  }
+}
+
+window.onload = () => {
+  if (localStorage.getItem("isAdmin") === "true") {
+    document.getElementById("loginPanel").style.display = "none";
+    document.getElementById("adminPanel").style.display = "block";
+  }
+};
+
 </body>
 </html>
 
