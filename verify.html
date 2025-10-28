@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NBVS Ghana - Verify Record</title>
+  <style>
+    body {
+      font-family: "Segoe UI", Arial, sans-serif;
+      background: #f8f9fa;
+      margin: 0;
+      padding: 0;
+      color: #222;
+    }
+
+    header {
+      background: linear-gradient(to right, #ce1126, #fcd116, #006b3f);
+      color: white;
+      text-align: center;
+      padding: 1.5em;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    }
+
+    main {
+      max-width: 700px;
+      margin: 2.5em auto;
+      background: #fff;
+      padding: 2em;
+      border-radius: 12px;
+      box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+    }
+
+    input {
+      width: 100%;
+      padding: 12px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      font-size: 1em;
+      margin-bottom: 10px;
+    }
+
+    button {
+      background-color: #006b3f;
+      color: white;
+      padding: 10px 16px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 1em;
+    }
+
+    button:hover {
+      background-color: #004f2e;
+    }
+
+    .record {
+      background: #f9f9f9;
+      border-left: 4px solid #006b3f;
+      margin-top: 20px;
+      padding: 15px;
+      border-radius: 8px;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-size: 0.9em;
+      color: #fff;
+    }
+
+    .badge.Verified { background-color: #006b3f; }
+    .badge.Pending { background-color: #f0ad4e; }
+
+    footer {
+      text-align: center;
+      background-color: #eee;
+      padding: 1em;
+      margin-top: 3em;
+      color: #333;
+      font-size: 0.9em;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>NBVS Ghana — Verify Record</h1>
+  </header>
+
+  <main>
+    <h2>Search Individual Record</h2>
+    <input type="text" id="searchInput" placeholder="Enter Name or NIA ID" />
+    <button id="searchBtn">Search</button>
+    <div id="results"></div>
+  </main>
+
+  <footer>
+    © 2025 NBVS Ghana — National Background Verification System
+  </footer>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-app.js";
+    import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCDh_qL3jiCMHROK0_Soul2Wsv3t3y4wv0",
+      authDomain: "nbvs-ghana.firebaseapp.com",
+      projectId: "nbvs-ghana",
+      storageBucket: "nbvs-ghana.firebasestorage.app",
+      messagingSenderId: "702636577113",
+      appId: "1:702636577113:web:8369b43a2aa43aeb95fc48",
+      measurementId: "G-2FHFSQRMZX"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    document.getElementById("searchBtn").addEventListener("click", async () => {
+      const queryValue = document.getElementById("searchInput").value.trim().toLowerCase();
+      const resultsDiv = document.getElementById("results");
+      resultsDiv.innerHTML = "Searching...";
+
+      const snapshot = await getDocs(collection(db, "records"));
+      let found = false;
+      resultsDiv.innerHTML = "";
+
+      snapshot.forEach((doc) => {
+        const r = doc.data();
+        if (r.name.toLowerCase() === queryValue || r.nia.toLowerCase() === queryValue) {
+          found = true;
+          resultsDiv.innerHTML += `
+            <div class="record">
+              <h3>${r.name} <span class="badge ${r.status}">${r.status}</span></h3>
+              <p><b>NIA ID:</b> ${r.nia}</p>
+              <p><b>DOB:</b> ${r.dob}</p>
+              <p><b>Region:</b> ${r.region}</p>
+              <p><b>Address:</b> ${r.address}</p>
+              <p><b>Credit Score:</b> ${r.credit}</p>
+              <p><b>Driving License:</b> ${r.driving}</p>
+              <p><b>Criminal Record:</b> ${r.criminal}</p>
+            </div>`;
+        }
+      });
+
+      if (!found) {
+        resultsDiv.innerHTML = "<p style='color:#c00;'>❌ No record found.</p>";
+      }
+    });
+  </script>
+</body>
+</html>
