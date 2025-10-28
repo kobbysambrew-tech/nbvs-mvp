@@ -235,6 +235,26 @@
       });
       res.innerHTML = html || "<p>No records found.</p>";
     });
+    <script>
+  const ADMIN_PASSWORD = "nbvs2008";
+
+  const loginPanel = document.getElementById("loginPanel");
+  const dashboardPanel = document.getElementById("dashboardPanel");
+  const loginBtn = document.getElementById("loginBtn");
+  const loginMsg = document.getElementById("loginMsg");
+
+  loginBtn.addEventListener("click", () => {
+    const enteredPass = document.getElementById("adminPass").value;
+    if (enteredPass === ADMIN_PASSWORD) {
+      loginPanel.style.display = "none";
+      dashboardPanel.style.display = "block";
+      loginMsg.textContent = "";
+    } else {
+      loginMsg.textContent = "❌ Wrong password. Try again.";
+    }
+  });
+</script>
+
   </script>
 </body>
 </html>
