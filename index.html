@@ -3,37 +3,36 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>NBVS Ghana - Verify Record</title>
+  <title>NBVS Ghana - Admin Panel</title>
   <style>
     body {
       font-family: "Segoe UI", Arial, sans-serif;
       background: #f8f9fa;
       margin: 0;
-      padding: 0;
-      color: #222;
+      color: #333;
     }
     header {
       background: linear-gradient(to right, #ce1126, #fcd116, #006b3f);
       color: white;
       text-align: center;
-      padding: 1.5em;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+      padding: 1.2em;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
     }
     main {
       max-width: 700px;
-      margin: 2.5em auto;
-      background: #fff;
+      margin: 2em auto;
+      background: white;
       padding: 2em;
-      border-radius: 12px;
+      border-radius: 10px;
       box-shadow: 0 3px 8px rgba(0,0,0,0.1);
     }
-    input {
+    input, select {
       width: 100%;
-      padding: 12px;
-      border-radius: 6px;
+      padding: 10px;
+      margin: 8px 0;
       border: 1px solid #ccc;
+      border-radius: 6px;
       font-size: 1em;
-      margin-bottom: 10px;
     }
     button {
       background-color: #006b3f;
@@ -43,59 +42,55 @@
       border-radius: 6px;
       cursor: pointer;
       font-size: 1em;
+      margin-top: 8px;
     }
     button:hover { background-color: #004f2e; }
-    .record {
-      background: #f9f9f9;
-      border-left: 4px solid #006b3f;
-      margin-top: 20px;
-      padding: 15px;
-      border-radius: 8px;
-    }
-    .badge {
-      display: inline-block;
-      padding: 4px 8px;
-      border-radius: 6px;
-      font-size: 0.9em;
-      color: #fff;
-    }
-    .badge.Verified { background-color: #006b3f; }
-    .badge.Pending { background-color: #f0ad4e; }
-    footer {
-      text-align: center;
-      background-color: #eee;
-      padding: 1em;
-      margin-top: 3em;
-      color: #333;
-      font-size: 0.9em;
-    }
-    .no-record {
-      text-align: center;
-      margin-top: 20px;
-      color: #c00;
-      font-weight: 500;
-    }
+    .hidden { display: none; }
   </style>
 </head>
 <body>
   <header>
-    <h1>NBVS Ghana — Verify Record</h1>
+    <h1>NBVS Ghana - Admin Panel</h1>
   </header>
 
   <main>
-    <h2>Search Individual Record</h2>
-    <input type="text" id="searchInput" placeholder="Enter Name or NIA ID" />
-    <button id="searchBtn">Search</button>
-    <div id="results"></div>
+    <!-- 🔐 Login Section -->
+    <section id="loginPanel">
+      <h2>Admin Login</h2>
+      <input type="password" id="adminPass" placeholder="Enter admin password" />
+      <button id="loginBtn">Login</button>
+      <p id="loginMsg" style="color:#c00;"></p>
+    </section>
+
+    <!-- 🧾 Admin Section -->
+    <section id="adminPanel" class="hidden">
+      <h2>Add New Record</h2>
+      <input type="text" id="name" placeholder="Full Name" />
+      <input type="text" id="nia" placeholder="NIA ID (e.g., GHA-2039485)" />
+      <input type="date" id="dob" />
+      <input type="text" id="region" placeholder="Region" />
+      <input type="text" id="criminal" placeholder="Criminal Record" />
+      <input type="text" id="driving" placeholder="Driving License Status" />
+      <input type="text" id="address" placeholder="Address" />
+      <input type="number" id="credit" placeholder="Credit Score" />
+
+      <select id="status">
+        <option value="Verified">Verified</option>
+        <option value="Pending">Pending</option>
+      </select>
+
+      <button id="addRecordBtn">Save Record</button>
+      <button id="logoutBtn" style="background:#c00;">Logout</button>
+    </section>
   </main>
 
-  <footer>
-    © 2025 NBVS Ghana — National Background Verification System
+  <footer style="text-align:center; padding:1em; background:#eee; margin-top:2em;">
+    © 2025 NBVS Ghana — Admin Portal
   </footer>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-app.js";
-    import { getFirestore, collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-firestore.js";
+    import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyCDh_qL3jiCMHROK0_Soul2Wsv3t3y4wv0",
@@ -110,46 +105,55 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    document.getElementById("searchBtn").addEventListener("click", async () => {
-      const queryText = document.getElementById("searchInput").value.trim();
-      const resultsDiv = document.getElementById("results");
-      resultsDiv.innerHTML = "";
+    const loginPanel = document.getElementById("loginPanel");
+    const adminPanel = document.getElementById("adminPanel");
 
-      if (!queryText) {
-        resultsDiv.innerHTML = "<p class='no-record'>⚠️ Please enter a name or NIA ID.</p>";
-        return;
+    document.getElementById("loginBtn").addEventListener("click", () => {
+      const pass = document.getElementById("adminPass").value;
+      if (pass === "nbvs123") {
+        localStorage.setItem("isAdmin", "true");
+        loginPanel.classList.add("hidden");
+        adminPanel.classList.remove("hidden");
+        alert("✅ Logged in successfully!");
+      } else {
+        document.getElementById("loginMsg").textContent = "❌ Wrong password!";
       }
+    });
+
+    document.getElementById("logoutBtn").addEventListener("click", () => {
+      localStorage.removeItem("isAdmin");
+      adminPanel.classList.add("hidden");
+      loginPanel.classList.remove("hidden");
+      alert("Logged out successfully!");
+    });
+
+    window.onload = () => {
+      if (localStorage.getItem("isAdmin") === "true") {
+        loginPanel.classList.add("hidden");
+        adminPanel.classList.remove("hidden");
+      }
+    };
+
+    document.getElementById("addRecordBtn").addEventListener("click", async () => {
+      const record = {
+        name: document.getElementById("name").value,
+        nia: document.getElementById("nia").value,
+        dob: document.getElementById("dob").value,
+        region: document.getElementById("region").value,
+        criminal: document.getElementById("criminal").value,
+        driving: document.getElementById("driving").value,
+        address: document.getElementById("address").value,
+        credit: document.getElementById("credit").value,
+        status: document.getElementById("status").value
+      };
 
       try {
-        const nameQuery = query(collection(db, "records"), where("name", "==", queryText));
-        const niaQuery = query(collection(db, "records"), where("nia", "==", queryText));
-
-        const [nameSnap, niaSnap] = await Promise.all([getDocs(nameQuery), getDocs(niaQuery)]);
-        const allDocs = [...nameSnap.docs, ...niaSnap.docs];
-
-        if (allDocs.length === 0) {
-          resultsDiv.innerHTML = "<p class='no-record'>❌ No record found.</p>";
-          return;
-        }
-
-        allDocs.forEach(doc => {
-          const r = doc.data();
-          resultsDiv.innerHTML += `
-            <div class="record">
-              <h3>${r.name} <span class="badge ${r.status}">${r.status}</span></h3>
-              <p><b>NIA ID:</b> ${r.nia}</p>
-              <p><b>Date of Birth:</b> ${r.dob}</p>
-              <p><b>Region:</b> ${r.region}</p>
-              <p><b>Address:</b> ${r.address}</p>
-              <p><b>Credit Score:</b> ${r.credit}</p>
-              <p><b>Driving License:</b> ${r.driving}</p>
-              <p><b>Criminal Record:</b> ${r.criminal}</p>
-            </div>
-          `;
-        });
-      } catch (error) {
-        console.error(error);
-        resultsDiv.innerHTML = "<p class='no-record'>⚠️ Error fetching data.</p>";
+        await addDoc(collection(db, "records"), record);
+        alert("✅ Record saved successfully!");
+        window.location.href = "dashboard.html"; // redirect to dashboard
+      } catch (err) {
+        alert("❌ Failed to save record");
+        console.error(err);
       }
     });
   </script>
