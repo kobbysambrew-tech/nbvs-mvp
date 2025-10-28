@@ -109,14 +109,20 @@
       <button id="searchBtn">Search</button>
       <div id="results"></div>
     </section>
-<div id="loginPanel">
+<!-- LOGIN PANEL -->
+<div id="loginPanel" style="text-align:center; margin:1.5em 0;">
   <h3>Admin Login</h3>
   <input type="password" id="adminPass" placeholder="Enter admin password" />
-  <button onclick="loginAdmin()">Login</button>
+  <button id="loginBtn">Login</button>
+  <p id="loginMsg" style="color:#c00;"></p>
 </div>
 
-    <!-- 🧾 Admin Add Record Section -->
-    <section id="adminPanel" style="display:none;>
+<!-- ADMIN PANEL (hidden by default) -->
+<div id="adminPanel" style="display:none; margin-top:20px;">
+  <!-- your Add Record form goes here -->
+  <!-- ... -->
+</div>
+
       <h2>Add New Record</h2>
 
       <input type="text" id="name" placeholder="Full Name" />
