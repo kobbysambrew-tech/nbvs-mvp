@@ -82,35 +82,48 @@
     const db = getFirestore(app);
 
     document.getElementById("searchBtn").addEventListener("click", async () => {
-      const name = document.getElementById("searchInput").value.trim();
-      const resultsDiv = document.getElementById("results");
-      resultsDiv.innerHTML = "Searching...";
+  const name = document.getElementById("searchInput").value.trim().toLowerCase();
+  const resultsDiv = document.getElementById("results");
+  resultsDiv.innerHTML = "Searching...";
 
-      try {
-        const q = query(collection(db, "records"), where("name", "==", name));
-        const querySnapshot = await getDocs(q);
+  try {
+    const allDocs = await getDocs(collection(db, "records"));
+    const matches = [];
+    allDocs.forEach((doc) => {
+      const r = doc.data();
+      if (r.name && r.name.toLowerCase() === name) {
+        matches.push(r);
+      }
+    });
 
-        if (querySnapshot.empty) {
-          resultsDiv.innerHTML = "<p class='no-record'>❌ No record found.</p>";
-          return;
-        }
+    if (matches.length === 0) {
+      resultsDiv.innerHTML = "<p class='no-record'>❌ No record found.</p>";
+      return;
+    }
 
-        resultsDiv.innerHTML = "";
-        querySnapshot.forEach((doc) => {
-          const r = doc.data();
-          resultsDiv.innerHTML += `
-            <div class="record">
-              <h3>${r.name}</h3>
-              <p><b>NIA ID:</b> ${r.nia}</p>
-              <p><b>Date of Birth:</b> ${r.dob}</p>
-              <p><b>Region:</b> ${r.region}</p>
-              <p><b>Criminal Record:</b> ${r.criminal}</p>
-              <p><b>Driving License:</b> ${r.driving}</p>
-              <p><b>Address:</b> ${r.address}</p>
-              <p><b>Credit Score:</b> ${r.credit}</p>
-              <p><b>Status:</b> ${r.status}</p>
-            </div>`;
-        });
+    resultsDiv.innerHTML = "";
+    matches.forEach((r) => {
+      resultsDiv.innerHTML += `
+        <div class="record">
+          <h3>${r.name}</h3>
+          <p><b>NIA ID:</b> ${r.nia}</p>
+          <p><b>Date of Birth:</b> ${r.dob}</p>
+          <p><b>Region:</b> ${r.region}</p>
+          <p><b>Criminal Record:</b> ${r.criminal}</p>
+          <p><b>Driving License:</b> ${r.driving}</p>
+          <p><b>Address:</b> ${r.address}</p>
+          <p><b>Credit Score:</b> ${r.credit}</p>
+          <p><b>Status:</b> ${r.status}</p>
+        </div>`;
+    });
+  } catch (error) {
+    console.error("Error fetching:", error);
+    resultsDiv.innerHTML = "<p class='no-record'>⚠️ Error fetching data.</p>";
+  }
+});
+
+
+       
       } catch (error) {
         console.error("Error fetching:", error);
         resultsDiv.innerHTML = "<p class='no-record'>⚠️ Error fetching data.</p>";
