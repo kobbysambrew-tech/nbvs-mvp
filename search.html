@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NBVS Ghana - Background Check</title>
+  <style>
+    body {
+      font-family: "Segoe UI", Arial, sans-serif;
+      background: #f4f4f4;
+      padding: 2em;
+      color: #333;
+    }
+    header {
+      background: linear-gradient(to right, #ce1126, #fcd116, #006b3f);
+      color: white;
+      text-align: center;
+      padding: 1.2em;
+      border-radius: 10px;
+    }
+    main {
+      max-width: 700px;
+      margin: 2em auto;
+      background: white;
+      padding: 2em;
+      border-radius: 10px;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+    }
+    input, button {
+      padding: 10px;
+      font-size: 1em;
+      width: 100%;
+      margin-bottom: 10px;
+    }
+    button {
+      background: #006b3f;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #004f2e;
+    }
+    .record {
+      background: #f9f9f9;
+      border-left: 5px solid #006b3f;
+      padding: 10px;
+      margin-top: 15px;
+      border-radius: 6px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>NBVS Ghana - Background Check</h1>
+  </header>
+
+  <main>
+    <input type="text" id="searchName" placeholder="Enter name or NIA ID" />
+    <button id="searchBtn">Search</button>
+    <div id="results"></div>
+  </main>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-app.js";
+    import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCDh_qL3jiCMHROK0_Soul2Wsv3t3y4wv0",
+      authDomain: "nbvs-ghana.firebaseapp.com",
+      projectId: "nbvs-ghana",
+      storageBucket: "nbvs-ghana.firebasestorage.app",
+      messagingSenderId: "702636577113",
+      appId: "1:702636577113:web:8369b43a2aa43aeb95fc48",
+      measurementId: "G-2FHFSQRMZX"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    document.getElementById("searchBtn").addEventListener("click", async () => {
+      const val = document.getElementById("searchName").value.toLowerCase();
+      const res = document.getElementById("results");
+      res.innerHTML = "Searching...";
+      const docs = await getDocs(collection(db, "records"));
+      let html = "";
+      docs.forEach((d) => {
+        const r = d.data();
+        if (
+          r.name?.toLowerCase().includes(val) ||
+          r.nia?.toLowerCase().includes(val)
+        ) {
+          html += `
+            <div class="record">
+              <h3>${r.name}</h3>
+              <p><b>NIA ID:</b> ${r.nia}</p>
+              <p><b>Status:</b> ${r.status}</p>
+              <p><b>Region:</b> ${r.region}</p>
+            </div>`;
+        }
+      });
+      res.innerHTML = html || "<p>❌ No records found.</p>";
+    });
+  </script>
+</body>
+</html>
