@@ -57,24 +57,14 @@
       background-color: #004f2e;
     }
 
+    .hidden { display: none; }
+
     footer {
       text-align: center;
       background-color: #eee;
       padding: 1em;
       margin-top: 3em;
       color: #333;
-    }
-
-    .hidden {
-      display: none;
-    }
-
-    .record {
-      border-top: 3px solid #006b3f;
-      padding: 10px;
-      margin-top: 15px;
-      background: #f9f9f9;
-      border-radius: 6px;
     }
   </style>
 </head>
@@ -84,7 +74,7 @@
   </header>
 
   <main>
-    <!-- 🔐 Login Section -->
+    <!-- 🔐 Login -->
     <section id="loginPanel">
       <h2>Admin Login</h2>
       <input type="password" id="adminPass" placeholder="Enter admin password" />
@@ -92,17 +82,17 @@
       <p id="loginMsg" style="color:#c00;"></p>
     </section>
 
-    <!-- 🧾 Admin Panel -->
+    <!-- 🧾 Add Record -->
     <section id="adminPanel" class="hidden">
       <h2>Add New Record</h2>
       <input type="text" id="name" placeholder="Full Name" />
       <input type="text" id="nia" placeholder="NIA ID (e.g., GHA-2039485)" />
       <input type="date" id="dob" />
       <input type="text" id="region" placeholder="Region" />
-      <input type="text" id="criminal" placeholder="Criminal Record (e.g., Clean, Under Review)" />
-      <input type="text" id="driving" placeholder="Driving License (e.g., Valid, Suspended)" />
-      <input type="text" id="address" placeholder="Address (e.g., Accra, Ghana)" />
-      <input type="number" id="credit" placeholder="Credit Score (e.g., 700)" />
+      <input type="text" id="criminal" placeholder="Criminal Record" />
+      <input type="text" id="driving" placeholder="Driving License" />
+      <input type="text" id="address" placeholder="Address" />
+      <input type="number" id="credit" placeholder="Credit Score" />
 
       <select id="status">
         <option value="Verified">Verified</option>
@@ -110,26 +100,16 @@
       </select>
       <button id="addRecordBtn">Save Record</button>
     </section>
-
-    <!-- 🔍 Search -->
-    <section>
-      <h2>Search Records</h2>
-      <input type="text" id="searchInput" placeholder="Enter name to search..." />
-      <button id="searchBtn">Search</button>
-      <div id="results"></div>
-    </section>
   </main>
 
   <footer>
     © 2025 NBVS Ghana — Admin Portal
   </footer>
 
-  <!-- Firebase & Script -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-app.js";
-    import { getFirestore, collection, addDoc, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-firestore.js";
+    import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-firestore.js";
 
-    // Firebase config
     const firebaseConfig = {
       apiKey: "AIzaSyCDh_qL3jiCMHROK0_Soul2Wsv3t3y4wv0",
       authDomain: "nbvs-ghana.firebaseapp.com",
@@ -143,12 +123,12 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    // 🔐 Admin Login Logic
     const loginBtn = document.getElementById("loginBtn");
     const adminPanel = document.getElementById("adminPanel");
     const loginPanel = document.getElementById("loginPanel");
     const loginMsg = document.getElementById("loginMsg");
 
+    // 🟢 Admin login
     loginBtn.addEventListener("click", () => {
       const pass = document.getElementById("adminPass").value.trim();
       if (pass === "nbvs123") {
@@ -161,6 +141,7 @@
       }
     });
 
+    // Keep admin logged in
     window.onload = () => {
       if (localStorage.getItem("isAdmin") === "true") {
         loginPanel.classList.add("hidden");
@@ -168,7 +149,7 @@
       }
     };
 
-    // ➕ Add Record
+    // ➕ Add record to Firestore
     document.getElementById("addRecordBtn").addEventListener("click", async () => {
       const name = document.getElementById("name").value;
       const nia = document.getElementById("nia").value;
@@ -180,50 +161,15 @@
       const credit = document.getElementById("credit").value;
       const status = document.getElementById("status").value;
 
+      if (!name || !nia) return alert("⚠️ Please fill in all required fields.");
+
       try {
         await addDoc(collection(db, "records"), { name, nia, dob, region, criminal, driving, address, credit, status });
         alert("✅ Record saved successfully!");
+        document.querySelectorAll("#adminPanel input").forEach(i => i.value = "");
       } catch (error) {
-        console.error("Error adding record: ", error);
+        console.error("Error:", error);
         alert("❌ Failed to save record.");
-      }
-    });
-
-    // 🔍 Search
-    document.getElementById("searchBtn").addEventListener("click", async () => {
-      const searchValue = document.getElementById("searchInput").value.trim();
-      const resultsDiv = document.getElementById("results");
-      resultsDiv.innerHTML = "Searching...";
-
-      try {
-        const q = query(collection(db, "records"), where("name", "==", searchValue));
-        const querySnapshot = await getDocs(q);
-
-        if (querySnapshot.empty) {
-          resultsDiv.innerHTML = "<p>❌ No record found.</p>";
-          return;
-        }
-
-        resultsDiv.innerHTML = "";
-        querySnapshot.forEach((doc) => {
-          const r = doc.data();
-          resultsDiv.innerHTML += `
-            <div class="record">
-              <h3>${r.name}</h3>
-              <p><strong>NIA ID:</strong> ${r.nia}</p>
-              <p><strong>Date of Birth:</strong> ${r.dob}</p>
-              <p><strong>Region:</strong> ${r.region}</p>
-              <p><strong>Status:</strong> ${r.status}</p>
-              <p><strong>Criminal Record:</strong> ${r.criminal}</p>
-              <p><strong>Driving License:</strong> ${r.driving}</p>
-              <p><strong>Address:</strong> ${r.address}</p>
-              <p><strong>Credit Score:</strong> ${r.credit}</p>
-            </div>
-          `;
-        });
-      } catch (error) {
-        console.error("Error fetching records:", error);
-        resultsDiv.innerHTML = "<p>⚠️ Error fetching data.</p>";
       }
     });
   </script>
