@@ -1,100 +1,120 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>NBVS Admin — Dashboard</title>
-  <link rel="icon" href="favicon.ico" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NBVS Ghana - Admin Dashboard</title>
   <style>
-    body{font-family:"Segoe UI",Arial,sans-serif;margin:0;background:#f8f9fa;color:#222}
-    header{background:linear-gradient(90deg,#ce1126,#fcd116,#006b3f);color:#fff;padding:12px;text-align:center}
-    main{max-width:1100px;margin:18px auto;padding:12px}
-    .card{background:#fff;padding:14px;border-radius:10px;box-shadow:0 6px 18px rgba(0,0,0,.06);margin-bottom:12px}
-    input,select,button,textarea{padding:10px;border-radius:8px;border:1px solid #ccc;font-size:1rem;width:100%;box-sizing:border-box;margin:6px 0}
-    .row{display:flex;gap:10px}
-    .row .col{flex:1}
-    button.primary{background:#006b3f;color:#fff;border:none}
-    button.danger{background:#ce1126;color:#fff;border:none}
-    .controls{display:flex;gap:8px;flex-wrap:wrap}
-    .record{border-top:3px solid #006b3f;padding:10px;margin-top:8px;background:#f9f9f9;border-radius:6px}
-    footer{padding:12px;text-align:center;background:#efefef;margin-top:18px}
-    @media(max-width:800px){.row{flex-direction:column}}
+    body {
+      font-family: "Segoe UI", Arial, sans-serif;
+      background: #f8f9fa;
+      margin: 0;
+      color: #222;
+    }
+    header {
+      background: linear-gradient(to right, #ce1126, #fcd116, #006b3f);
+      color: white;
+      text-align: center;
+      padding: 1.2em;
+    }
+    main {
+      padding: 2em;
+      max-width: 850px;
+      margin: auto;
+    }
+    section {
+      background: #fff;
+      border-radius: 10px;
+      padding: 1.5em;
+      box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+      margin-bottom: 2em;
+    }
+    input, select {
+      width: 100%;
+      padding: 10px;
+      margin: 8px 0;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+    button {
+      background-color: #006b3f;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      padding: 10px 16px;
+      cursor: pointer;
+      font-size: 1em;
+    }
+    button:hover { background-color: #004f2e; }
+    .hidden { display: none; }
+    .record {
+      border-top: 3px solid #006b3f;
+      padding: 10px;
+      margin-top: 15px;
+      background: #f9f9f9;
+      border-radius: 6px;
+    }
   </style>
 </head>
 <body>
-  <header><h1>NBVS Ghana — Admin Dashboard</h1></header>
+  <header><h1>NBVS Ghana - Admin Dashboard</h1></header>
+
   <main>
-    <!-- LOGIN CARD -->
-    <div id="loginCard" class="card">
+    <!-- 🔐 Login Section -->
+    <section id="loginPanel">
       <h2>Admin Login</h2>
-      <p>Create the admin account in Firebase Auth (email: <code>admin@nbvsghana.com</code>, password: <code>nbvs2008</code>) before testing.</p>
-      <input id="adminEmail" placeholder="Admin email" value="admin@nbvsghana.com" />
-      <input id="adminPass" type="password" placeholder="Password" />
-      <div class="controls">
-        <button id="signInBtn" class="primary">Sign in</button>
-        <button id="signOutBtn" class="danger" style="display:none">Sign out</button>
-        <button id="exportBtn" style="background:#fcd116;color:#111">Export CSV</button>
-      </div>
-      <p id="loginMsg" style="color:#c00"></p>
-    </div>
+      <input type="password" id="adminPass" placeholder="Enter admin password" />
+      <button id="loginBtn">Login</button>
+      <p id="loginMsg" style="color:#c00;"></p>
+    </section>
 
-    <!-- STATS -->
-    <div id="statsCard" class="card" style="display:none">
-      <h2>Usage Stats</h2>
-      <div style="display:flex;gap:12px;flex-wrap:wrap">
-        <div style="flex:1"><strong>Total searches:</strong> <span id="statSearches">0</span></div>
-        <div style="flex:1"><strong>Total admin logins:</strong> <span id="statLogins">0</span></div>
-        <div style="flex:1"><strong>Signed in as:</strong> <span id="signedInAs">—</span></div>
-      </div>
-    </div>
+    <!-- 🧾 Admin Panel -->
+    <section id="adminPanel" class="hidden">
+      <h2>Add New Record</h2>
+      <input type="text" id="name" placeholder="Full Name" />
+      <input type="text" id="nia" placeholder="NIA ID" />
+      <input type="date" id="dob" />
+      <input type="text" id="region" placeholder="Region" />
+      <input type="text" id="criminal" placeholder="Criminal Record" />
+      <input type="text" id="driving" placeholder="Driving License" />
+      <input type="text" id="address" placeholder="Address" />
+      <input type="number" id="credit" placeholder="Credit Score" />
+      <select id="status">
+        <option value="Verified">Verified</option>
+        <option value="Pending">Pending</option>
+      </select>
+      <button id="addRecordBtn">Save Record</button>
+      <button id="logoutBtn" style="background:#ce1126;">Logout</button>
+    </section>
 
-    <!-- ADMIN PANEL -->
-    <div id="adminPanel" class="card" style="display:none">
-      <h2>Manage Records</h2>
-      <div class="row">
-        <div class="col">
-          <input id="name" placeholder="Full name" />
-          <input id="nia" placeholder="NIA ID" />
-          <div class="row">
-            <div class="col"><input id="dob" type="date" /></div>
-            <div class="col"><input id="region" placeholder="Region" /></div>
-          </div>
-          <input id="address" placeholder="Address" />
-          <div class="row">
-            <div class="col"><input id="credit" placeholder="Credit score" /></div>
-            <div class="col"><input id="driving" placeholder="Driving license" /></div>
-          </div>
-          <textarea id="criminal" placeholder="Criminal record (text)"></textarea>
-          <select id="status"><option>Verified</option><option>Pending</option></select>
-          <div class="controls"><button id="saveBtn" class="primary">Save</button><button id="clearForm">Clear</button></div>
-        </div>
+    <!-- 🔍 Public Search -->
+    <section>
+      <h2>Search Records</h2>
+      <input type="text" id="searchInput" placeholder="Enter name or NIA ID..." />
+      <button id="searchBtn">Search</button>
+      <button id="showAllBtn" style="background:#fcd116;color:#333;">Show All</button>
+      <div id="results"></div>
+    </section>
 
-        <div class="col">
-          <h3>Search / List</h3>
-          <div class="row">
-            <div class="col"><input id="searchInput" placeholder="Search by name or NIA ID" /></div>
-            <div style="width:160px" class="col">
-              <div style="display:flex;flex-direction:column;gap:6px">
-                <button id="searchBtn" class="primary">Search</button>
-                <button id="showAllBtn">Show all</button>
-              </div>
-            </div>
-          </div>
-          <div id="results"></div>
-        </div>
-      </div>
-    </div>
+    <!-- 📊 Tracker Display -->
+    <section>
+      <h3>System Stats</h3>
+      <p>🔐 Admin Logins: <span id="loginCount">0</span></p>
+      <p>🔎 Searches Made: <span id="searchCount">0</span></p>
+    </section>
   </main>
 
-  <footer>© 2025 NBVS Ghana — National Background Verification System</footer>
+  <footer style="text-align:center;background:#eee;padding:1em;margin-top:3em;">
+    © 2025 NBVS Ghana — National Background Verification System
+  </footer>
 
+  <!-- CryptoJS for encryption -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+
+  <!-- Firebase -->
   <script type="module">
-    // Firebase & modules
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-app.js";
-    import {
-      getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, setDoc, getDoc
-    } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-firestore.js";
-    import { getAuth, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-auth.js";
+    import { getFirestore, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyCDh_qL3jiCMHROK0_Soul2Wsv3t3y4wv0",
@@ -105,210 +125,122 @@
       appId: "1:702636577113:web:8369b43a2aa43aeb95fc48",
       measurementId: "G-2FHFSQRMZX"
     };
+
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
-    const auth = getAuth(app);
-    const recordsCol = collection(db, "records");
 
-    // UI refs
-    const loginCard = document.getElementById('loginCard');
-    const adminPanel = document.getElementById('adminPanel');
-    const statsCard = document.getElementById('statsCard');
-    const signInBtn = document.getElementById('signInBtn');
-    const signOutBtn = document.getElementById('signOutBtn');
-    const loginMsg = document.getElementById('loginMsg');
-    const statSearches = document.getElementById('statSearches');
-    const statLogins = document.getElementById('statLogins');
-    const signedInAs = document.getElementById('signedInAs');
+    // AES Encryption Setup
+    const secretKey = "N8bvS2o08Key!@#"; // your secret encryption key
+    const encryptedPass = CryptoJS.AES.encrypt("nbvs2008", secretKey).toString();
 
-    // Tracker doc location
-    const countersDocRef = (id='counters') => doc(db, 'stats', id);
+    const loginPanel = document.getElementById("loginPanel");
+    const adminPanel = document.getElementById("adminPanel");
+    const loginMsg = document.getElementById("loginMsg");
 
-    // Helper: read counters from Firestore, fallback to localStorage
-    async function loadCounters() {
+    // Load Tracker Data
+    let loginCount = parseInt(localStorage.getItem("loginCount")) || 0;
+    let searchCount = parseInt(localStorage.getItem("searchCount")) || 0;
+    document.getElementById("loginCount").textContent = loginCount;
+    document.getElementById("searchCount").textContent = searchCount;
+
+    // ✅ Admin Login
+    document.getElementById("loginBtn").addEventListener("click", () => {
+      const inputPass = document.getElementById("adminPass").value.trim();
+      const decrypted = CryptoJS.AES.decrypt(encryptedPass, secretKey).toString(CryptoJS.enc.Utf8);
+      if (inputPass === decrypted) {
+        localStorage.setItem("isAdmin", "true");
+        loginPanel.classList.add("hidden");
+        adminPanel.classList.remove("hidden");
+        loginCount++;
+        localStorage.setItem("loginCount", loginCount);
+        document.getElementById("loginCount").textContent = loginCount;
+        alert("✅ Access granted");
+      } else {
+        loginMsg.textContent = "❌ Wrong password!";
+      }
+    });
+
+    // 🚪 Logout
+    document.getElementById("logoutBtn").addEventListener("click", () => {
+      localStorage.removeItem("isAdmin");
+      location.reload();
+    });
+
+    // Auto-login check
+    window.onload = () => {
+      if (localStorage.getItem("isAdmin") === "true") {
+        loginPanel.classList.add("hidden");
+        adminPanel.classList.remove("hidden");
+      }
+    };
+
+    // ➕ Add Record
+    document.getElementById("addRecordBtn").addEventListener("click", async () => {
+      const name = document.getElementById("name").value;
+      const nia = document.getElementById("nia").value;
+      const dob = document.getElementById("dob").value;
+      const region = document.getElementById("region").value;
+      const criminal = document.getElementById("criminal").value;
+      const driving = document.getElementById("driving").value;
+      const address = document.getElementById("address").value;
+      const credit = document.getElementById("credit").value;
+      const status = document.getElementById("status").value;
+
+      if (!name || !nia) return alert("⚠️ Name and NIA are required");
+
       try {
-        const dref = countersDocRef();
-        const snap = await getDoc(dref);
-        if (snap.exists()) {
-          const d = snap.data();
-          statSearches.textContent = (d.searches || 0);
-          statLogins.textContent = (d.logins || 0);
-          return;
+        await addDoc(collection(db, "records"), { name, nia, dob, region, criminal, driving, address, credit, status });
+        alert("✅ Record saved!");
+      } catch (e) {
+        console.error(e);
+        alert("❌ Failed to save record");
+      }
+    });
+
+    // 🔍 Search
+    document.getElementById("searchBtn").addEventListener("click", async () => {
+      const val = document.getElementById("searchInput").value.trim().toLowerCase();
+      const resultsDiv = document.getElementById("results");
+      if (!val) return alert("Please enter something");
+
+      searchCount++;
+      localStorage.setItem("searchCount", searchCount);
+      document.getElementById("searchCount").textContent = searchCount;
+
+      const allDocs = await getDocs(collection(db, "records"));
+      let results = "";
+      allDocs.forEach((doc) => {
+        const r = doc.data();
+        if (r.name?.toLowerCase() === val || r.nia?.toLowerCase() === val) {
+          results += `
+          <div class="record">
+            <h3>${r.name}</h3>
+            <p><b>NIA ID:</b> ${r.nia}</p>
+            <p><b>Status:</b> ${r.status}</p>
+            <p><b>Region:</b> ${r.region}</p>
+          </div>`;
         }
-      } catch(e){
-        console.warn('Error reading counters:', e);
-      }
-      // fallback local
-      statSearches.textContent = localStorage.getItem('nbvs_searches') || 0;
-      statLogins.textContent = localStorage.getItem('nbvs_logins') || 0;
-    }
-
-    // Helper: increment counters (tries Firestore, else localStorage)
-    async function incrementCounter(field) {
-      try {
-        const dref = countersDocRef();
-        const snap = await getDoc(dref);
-        if (snap.exists()) {
-          const cur = snap.data();
-          const next = (cur[field] || 0) + 1;
-          await setDoc(dref, { ...cur, [field]: next });
-          await loadCounters();
-          return;
-        } else {
-          // create doc
-          const base = { searches: 0, logins: 0 };
-          base[field] = 1;
-          await setDoc(dref, base);
-          await loadCounters();
-          return;
-        }
-      } catch(e) {
-        // fallback
-        const key = field === 'searches' ? 'nbvs_searches' : 'nbvs_logins';
-        const cur = parseInt(localStorage.getItem(key) || '0', 10) + 1;
-        localStorage.setItem(key, String(cur));
-        await loadCounters();
-      }
-    }
-
-    // Authentication flow
-    signInBtn.addEventListener('click', async () => {
-      const email = document.getElementById('adminEmail').value.trim();
-      const pass = document.getElementById('adminPass').value.trim();
-      loginMsg.textContent = '';
-      try {
-        const cred = await signInWithEmailAndPassword(auth, email, pass);
-        // success: show admin UI
-        loginCard.style.display = 'none';
-        adminPanel.style.display = '';
-        statsCard.style.display = '';
-        signOutBtn.style.display = '';
-        signedInAs.textContent = (cred.user && cred.user.email) || email;
-        await incrementCounter('logins');
-        await loadCounters();
-        listAll(); // populate records
-      } catch (err) {
-        console.error('signin error', err);
-        loginMsg.textContent = 'Sign-in failed. Check credentials.';
-      }
-    });
-
-    signOutBtn.addEventListener('click', async () => {
-      await signOut(auth);
-      loginCard.style.display = '';
-      adminPanel.style.display = 'none';
-      statsCard.style.display = 'none';
-      signOutBtn.style.display = 'none';
-      signedInAs.textContent = '—';
-      loginMsg.textContent = 'Logged out.';
-    });
-
-    // Admin CRUD
-    document.getElementById('saveBtn').addEventListener('click', async () => {
-      // only admins signed in can save (signInWithEmail... enforces)
-      const record = {
-        name: document.getElementById('name').value.trim(),
-        nia: document.getElementById('nia').value.trim(),
-        dob: document.getElementById('dob').value || '',
-        region: document.getElementById('region').value.trim(),
-        address: document.getElementById('address').value.trim(),
-        credit: document.getElementById('credit').value.trim(),
-        driving: document.getElementById('driving').value.trim(),
-        criminal: document.getElementById('criminal').value.trim(),
-        status: document.getElementById('status').value || 'Pending',
-        createdAt: new Date().toISOString()
-      };
-      if (!record.name || !record.nia) { alert('Please enter name and NIA.'); return; }
-      try {
-        await addDoc(recordsCol, record);
-        alert('Record saved.');
-        clearForm();
-        listAll();
-      } catch (err) {
-        console.error('save err', err);
-        alert('Failed to save');
-      }
-    });
-
-    function clearForm(){
-      ['name','nia','dob','region','address','credit','driving','criminal','status'].forEach(id=> {
-        const el=document.getElementById(id); if(el) el.value='';
       });
-    }
-    document.getElementById('clearForm').addEventListener('click', clearForm);
-
-    // Search & list
-    document.getElementById('searchBtn').addEventListener('click', async () => {
-      const q = document.getElementById('searchInput').value.trim().toLowerCase();
-      if(!q) { alert('Enter search term'); return; }
-      try {
-        const snap = await getDocs(recordsCol);
-        const matches = [];
-        snap.forEach(d => {
-          const r = d.data();
-          if((r.name && r.name.toLowerCase().includes(q)) || (r.nia && r.nia.toLowerCase().includes(q))) {
-            matches.push({ id:d.id, ...r });
-          }
-        });
-        renderList(matches);
-        await incrementCounter('searches');
-      } catch(err) {
-        console.error(err);
-        alert('Search failed');
-      }
+      resultsDiv.innerHTML = results || "<p>❌ No record found.</p>";
     });
 
-    document.getElementById('showAllBtn').addEventListener('click', listAll);
-
-    async function listAll(){
-      try {
-        const snap = await getDocs(recordsCol);
-        const arr = [];
-        snap.forEach(d => arr.push({ id:d.id, ...d.data()}));
-        renderList(arr);
-      } catch(err){ console.error(err); document.getElementById('results').innerHTML = '<p>Error loading records</p>'}
-    }
-
-    function renderList(arr){
-      const out = arr.map(r => `
+    // 📋 Show All
+    document.getElementById("showAllBtn").addEventListener("click", async () => {
+      const resultsDiv = document.getElementById("results");
+      const allDocs = await getDocs(collection(db, "records"));
+      let html = "";
+      allDocs.forEach((doc) => {
+        const r = doc.data();
+        html += `
         <div class="record">
-          <div style="display:flex;justify-content:space-between;align-items:center">
-            <strong>${escapeHtml(r.name)}</strong>
-            <span>${escapeHtml(r.status||'')}</span>
-          </div>
-          <p><b>NIA:</b> ${escapeHtml(r.nia)} &nbsp; <b>DOB:</b> ${escapeHtml(r.dob)}</p>
-          <p><b>Region:</b> ${escapeHtml(r.region)} &nbsp; <b>Credit:</b> ${escapeHtml(r.credit)}</p>
-          <p><b>Driving:</b> ${escapeHtml(r.driving)}</p>
-          <p><b>Criminal:</b> ${escapeHtml(r.criminal)}</p>
-        </div>
-      `).join('');
-      document.getElementById('results').innerHTML = out || '<p>No records</p>';
-    }
-
-    function escapeHtml(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-
-    // Export to CSV
-    document.getElementById('exportBtn').addEventListener('click', async () => {
-      try {
-        const snap = await getDocs(recordsCol);
-        const rows = [];
-        snap.forEach(d => rows.push(d.data()));
-        if (!rows.length) { alert('No records to export'); return; }
-        // CSV headers
-        const headers = ['name','nia','dob','region','address','credit','driving','criminal','status','createdAt'];
-        const csv = [headers.join(',')].concat(rows.map(r => headers.map(h=>`"${String(r[h]||'').replace(/"/g,'""')}"`).join(','))).join('\n');
-        const blob = new Blob([csv], { type: 'text/csv' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a'); a.href = url; a.download = 'nbvs_records.csv'; document.body.appendChild(a); a.click(); a.remove();
-      } catch(err){ console.error(err); alert('Export failed') }
+          <h3>${r.name}</h3>
+          <p><b>NIA:</b> ${r.nia}</p>
+          <p><b>Status:</b> ${r.status}</p>
+        </div>`;
+      });
+      resultsDiv.innerHTML = html || "<p>No records.</p>";
     });
-
-    // On load: hide admin elements until sign-in check (we don't auto-sign-in)
-    loginCard.style.display = '';
-    adminPanel.style.display = 'none';
-    statsCard.style.display = 'none';
-    signOutBtn.style.display = 'none';
-    loadCounters(); // load any public counters (local fallback if no Firestore)
   </script>
 </body>
 </html>
+
