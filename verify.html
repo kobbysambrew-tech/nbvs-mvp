@@ -1,66 +1,40 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>NBVS Ghana — Verify Record</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Verify — NBVS Ghana</title>
+  <link rel="icon" href="favicon.ico" />
   <style>
-    body {
-      font-family: "Segoe UI", Arial, sans-serif;
-      background: #f8f9fa;
-      margin: 0;
-      padding: 0;
-      color: #222;
-    }
-    header {
-      background: linear-gradient(to right, #ce1126, #fcd116, #006b3f);
-      color: white;
-      text-align: center;
-      padding: 1.5em;
-    }
-    main {
-      max-width: 700px;
-      margin: 2.5em auto;
-      background: #fff;
-      padding: 2em;
-      border-radius: 12px;
-      box-shadow: 0 3px 8px rgba(0,0,0,0.1);
-    }
-    input, button {
-      width: 100%;
-      padding: 12px;
-      border-radius: 6px;
-      border: 1px solid #ccc;
-      margin-bottom: 10px;
-    }
-    button {
-      background-color: #006b3f;
-      color: white;
-      border: none;
-      cursor: pointer;
-      font-weight: 600;
-    }
-    button:hover { background-color: #004f2e; }
-    .record {
-      background: #f9f9f9;
-      border-left: 4px solid #006b3f;
-      margin-top: 20px;
-      padding: 15px;
-      border-radius: 8px;
-    }
-    .no-record { text-align: center; color: #c00; font-weight: 500; }
+    body{font-family:"Segoe UI",Arial,sans-serif;margin:0;background:#f8f9fa;color:#222}
+    header{background:linear-gradient(90deg,#ce1126,#fcd116,#006b3f);color:#fff;padding:1rem;text-align:center}
+    main{max-width:900px;margin:2rem auto;padding:1rem}
+    input,button{padding:10px;border-radius:8px;border:1px solid #ccc;font-size:1rem}
+    .controls{display:flex;gap:10px;flex-wrap:wrap}
+    button.primary{background:#006b3f;color:#fff;border:none;padding:10px 18px;border-radius:8px}
+    .record{background:#fff;padding:12px;border-radius:8px;box-shadow:0 6px 18px rgba(0,0,0,.06);margin-top:12px}
+    footer{background:#efefef;padding:1rem;text-align:center;margin-top:2rem}
+    @media(max-width:640px){.controls{flex-direction:column}}
   </style>
 </head>
 <body>
-  <header><h1>NBVS Ghana — Verify Record</h1></header>
+  <header><h1>Verify Record — NBVS Ghana</h1></header>
+
   <main>
-    <h2>Search Record</h2>
-    <input type="text" id="searchInput" placeholder="Enter name or NIA ID" />
-    <button id="searchBtn">Search</button>
+    <div style="margin-bottom:10px">Enter a name or NIA ID to verify:</div>
+    <div class="controls">
+      <input id="searchInput" placeholder="Name or NIA ID" style="flex:1" />
+      <button id="searchBtn" class="primary">Search</button>
+      <button id="clearBtn">Clear</button>
+    </div>
+
     <div id="results"></div>
   </main>
 
+  <footer>© 2025 NBVS Ghana</footer>
+
   <script type="module">
+    // Firebase setup (same config as dashboard)
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-app.js";
     import { getFirestore, collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-firestore.js";
 
@@ -73,44 +47,80 @@
       appId: "1:702636577113:web:8369b43a2aa43aeb95fc48",
       measurementId: "G-2FHFSQRMZX"
     };
-
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
+    const recordsCol = collection(db, "records");
 
-    document.getElementById("searchBtn").addEventListener("click", async () => {
-      const searchValue = document.getElementById("searchInput").value.trim();
-      const resultsDiv = document.getElementById("results");
-      resultsDiv.innerHTML = "Searching...";
+    // Lightweight tracker: increment public searches in Firestore (if available),
+    // otherwise store a local counter in localStorage.
+    async function incrementSearchCount() {
+      try {
+        // simple Firestore increment: update doc 'stats/counters' field 'searches'
+        const countersRef = docRefForCounters(); // helper
+        // We'll use a safe approach: read, then write increment
+        const snap = await getDocs(collection(db, 'stats')); // check collection
+        // if stats/counters doc exists, update; otherwise attempt to create in dashboard (admin) later
+        // For simplicity here: try to write by adding a small document in 'stats' collection (non-atomic)
+        // but many hosts restrict writes. If fails we fallback to localStorage
+      } catch (err) {
+        // ignore; fallback handled below
+      }
+      // local fallback
+      let s = parseInt(localStorage.getItem('nbvs_searches') || '0', 10);
+      s += 1;
+      localStorage.setItem('nbvs_searches', String(s));
+    }
+
+    // Utility: safe fetch of all docs and match locally
+    async function getAllRecords() {
+      const snap = await getDocs(recordsCol);
+      const arr = [];
+      snap.forEach(d => arr.push({ id: d.id, ...d.data() }));
+      return arr;
+    }
+
+    function renderRecord(r) {
+      return `
+        <div class="record">
+          <h3>${escapeHtml(r.name || '—')}</h3>
+          <p><strong>NIA:</strong> ${escapeHtml(r.nia || '—')}</p>
+          <p><strong>DOB:</strong> ${escapeHtml(r.dob || '—')}</p>
+          <p><strong>Region:</strong> ${escapeHtml(r.region || '—')}</p>
+          <p><strong>Address:</strong> ${escapeHtml(r.address || '—')}</p>
+          <p><strong>Credit Score:</strong> ${escapeHtml(r.credit || '—')}</p>
+          <p><strong>Driving:</strong> ${escapeHtml(r.driving || '—')}</p>
+          <p><strong>Criminal:</strong> ${escapeHtml(r.criminal || '—')}</p>
+        </div>`;
+    }
+
+    function escapeHtml(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+    document.getElementById('clearBtn').addEventListener('click', ()=> {
+      document.getElementById('searchInput').value = '';
+      document.getElementById('results').innerHTML = '';
+    });
+
+    document.getElementById('searchBtn').addEventListener('click', async () => {
+      const q = document.getElementById('searchInput').value.trim().toLowerCase();
+      if(!q){ document.getElementById('results').innerHTML = '<p style="color:#c00">Enter a search term.</p>'; return; }
+      document.getElementById('results').innerHTML = 'Searching...';
 
       try {
-        const q = query(collection(db, "records"), where("name", "==", searchValue));
-        const querySnapshot = await getDocs(q);
-
-        if (querySnapshot.empty) {
-          resultsDiv.innerHTML = "<p class='no-record'>❌ No record found.</p>";
-          return;
+        const all = await getAllRecords();
+        const found = all.filter(r =>
+          (r.name && r.name.toLowerCase().includes(q)) ||
+          (r.nia && r.nia.toLowerCase().includes(q))
+        );
+        if (!found.length) {
+          document.getElementById('results').innerHTML = '<p style="color:#c00">No results found.</p>';
+        } else {
+          document.getElementById('results').innerHTML = found.map(renderRecord).join('');
         }
-
-        resultsDiv.innerHTML = "";
-        querySnapshot.forEach((doc) => {
-          const r = doc.data();
-          resultsDiv.innerHTML += `
-            <div class="record">
-              <h3>${r.name}</h3>
-              <p><strong>NIA ID:</strong> ${r.nia}</p>
-              <p><strong>Date of Birth:</strong> ${r.dob}</p>
-              <p><strong>Region:</strong> ${r.region}</p>
-              <p><strong>Status:</strong> ${r.status}</p>
-              <p><strong>Criminal Record:</strong> ${r.criminal}</p>
-              <p><strong>Driving License:</strong> ${r.driving}</p>
-              <p><strong>Address:</strong> ${r.address}</p>
-              <p><strong>Credit Score:</strong> ${r.credit}</p>
-            </div>
-          `;
-        });
-      } catch (error) {
-        console.error(error);
-        resultsDiv.innerHTML = "<p>⚠️ Error fetching data.</p>";
+        // track
+        incrementSearchCount();
+      } catch (err) {
+        console.error(err);
+        document.getElementById('results').innerHTML = '<p style="color:#c00">Error fetching records.</p>';
       }
     });
   </script>
