@@ -1,41 +1,89 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>NBVS Ghana</title>
-<style>
-  body {
-    font-family: Arial, sans-serif;
-    text-align: center;
-    background: linear-gradient(to bottom, #006b3f, #fcd116, #ce1126);
-    color: white;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-  }
-  h1 { font-size: 2em; margin-bottom: 10px; }
-  p { max-width: 500px; margin: 0 auto 20px; }
-  button {
-    background: white;
-    color: #006b3f;
-    padding: 12px 25px;
-    margin: 10px;
-    border: none;
-    border-radius: 10px;
-    cursor: pointer;
-    font-size: 1.1em;
-  }
-  button:hover { background: #fcd116; color: #000; }
-</style>
-</head>
-<body>
-  <h1>🇬🇭 National Background Verification System (NBVS)</h1>
-  <p>Our mission is to promote transparency and trust through secure identity verification across Ghana.</p>
-  <div>
-    <button onclick="window.location.href='verify.html'">Check Background</button>
-    <button onclick="window.location.href='login.html'">Admin</button>
-  </div>
-</body>
-</html>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NBVS Ghana - National Background Verification System</title>
+  <style>
+    body {
+      font-family: "Segoe UI", Arial, sans-serif;
+      margin: 0;
+      background: #f8f9fa;
+      color: #333;
+      text-align: center;
+    }
+
+    header {
+      background: linear-gradient(to right, #ce1126, #fcd116, #006b3f);
+      color: white;
+      padding: 1.5em 1em;
+      box-shadow: 0 3px 8px rgba(0,0,0,0.2);
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 2em;
+    }
+
+    main {
+      padding: 2em;
+      max-width: 700px;
+      margin: auto;
+    }
+
+    h2 {
+      color: #006b3f;
+    }
+
+    p {
+      line-height: 1.6;
+    }
+
+    .btn-container {
+      margin-top: 2em;
+      display: flex;
+      justify-content: center;
+      gap: 1.5em;
+      flex-wrap: wrap;
+    }
+
+    a.button {
+      background-color: #006b3f;
+      color: white;
+      padding: 12px 24px;
+      border-radius: 8px;
+      text-decoration: none;
+      font-size: 1.1em;
+      box-shadow: 0 3px 6px rgba(0,0,0,0.2);
+      transition: all 0.2s ease;
+    }
+
+    a.button:hover {
+      background-color: #004f2e;
+      transform: translateY(-2px);
+    }
+
+    footer {
+      background-color: #eee;
+      padding: 1em;
+      margin-top: 3em;
+      font-size: 0.9em;
+      color: #333;
+    }
+
+    .flag {
+      margin: 2em 0;
+    }
+
+    .flag div {
+      width: 250px;
+      height: 50px;
+    }
+
+    .red { background: #ce1126; }
+    .yellow { background: #fcd116; }
+    .green { background: #006b3f; }
+    .star {
+      position: relative;
+      top: -100px;
+      font-size: 2
