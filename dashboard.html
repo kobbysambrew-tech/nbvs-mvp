@@ -131,6 +131,50 @@
 
   <!-- Firebase & Script -->
   <script type="module">
+    <script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-app.js";
+  import { 
+    getFirestore, collection, addDoc, getDocs, query, serverTimestamp 
+  } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyCDh_qL3jiCMHROK0_Soul2Wsv3t3y4wv0",
+    authDomain: "nbvs-ghana.firebaseapp.com",
+    projectId: "nbvs-ghana",
+    storageBucket: "nbvs-ghana.firebasestorage.app",
+    messagingSenderId: "702636577113",
+    appId: "1:702636577113:web:8369b43a2aa43aeb95fc48",
+    measurementId: "G-2FHFSQRMZX"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  const loginBtn = document.getElementById("loginBtn");
+  const adminPanel = document.getElementById("adminPanel");
+  const loginPanel = document.getElementById("loginPanel");
+  const loginMsg = document.getElementById("loginMsg");
+
+  loginBtn.addEventListener("click", async () => {
+    const pass = document.getElementById("adminPass").value.trim();
+    if (pass === "nbvs2008") {
+      localStorage.setItem("isAdmin", "true");
+      loginPanel.classList.add("hidden");
+      adminPanel.classList.remove("hidden");
+
+      // ✅ Log admin login
+      await addDoc(collection(db, "adminLogs"), {
+        user: "admin",
+        timestamp: serverTimestamp()
+      });
+
+      alert("✅ Admin access granted!");
+    } else {
+      loginMsg.textContent = "❌ Wrong password!";
+    }
+  });
+</script>
+
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-app.js";
     import { getFirestore, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-firestore.js";
 
