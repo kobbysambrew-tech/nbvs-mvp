@@ -72,51 +72,53 @@
   </footer>
 
   <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-app.js";
-    import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-firestore.js";
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-app.js";
+  import { getFirestore, collection, onSnapshot, getDocs } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-firestore.js";
 
-    // Firebase Config
-    const firebaseConfig = {
-      apiKey: "AIzaSyCDh_qL3jiCMHROK0_Soul2Wsv3t3y4wv0",
-      authDomain: "nbvs-ghana.firebaseapp.com",
-      projectId: "nbvs-ghana",
-      storageBucket: "nbvs-ghana.firebasestorage.app",
-      messagingSenderId: "702636577113",
-      appId: "1:702636577113:web:8369b43a2aa43aeb95fc48",
-      measurementId: "G-2FHFSQRMZX"
-    };
+  const firebaseConfig = {
+    apiKey: "AIzaSyCDh_qL3jiCMHROK0_Soul2Wsv3t3y4wv0",
+    authDomain: "nbvs-ghana.firebaseapp.com",
+    projectId: "nbvs-ghana",
+    storageBucket: "nbvs-ghana.firebasestorage.app",
+    messagingSenderId: "702636577113",
+    appId: "1:702636577113:web:8369b43a2aa43aeb95fc48",
+    measurementId: "G-2FHFSQRMZX"
+  };
 
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
 
-    // Helper: safely count documents
-    async function safeCount(collectionName) {
-      try {
-        const snap = await getDocs(collection(db, collectionName));
-        return snap.size;
-      } catch (err) {
-        console.warn(`⚠️ Error counting ${collectionName}:`, err);
-        return 0;
-      }
+  const totalRecordsEl = document.getElementById("totalRecords");
+  const totalSearchesEl = document.getElementById("totalSearches");
+  const totalLoginsEl = document.getElementById("totalLogins");
+
+  // 🔹 Live update for total records
+  onSnapshot(collection(db, "records"), (snapshot) => {
+    totalRecordsEl.textContent = snapshot.size.toLocaleString();
+  });
+
+  // 🔹 Live update for searches
+  onSnapshot(collection(db, "searchLogs"), (snapshot) => {
+    totalSearchesEl.textContent = snapshot.size.toLocaleString();
+  });
+
+  // 🔹 Live update for admin logins
+  onSnapshot(collection(db, "adminLogs"), (snapshot) => {
+    totalLoginsEl.textContent = snapshot.size.toLocaleString();
+  });
+
+  // 🧩 Fallback: in case any collection doesn’t exist yet
+  async function checkCollections() {
+    try {
+      await getDocs(collection(db, "records"));
+      await getDocs(collection(db, "searchLogs"));
+      await getDocs(collection(db, "adminLogs"));
+    } catch (err) {
+      console.warn("Some collections missing:", err);
     }
+  }
+  checkCollections();
+</script>
 
-    async function loadStats() {
-      document.getElementById("recordsCount").textContent = "Loading...";
-      document.getElementById("searchCount").textContent = "Loading...";
-      document.getElementById("loginCount").textContent = "Loading...";
-
-      const [records, searches, logins] = await Promise.all([
-        safeCount("records"),
-        safeCount("searchLogs"),
-        safeCount("adminLogs"),
-      ]);
-
-      document.getElementById("recordsCount").textContent = records;
-      document.getElementById("searchCount").textContent = searches;
-      document.getElementById("loginCount").textContent = logins;
-    }
-
-    loadStats();
-  </script>
 </body>
 </html>
