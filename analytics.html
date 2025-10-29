@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NBVS Ghana — Search Analytics</title>
+  <style>
+    body {
+      font-family: "Segoe UI", Arial, sans-serif;
+      margin: 0;
+      background: #f8f9fa;
+      color: #222;
+    }
+
+    header {
+      background: linear-gradient(to right, #ce1126, #fcd116, #006b3f);
+      color: white;
+      text-align: center;
+      padding: 1em;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 1.6em;
+    }
+
+    main {
+      max-width: 900px;
+      margin: 2em auto;
+      background: white;
+      padding: 1.5em;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 1em;
+    }
+
+    th, td {
+      text-align: left;
+      padding: 10px;
+      border-bottom: 1px solid #ddd;
+    }
+
+    th {
+      background: #006b3f;
+      color: white;
+    }
+
+    tr:hover {
+      background: #f1f1f1;
+    }
+
+    .badge {
+      padding: 3px 7px;
+      border-radius: 5px;
+      color: white;
+      font-size: 0.85em;
+    }
+
+    .badge.true { background-color: #28a745; }
+    .badge.false { background-color: #dc3545; }
+
+    .summary {
+      text-align: center;
+      font-size: 1em;
+      margin-bottom: 1em;
+      color: #444;
+    }
+
+    footer {
+      text-align: center;
+      padding: 1em;
+      background: #eee;
+      margin-top: 2em;
+      color: #444;
+      font-size: 0.9em;
+    }
+
+    button {
+      background-color: #006b3f;
+      color: white;
+      border: none;
+      padding: 10px 15px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #004f2e;
+    }
+
+    @media screen and (max-width: 600px) {
+      table, thead, tbody, th, td, tr {
+        display: block;
+      }
+      th {
+        display: none;
+      }
+      td {
+        padding: 8px;
+        border: none;
+        border-bottom: 1px solid #ddd;
+      }
+      td::before {
+        content: attr(data-label);
+        font-weight: bold;
+        display: block;
+        color: #333;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>NBVS Ghana — Analytics Dashboard</h1>
+  </header>
+
+  <main>
+    <div class="summary">
+      <p>📊 <b>Total Searches:</b> <span id="totalSearches">0</span></p>
+      <button id="refreshBtn">🔄 Refresh</button>
+    </div>
+
+    <table id="analyticsTable">
+      <thead>
+        <tr>
+          <th>Search Term</th>
+          <th>Found</th>
+          <th>Device</th>
+          <th>Timestamp</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </main>
+
+  <footer>
+    © 2025 NBVS Ghana — National Background Verification System
+  </footer>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-app.js";
+    import { getFirestore, collection, getDocs, orderBy, query } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-firestore.js";
+
+    // ✅ Firebase Config (same as your main app)
+    const firebaseConfig = {
+      apiKey: "AIzaSyCDh_qL3jiCMHROK0_Soul2Wsv3t3y4wv0",
+      authDomain: "nbvs-ghana.firebaseapp.com",
+      projectId: "nbvs-ghana",
+      storageBucket: "nbvs-ghana.firebasestorage.app",
+      messagingSenderId: "702636577113",
+      appId: "1:702636577113:web:8369b43a2aa43aeb95fc48",
+      measurementId: "G-2FHFSQRMZX"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    const tableBody = document.querySelector("#analyticsTable tbody");
+    const totalSearchesEl = document.getElementById("totalSearches");
+    const refreshBtn = document.getElementById("refreshBtn");
+
+    async function loadAnalytics() {
+      tableBody.innerHTML = "";
+      const q = query(collection(db, "analytics"), orderBy("timestamp", "desc"));
+      const snapshot = await getDocs(q);
+
+      let total = 0;
+
+      snapshot.forEach((doc) => {
+        total++;
+        const data = doc.data();
+        const row = document.createElement("tr");
+        const time = data.timestamp?.toDate ? data.timestamp.toDate().toLocaleString() : "—";
+
+        row.innerHTML = `
+          <td data-label="Search Term">${data.term || "—"}</td>
+          <td data-label="Found">
+            <span class="badge ${data.found}">${data.found ? "✅ Yes" : "❌ No"}</span>
+          </td>
+          <td data-label="Device">${data.device || "—"}</td>
+          <td data-label="Timestamp">${time}</td>
+        `;
+        tableBody.appendChild(row);
+      });
+
+      totalSearchesEl.textContent = total;
+    }
+
+    refreshBtn.addEventListener("click", loadAnalytics);
+
+    loadAnalytics();
+  </script>
+</body>
+</html>
