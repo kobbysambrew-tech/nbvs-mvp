@@ -1,52 +1,216 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>NBVS Dashboard</title>
-  <style>
-    body { font-family: Arial, sans-serif; background:#f4f6f8; padding:20px; }
-    .hidden { display:none; }
-    .card { background:#fff; padding:20px; border-radius:10px; margin-bottom:15px; box-shadow:0 2px 5px rgba(0,0,0,0.1); }
-    input, select, button { width:100%; padding:10px; margin-top:10px; border-radius:5px; border:1px solid #ccc; }
-    button { background:#007bff; color:white; border:none; cursor:pointer; }
-    button:hover { background:#0056b3; }
-  </style>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>NBVS — Admin Dashboard</title>
+<style>
+  body{font-family:Segoe UI,Arial,sans-serif;background:#f4f6f8;margin:0;padding:20px}
+  header{background:linear-gradient(90deg,#ce1126,#fcd116,#006b3f);color:#fff;padding:14px;text-align:center;border-radius:6px}
+  .card{background:#fff;padding:16px;border-radius:10px;box-shadow:0 4px 10px rgba(0,0,0,0.06);margin-top:16px}
+  input,button,select{width:100%;padding:10px;margin-top:10px;border-radius:8px;border:1px solid #ccc;font-size:15px}
+  button{background:#006b3f;color:#fff;border:none;cursor:pointer}
+  button.warn{background:#dc3545}
+  .hidden{display:none}
+  #results .card{margin-top:10px}
+</style>
 </head>
 <body>
+  <header><h1>NBVS — Admin Dashboard</h1></header>
 
-<h2>National Background Verification System – Admin Dashboard</h2>
+  <div id="loginPanel" class="card">
+    <h3>Admin Login</h3>
+    <input id="adminPass" type="password" placeholder="Enter admin password" />
+    <button id="loginBtn">Login</button>
+    <div id="loginMsg" style="color:#c00;margin-top:8px"></div>
+  </div>
 
-<div id="loginPanel" class="card">
-  <h3>Admin Login</h3>
-  <input type="password" id="adminPass" placeholder="Enter admin password" />
-  <button id="loginBtn">Login</button>
-  <p id="loginMsg" style="color:red;"></p>
-</div>
+  <div id="adminPanel" class="card hidden">
+    <h3>Add Record</h3>
+    <input id="name" placeholder="Full Name" />
+    <input id="nia" placeholder="NIA ID (GHA-...)" />
+    <input id="dob" placeholder="Date of Birth" />
+    <input id="region" placeholder="Region" />
+    <input id="criminal" placeholder="Criminal Record" />
+    <input id="driving" placeholder="Driving License" />
+    <input id="address" placeholder="Address" />
+    <input id="credit" placeholder="Credit Score" />
+    <select id="status">
+      <option value="Verified">Verified</option>
+      <option value="Pending">Pending</option>
+    </select>
+    <button id="addRecordBtn">Save Record</button>
+  </div>
 
-<div id="adminPanel" class="card hidden">
-  <h3>Add Record</h3>
-  <input id="name" placeholder="Full Name">
-  <input id="nia" placeholder="NIA ID">
-  <input id="dob" placeholder="Date of Birth">
-  <input id="region" placeholder="Region">
-  <input id="criminal" placeholder="Criminal Record? (Yes/No)">
-  <input id="driving" placeholder="Driver’s License? (Yes/No)">
-  <input id="address" placeholder="Address">
-  <input id="credit" placeholder="Credit Status">
-  <input id="status" placeholder="Employment Status">
-  <button id="addRecordBtn">Save Record</button>
-</div>
+  <div id="searchSection" class="card hidden">
+    <h3>Search Records</h3>
+    <input id="searchInput" placeholder="Search by name or NIA ID" />
+    <button id="searchBtn">Search</button>
+    <button id="showAllBtn">Show All Records</button>
+    <div id="results"></div>
+    <button id="logoutBtn" class="warn">Logout</button>
+  </div>
 
-<div id="searchSection" class="card hidden">
-  <h3>Search Records</h3>
-  <input id="searchInput" placeholder="Search by Name or NIA ID">
-  <button id="searchBtn">Search</button>
-  <button id="showAllBtn">Show All Records</button>
-  <div id="results" style="margin-top:15px;"></div>
-  <button id="logoutBtn" style="background:#dc3545;">Logout</button>
-</div>
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-app.js";
+  import {
+    getFirestore,
+    collection,
+    addDoc,
+    getDocs,
+    doc,
+    setDoc,
+    updateDoc,
+    increment,
+    serverTimestamp
+  } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-firestore.js";
 
-<script type="module" src="dashboard.js"></script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyCDh_qL3jiCMHROK0_Soul2Wsv3t3y4wv0",
+    authDomain: "nbvs-ghana.firebaseapp.com",
+    projectId: "nbvs-ghana",
+    storageBucket: "nbvs-ghana.firebasestorage.app",
+    messagingSenderId: "702636577113",
+    appId: "1:702636577113:web:8369b43a2aa43aeb95fc48",
+    measurementId: "G-2FHFSQRMZX"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  // elements
+  const loginPanel = document.getElementById("loginPanel");
+  const adminPanel = document.getElementById("adminPanel");
+  const searchSection = document.getElementById("searchSection");
+  const loginBtn = document.getElementById("loginBtn");
+  const logoutBtn = document.getElementById("logoutBtn");
+  const loginMsg = document.getElementById("loginMsg");
+
+  async function ensureStatsDoc() {
+    const ref = doc(db, "stats", "global");
+    try { await setDoc(ref, {}, { merge: true }); } catch(e){console.warn("ensureStatsDoc:",e);}
+  }
+
+  async function incrementStat(field) {
+    try {
+      const ref = doc(db, "stats", "global");
+      await setDoc(ref, {}, { merge: true });
+      await updateDoc(ref, { [field]: increment(1) });
+    } catch (e) {
+      console.warn("incrementStat fail", e);
+    }
+  }
+
+  loginBtn.addEventListener("click", async () => {
+    const pass = document.getElementById("adminPass").value.trim();
+    if (pass === "nbvs2008") {
+      localStorage.setItem("isAdmin", "true");
+      loginPanel.classList.add("hidden");
+      adminPanel.classList.remove("hidden");
+      searchSection.classList.remove("hidden");
+      loginMsg.textContent = "";
+      // log admin login in adminLogs and stats
+      try {
+        await addDoc(collection(db, "adminLogs"), { timestamp: serverTimestamp(), device: navigator.userAgent });
+      } catch(e){ console.warn("adminLogs write failed", e); }
+      await incrementStat("adminLogins");
+      alert("✅ Admin access granted");
+    } else {
+      loginMsg.textContent = "❌ Wrong password!";
+    }
+  });
+
+  logoutBtn.addEventListener("click", () => {
+    localStorage.removeItem("isAdmin");
+    location.reload();
+  });
+
+  window.onload = async () => {
+    await ensureStatsDoc();
+    if (localStorage.getItem("isAdmin") === "true") {
+      loginPanel.classList.add("hidden");
+      adminPanel.classList.remove("hidden");
+      searchSection.classList.remove("hidden");
+    }
+  };
+
+  // Add record
+  document.getElementById("addRecordBtn").addEventListener("click", async () => {
+    const name = document.getElementById("name").value.trim();
+    const nia = document.getElementById("nia").value.trim();
+    const dob = document.getElementById("dob").value.trim();
+    const region = document.getElementById("region").value.trim();
+    const criminal = document.getElementById("criminal").value.trim();
+    const driving = document.getElementById("driving").value.trim();
+    const address = document.getElementById("address").value.trim();
+    const credit = document.getElementById("credit").value.trim();
+    const status = document.getElementById("status").value;
+
+    if (!name || !nia) { alert("Please fill Name and NIA"); return; }
+
+    try {
+      await addDoc(collection(db, "records"), {
+        name, nia, dob, region, criminal, driving, address, credit, status, createdAt: serverTimestamp()
+      });
+      alert("✅ Record saved");
+    } catch (e) {
+      console.error("save error", e); alert("❌ Save failed");
+    }
+  });
+
+  // Search (by exact or contains)
+  document.getElementById("searchBtn").addEventListener("click", async () => {
+    const q = (document.getElementById("searchInput").value || "").trim().toLowerCase();
+    const resultsDiv = document.getElementById("results");
+    if (!q) { resultsDiv.innerHTML = "<p style='color:#c00'>Enter search term</p>"; return; }
+
+    resultsDiv.innerHTML = "<p>Searching…</p>";
+    try {
+      await addDoc(collection(db, "searchLogs"), { term: q, timestamp: serverTimestamp() }).catch(()=>{});
+      await incrementStat("totalSearches");
+    } catch(e){ console.warn("log search failed", e); }
+
+    try {
+      const snap = await getDocs(collection(db, "records"));
+      const matches = [];
+      snap.forEach(docSnap => {
+        const r = docSnap.data();
+        if (!r) return;
+        const name = (r.name||"").toLowerCase();
+        const nia = (r.nia||"").toLowerCase();
+        if (name === q || nia === q || name.includes(q) || nia.includes(q)) matches.push(r);
+      });
+
+      if (matches.length === 0) { resultsDiv.innerHTML = "<p style='color:#c00'>No record found.</p>"; return; }
+      resultsDiv.innerHTML = "";
+      matches.forEach(r => {
+        const div = document.createElement("div");
+        div.className = "card";
+        div.innerHTML = `<strong>${r.name}</strong><div>NIA: ${r.nia || "N/A"}<br>Region: ${r.region || "N/A"}<br>Status: ${r.status || "N/A"}</div>`;
+        resultsDiv.appendChild(div);
+      });
+    } catch (err) {
+      console.error("search fail", err); resultsDiv.innerHTML = "<p style='color:#c00'>Error searching</p>";
+    }
+  });
+
+  // Show all
+  document.getElementById("showAllBtn").addEventListener("click", async () => {
+    const resultsDiv = document.getElementById("results");
+    resultsDiv.innerHTML = "<p>Loading…</p>";
+    try {
+      const snap = await getDocs(collection(db, "records"));
+      resultsDiv.innerHTML = "";
+      snap.forEach(docSnap => {
+        const r = docSnap.data();
+        const div = document.createElement("div");
+        div.className = "card";
+        div.innerHTML = `<strong>${r.name}</strong><div>NIA: ${r.nia || "N/A"}<br>Region: ${r.region || "N/A"}<br>Status: ${r.status || "N/A"}</div>`;
+        resultsDiv.appendChild(div);
+      });
+    } catch (e) { console.error(e); resultsDiv.innerHTML = "<p>Error loading</p>"; }
+  });
+
+</script>
 </body>
 </html>
