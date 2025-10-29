@@ -4,13 +4,13 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>NBVS Ghana — National Background Verification System</title>
+  <link rel="icon" type="image/png" href="favicon.ico" />
   <style>
     body {
       font-family: "Segoe UI", Arial, sans-serif;
       margin: 0;
-      background-color: #f8f9fa;
-      color: #222;
-      overflow-x: hidden;
+      background: #f8f9fa;
+      color: #333;
     }
 
     header {
@@ -18,134 +18,106 @@
       color: white;
       text-align: center;
       padding: 1.5em 1em;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+      box-shadow: 0 3px 6px rgba(0,0,0,0.2);
     }
 
     header h1 {
+      font-size: 1.8em;
       margin: 0;
-      font-size: 1.9em;
-      letter-spacing: 0.5px;
     }
 
     main {
+      max-width: 900px;
+      margin: 2em auto;
+      padding: 2em;
       text-align: center;
-      padding: 2em 1.5em;
-      max-width: 800px;
-      margin: auto;
     }
 
-    .flag {
-      width: 100%;
-      max-height: 18px;
-      margin-top: 6px;
-      background: linear-gradient(to bottom, #ce1126 33%, #fcd116 33%, #fcd116 66%, #006b3f 66%);
-    }
-
-    .mission {
-      background: white;
-      padding: 1.5em;
-      border-radius: 12px;
-      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+    .buttons {
       margin: 2em 0;
     }
 
-    .mission h2 {
-      color: #006b3f;
-      font-size: 1.5em;
-      margin-bottom: 0.5em;
-    }
-
-    .mission p {
-      font-size: 1.05em;
-      line-height: 1.6;
-      color: #333;
-    }
-
-    .btn-container {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      gap: 1em;
-      margin-top: 2em;
-    }
-
-    .btn {
+    .buttons a {
+      display: inline-block;
       background-color: #006b3f;
       color: white;
-      padding: 12px 25px;
-      border: none;
+      padding: 12px 24px;
+      margin: 10px;
       border-radius: 8px;
       font-size: 1.1em;
       text-decoration: none;
-      transition: background 0.3s, transform 0.2s;
-      box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
+      transition: background 0.3s;
     }
 
-    .btn:hover {
+    .buttons a:hover {
       background-color: #004f2e;
-      transform: scale(1.05);
     }
 
-    .btn.secondary {
-      background-color: #fcd116;
-      color: #333;
+    section {
+      background: white;
+      padding: 1.5em;
+      border-radius: 10px;
+      box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+      margin-top: 1.5em;
+      text-align: left;
+    }
+
+    h2 {
+      color: #006b3f;
     }
 
     footer {
       background-color: #eee;
       text-align: center;
-      padding: 1.2em;
+      padding: 1em;
       margin-top: 3em;
-      font-size: 0.9em;
       color: #333;
     }
 
     @media (max-width: 600px) {
       header h1 {
-        font-size: 1.5em;
+        font-size: 1.4em;
       }
-
-      .btn {
+      .buttons a {
         width: 90%;
+        margin: 10px auto;
+        display: block;
+      }
+      section {
+        text-align: center;
       }
     }
   </style>
 </head>
 <body>
+
   <header>
-    <h1>NBVS Ghana</h1>
-    <div class="flag"></div>
-    <p style="margin-top:8px;">National Background Verification System</p>
+    <h1>🇬🇭 National Background Verification System (NBVS Ghana)</h1>
+    <p>Secure • Trusted • Nationwide</p>
   </header>
 
   <main>
-    <div class="mission">
-      <h2>Our Mission</h2>
-      <p>
-        To enhance national security, trust, and transparency by providing a reliable,
-        digital background verification system for individuals and organizations across Ghana.
-        NBVS Ghana ensures that every identity and record can be verified quickly and accurately.
-      </p>
+    <div class="buttons">
+      <a href="verify.html">🔍 Verify Record</a>
+      <a href="dashboard.html">🔐 Admin Login</a>
     </div>
 
-    <div class="mission">
-      <h2>Our Purpose</h2>
+    <section>
+      <h2>About NBVS Ghana</h2>
       <p>
-        We aim to support businesses, law enforcement, and government agencies in making informed
-        decisions through accessible, verified data — reducing fraud and improving safety in employment,
-        licensing, and community trust.
+        The <strong>National Background Verification System (NBVS Ghana)</strong> is a secure platform that enables 
+        individuals, businesses, and government agencies to verify identities and backgrounds instantly. 
+        Our goal is to promote <strong>transparency, trust, and accountability</strong> across Ghana’s national systems.
       </p>
-    </div>
-
-    <div class="btn-container">
-      <a href="verify.html" class="btn">🔍 Check Background</a>
-      <a href="dashboard.html" class="btn secondary">🔐 Admin Login</a>
-    </div>
+      <p>
+        By combining verified data sources and digital security, NBVS Ghana helps reduce fraud, improve hiring processes, 
+        and build a safer, more connected nation.
+      </p>
+    </section>
   </main>
 
   <footer>
-    🇬🇭 © 2025 NBVS Ghana — National Background Verification System. All rights reserved.
+    © 2025 NBVS Ghana — National Background Verification System
   </footer>
 </body>
 </html>
-
