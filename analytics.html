@@ -3,61 +3,45 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>NBVS Ghana — Analytics Dashboard</title>
+  <title>NBVS Analytics Dashboard</title>
   <style>
     body {
       font-family: "Segoe UI", Arial, sans-serif;
       background: #f8f9fa;
       margin: 0;
       padding: 0;
-      color: #222;
+      text-align: center;
+      color: #333;
     }
     header {
       background: linear-gradient(to right, #ce1126, #fcd116, #006b3f);
       color: white;
-      text-align: center;
-      padding: 1.5em;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+      padding: 1.2em;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
     }
     h1 { margin: 0; font-size: 1.8em; }
-    main {
-      max-width: 700px;
-      margin: 2.5em auto;
-      background: #fff;
-      padding: 2em;
+    main { padding: 2em; max-width: 700px; margin: 2em auto; }
+    .stat {
+      background: white;
       border-radius: 12px;
+      padding: 1.5em;
+      margin: 1em 0;
       box-shadow: 0 3px 8px rgba(0,0,0,0.1);
-      text-align: center;
     }
-    h2 { color: #006b3f; margin-bottom: 0.5em; }
-    .metric {
-      background: #f1f1f1;
-      border-left: 5px solid #006b3f;
-      margin: 20px auto;
-      padding: 20px;
-      border-radius: 10px;
-      font-size: 1.2em;
-      max-width: 400px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    .stat h2 {
+      margin: 0;
+      color: #006b3f;
+      font-size: 2.2em;
     }
-    .btn {
-      background-color: #006b3f;
-      color: white;
-      border: none;
-      border-radius: 6px;
-      padding: 10px 18px;
+    .label {
+      color: #555;
       font-size: 1em;
-      cursor: pointer;
-      margin-top: 20px;
     }
-    .btn:hover { background-color: #004f2e; }
     footer {
-      text-align: center;
-      background-color: #eee;
+      background: #eee;
       padding: 1em;
-      margin-top: 3em;
-      color: #333;
       font-size: 0.9em;
+      margin-top: 2em;
     }
   </style>
 </head>
@@ -67,31 +51,31 @@
   </header>
 
   <main>
-    <div class="metric">
-      <h2>Total Records in Database:</h2>
-      <p id="recordCount">Loading...</p>
+    <div class="stat">
+      <h2 id="recordsCount">0</h2>
+      <p class="label">📋 Total Records in Database</p>
     </div>
 
-    <div class="metric">
-      <h2>Total Searches Performed:</h2>
-      <p id="searchCount">Loading...</p>
+    <div class="stat">
+      <h2 id="searchCount">0</h2>
+      <p class="label">🔍 Total Searches Performed</p>
     </div>
 
-    <div class="metric">
-      <h2>Total Admin Logins:</h2>
-      <p id="adminCount">Loading...</p>
+    <div class="stat">
+      <h2 id="loginCount">0</h2>
+      <p class="label">🔐 Total Admin Logins</p>
     </div>
-
-    <button class="btn" onclick="window.location.href='dashboard.html'">⬅ Back to Dashboard</button>
   </main>
 
-  <footer>© 2025 NBVS Ghana — Analytics System</footer>
+  <footer>
+    © 2025 NBVS Ghana — National Background Verification System
+  </footer>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-app.js";
-    import { getFirestore, collection, getCountFromServer } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-firestore.js";
+    import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-firestore.js";
 
-    // Firebase config
+    // Firebase Config
     const firebaseConfig = {
       apiKey: "AIzaSyCDh_qL3jiCMHROK0_Soul2Wsv3t3y4wv0",
       authDomain: "nbvs-ghana.firebaseapp.com",
@@ -105,34 +89,34 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    async function updateAnalytics() {
-      const recordCountEl = document.getElementById("recordCount");
-      const searchCountEl = document.getElementById("searchCount");
-      const adminCountEl = document.getElementById("adminCount");
-
+    // Helper: safely count documents
+    async function safeCount(collectionName) {
       try {
-        const recordSnap = await getCountFromServer(collection(db, "records"));
-        recordCountEl.textContent = recordSnap.data().count;
+        const snap = await getDocs(collection(db, collectionName));
+        return snap.size;
       } catch (err) {
-        recordCountEl.textContent = "⚠️ Error";
-      }
-
-      try {
-        const searchSnap = await getCountFromServer(collection(db, "searchLogs"));
-        searchCountEl.textContent = searchSnap.data().count;
-      } catch (err) {
-        searchCountEl.textContent = "⚠️ Error";
-      }
-
-      try {
-        const adminSnap = await getCountFromServer(collection(db, "adminLogs"));
-        adminCountEl.textContent = adminSnap.data().count;
-      } catch (err) {
-        adminCountEl.textContent = "⚠️ Error";
+        console.warn(`⚠️ Error counting ${collectionName}:`, err);
+        return 0;
       }
     }
 
-    updateAnalytics();
+    async function loadStats() {
+      document.getElementById("recordsCount").textContent = "Loading...";
+      document.getElementById("searchCount").textContent = "Loading...";
+      document.getElementById("loginCount").textContent = "Loading...";
+
+      const [records, searches, logins] = await Promise.all([
+        safeCount("records"),
+        safeCount("searchLogs"),
+        safeCount("adminLogs"),
+      ]);
+
+      document.getElementById("recordsCount").textContent = records;
+      document.getElementById("searchCount").textContent = searches;
+      document.getElementById("loginCount").textContent = logins;
+    }
+
+    loadStats();
   </script>
 </body>
 </html>
