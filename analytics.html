@@ -12,7 +12,6 @@
       padding: 0;
       color: #222;
     }
-
     header {
       background: linear-gradient(to right, #ce1126, #fcd116, #006b3f);
       color: white;
@@ -20,13 +19,7 @@
       padding: 1.5em;
       box-shadow: 0 2px 8px rgba(0,0,0,0.15);
     }
-
-    h1 {
-      margin: 0;
-      font-size: 1.8em;
-      letter-spacing: 0.5px;
-    }
-
+    h1 { margin: 0; font-size: 1.8em; }
     main {
       max-width: 700px;
       margin: 2.5em auto;
@@ -36,12 +29,7 @@
       box-shadow: 0 3px 8px rgba(0,0,0,0.1);
       text-align: center;
     }
-
-    h2 {
-      color: #006b3f;
-      margin-bottom: 0.5em;
-    }
-
+    h2 { color: #006b3f; margin-bottom: 0.5em; }
     .metric {
       background: #f1f1f1;
       border-left: 5px solid #006b3f;
@@ -52,7 +40,6 @@
       max-width: 400px;
       box-shadow: 0 2px 6px rgba(0,0,0,0.1);
     }
-
     .btn {
       background-color: #006b3f;
       color: white;
@@ -63,11 +50,7 @@
       cursor: pointer;
       margin-top: 20px;
     }
-
-    .btn:hover {
-      background-color: #004f2e;
-    }
-
+    .btn:hover { background-color: #004f2e; }
     footer {
       text-align: center;
       background-color: #eee;
@@ -94,12 +77,15 @@
       <p id="searchCount">Loading...</p>
     </div>
 
+    <div class="metric">
+      <h2>Total Admin Logins:</h2>
+      <p id="adminCount">Loading...</p>
+    </div>
+
     <button class="btn" onclick="window.location.href='dashboard.html'">⬅ Back to Dashboard</button>
   </main>
 
-  <footer>
-    © 2025 NBVS Ghana — Analytics System
-  </footer>
+  <footer>© 2025 NBVS Ghana — Analytics System</footer>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-app.js";
@@ -120,18 +106,29 @@
     const db = getFirestore(app);
 
     async function updateAnalytics() {
-      try {
-        // Count all records
-        const recordSnap = await getCountFromServer(collection(db, "records"));
-        document.getElementById("recordCount").textContent = recordSnap.data().count;
+      const recordCountEl = document.getElementById("recordCount");
+      const searchCountEl = document.getElementById("searchCount");
+      const adminCountEl = document.getElementById("adminCount");
 
-        // Count all searches
+      try {
+        const recordSnap = await getCountFromServer(collection(db, "records"));
+        recordCountEl.textContent = recordSnap.data().count;
+      } catch (err) {
+        recordCountEl.textContent = "⚠️ Error";
+      }
+
+      try {
         const searchSnap = await getCountFromServer(collection(db, "searchLogs"));
-        document.getElementById("searchCount").textContent = searchSnap.data().count;
-      } catch (error) {
-        console.error("Error loading analytics:", error);
-        document.getElementById("recordCount").textContent = "⚠️ Error loading data";
-        document.getElementById("searchCount").textContent = "⚠️ Error loading data";
+        searchCountEl.textContent = searchSnap.data().count;
+      } catch (err) {
+        searchCountEl.textContent = "⚠️ Error";
+      }
+
+      try {
+        const adminSnap = await getCountFromServer(collection(db, "adminLogs"));
+        adminCountEl.textContent = adminSnap.data().count;
+      } catch (err) {
+        adminCountEl.textContent = "⚠️ Error";
       }
     }
 
@@ -139,4 +136,3 @@
   </script>
 </body>
 </html>
-
