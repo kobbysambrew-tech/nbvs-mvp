@@ -121,111 +121,95 @@
 
   <!-- Firebase + Analytics Script -->
   <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-app.js";
-    import { getFirestore, collection, getDocs, addDoc, query, where, Timestamp } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-firestore.js";
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-app.js";
+  import { getFirestore, collection, getDocs, query, where, addDoc } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-firestore.js";
 
-    // ✅ Firebase Configuration
-    const firebaseConfig = {
-      apiKey: "AIzaSyCDh_qL3jiCMHROK0_Soul2Wsv3t3y4wv0",
-      authDomain: "nbvs-ghana.firebaseapp.com",
-      projectId: "nbvs-ghana",
-      storageBucket: "nbvs-ghana.firebasestorage.app",
-      messagingSenderId: "702636577113",
-      appId: "1:702636577113:web:8369b43a2aa43aeb95fc48",
-      measurementId: "G-2FHFSQRMZX"
-    };
+  // ✅ Firebase Config (same as dashboard + analytics)
+  const firebaseConfig = {
+    apiKey: "AIzaSyCDh_qL3jiCMHROK0_Soul2Wsv3t3y4wv0",
+    authDomain: "nbvs-ghana.firebaseapp.com",
+    projectId: "nbvs-ghana",
+    storageBucket: "nbvs-ghana.firebasestorage.app",
+    messagingSenderId: "702636577113",
+    appId: "1:702636577113:web:8369b43a2aa43aeb95fc48",
+    measurementId: "G-2FHFSQRMZX"
+  };
 
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
 
-    const searchBtn = document.getElementById("searchBtn");
-    const resultsDiv = document.getElementById("results");
-    const analyticsDiv = document.getElementById("analytics");
+  const searchBtn = document.getElementById("searchBtn");
+  const searchInput = document.getElementById("searchInput");
+  const resultsDiv = document.getElementById("results");
 
-    async function logSearch(term, found) {
-      try {
-        await addDoc(collection(db, "analytics"), {
-          term,
-          found,
-          timestamp: Timestamp.now(),
-          device: /Mobi|Android/i.test(navigator.userAgent) ? "Mobile" : "Desktop"
-        });
-      } catch (error) {
-        console.error("Analytics log failed:", error);
-      }
+  // ✅ Log searches to Firestore
+  async function logSearch(term, found) {
+    try {
+      await addDoc(collection(db, "analytics"), {
+        term,
+        found,
+        timestamp: Date.now()
+      });
+      console.log("🔍 Logged search:", term, found);
+    } catch (err) {
+      console.error("Error logging search:", err);
+    }
+  }
+
+  // ✅ Search Records
+  searchBtn.addEventListener("click", async () => {
+    const queryValue = searchInput.value.trim().toLowerCase();
+    resultsDiv.innerHTML = "";
+
+    if (!queryValue) {
+      resultsDiv.innerHTML = "<p class='no-record'>⚠️ Please enter a name or NIA ID.</p>";
+      return;
     }
 
-    async function updateAnalytics() {
-      try {
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        const allLogs = await getDocs(collection(db, "analytics"));
-        let todayCount = 0;
+    try {
+      const allDocs = await getDocs(collection(db, "records"));
+      const matches = [];
 
-        allLogs.forEach((doc) => {
-          const data = doc.data();
-          if (data.timestamp?.toDate && data.timestamp.toDate() >= today) {
-            todayCount++;
-          }
-        });
+      allDocs.forEach((doc) => {
+        const r = doc.data();
+        if (
+          r.name?.toLowerCase().includes(queryValue) ||
+          r.nia?.toLowerCase().includes(queryValue)
+        ) {
+          matches.push(r);
+        }
+      });
 
-        analyticsDiv.textContent = `🔍 Searches today: ${todayCount}`;
-      } catch (err) {
-        console.error("Error updating analytics:", err);
-      }
-    }
-
-    async function searchRecords() {
-      const queryValue = document.getElementById("searchInput").value.trim().toLowerCase();
-      resultsDiv.innerHTML = "";
-      if (!queryValue) {
-        resultsDiv.innerHTML = "<p class='no-record'>⚠️ Please enter a name or NIA ID.</p>";
+      if (matches.length === 0) {
+        resultsDiv.innerHTML = "<p class='no-record'>❌ No record found.</p>";
+        await logSearch(queryValue, false);
         return;
       }
 
-      try {
-        const allDocs = await getDocs(collection(db, "records"));
-        const matches = [];
-        allDocs.forEach((doc) => {
-          const r = doc.data();
-          if (
-            r.name?.toLowerCase().includes(queryValue) ||
-            r.nia?.toLowerCase().includes(queryValue)
-          ) {
-            matches.push(r);
-          }
-        });
+      resultsDiv.innerHTML = "";
+      matches.forEach((r) => {
+        const div = document.createElement("div");
+        div.className = "record";
+        div.innerHTML = `
+          <h3>${r.name} <span class="badge ${r.status}">${r.status}</span></h3>
+          <p><b>NIA ID:</b> ${r.nia}</p>
+          <p><b>Date of Birth:</b> ${r.dob}</p>
+          <p><b>Region:</b> ${r.region}</p>
+          <p><b>Address:</b> ${r.address}</p>
+          <p><b>Credit Score:</b> ${r.credit}</p>
+          <p><b>Driving License:</b> ${r.driving}</p>
+          <p><b>Criminal Record:</b> ${r.criminal}</p>
+        `;
+        resultsDiv.appendChild(div);
+      });
 
-        if (matches.length === 0) {
-          resultsDiv.innerHTML = "<p class='no-record'>❌ No record found.</p>";
-          await logSearch(queryValue, false);
-        } else {
-          matches.forEach((r) => {
-            const div = document.createElement("div");
-            div.className = "record";
-            div.innerHTML = `
-              <h3>${r.name} <span class="badge ${r.status}">${r.status}</span></h3>
-              <p><b>NIA ID:</b> ${r.nia}</p>
-              <p><b>Date of Birth:</b> ${r.dob}</p>
-              <p><b>Region:</b> ${r.region}</p>
-              <p><b>Address:</b> ${r.address}</p>
-              <p><b>Credit Score:</b> ${r.credit}</p>
-              <p><b>Driving License:</b> ${r.driving}</p>
-              <p><b>Criminal Record:</b> ${r.criminal}</p>
-            `;
-            resultsDiv.appendChild(div);
-          });
-          await logSearch(queryValue, true);
-        }
-        updateAnalytics();
-      } catch (error) {
-        console.error("Error searching records:", error);
-        resultsDiv.innerHTML = "<p class='no-record'>⚠️ Error fetching records.</p>";
-      }
+      await logSearch(queryValue, true);
+    } catch (error) {
+      console.error("Error fetching records:", error);
+      resultsDiv.innerHTML = "<p class='no-record'>⚠️ Error fetching data.</p>";
     }
+  });
+</script>
 
-    searchBtn.addEventListener("click", searchRecords);
-    updateAnalytics();
-  </script>
 </body>
 </html>
