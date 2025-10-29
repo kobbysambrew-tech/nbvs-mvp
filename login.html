@@ -1,61 +1,56 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>NBVS Ghana — Admin Login</title>
-  <style>
-    body {
-      font-family: "Segoe UI", Arial, sans-serif;
-      background: #f8f9fa;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-    }
-    .login-box {
-      background: white;
-      padding: 2em;
-      border-radius: 10px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-      text-align: center;
-    }
-    input {
-      width: 100%;
-      padding: 10px;
-      margin: 10px 0;
-      border-radius: 6px;
-      border: 1px solid #ccc;
-    }
-    button {
-      background-color: #006b3f;
-      color: white;
-      border: none;
-      padding: 10px 16px;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 1em;
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NBVS Admin Login</title>
+<style>
+  body {
+    font-family: Arial;
+    background: #f0f0f0;
+    display: flex;
+    height: 100vh;
+    align-items: center;
+    justify-content: center;
+  }
+  .login-box {
+    background: white;
+    padding: 30px;
+    border-radius: 10px;
+    text-align: center;
+    box-shadow: 0 0 10px rgba(0,0,0,0.2);
+  }
+  input, button {
+    margin: 10px 0;
+    padding: 10px;
+    width: 90%;
+  }
+</style>
 </head>
 <body>
   <div class="login-box">
     <h2>Admin Login</h2>
-    <input type="password" id="password" placeholder="Enter Password" />
-    <p id="msg" style="color: red;"></p>
-    <button onclick="login()">Login</button>
+    <input type="password" id="adminPass" placeholder="Enter password">
+    <button onclick="loginAdmin()">Login</button>
+    <p id="msg" style="color:red;"></p>
   </div>
 
-  <script>
-    function login() {
-      const pass = document.getElementById('password').value.trim();
-      if (pass === 'nbvs2008') {
-        localStorage.setItem('isAdmin', 'true');
-        window.location.href = 'dashboard.html';
-      } else {
-        document.getElementById('msg').textContent = '❌ Wrong password!';
-      }
-    }
-  </script>
+<script>
+const SECRET_KEY = "s3cr3tKey@NBVS2025!";
+const encryptedPass = CryptoJS.AES.encrypt("nbvs2008", SECRET_KEY).toString();
+
+function loginAdmin() {
+  const input = document.getElementById("adminPass").value;
+  const decrypted = CryptoJS.AES.decrypt(encryptedPass, SECRET_KEY).toString(CryptoJS.enc.Utf8);
+  if (input === decrypted) {
+    localStorage.setItem("isAdmin", "true");
+    alert("✅ Access granted");
+    window.location.href = "dashboard.html";
+  } else {
+    document.getElementById("msg").innerText = "❌ Incorrect password";
+  }
+}
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
 </body>
 </html>
