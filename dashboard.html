@@ -1,246 +1,73 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>NBVS Ghana - Admin Dashboard</title>
-  <style>
-    body {
-      font-family: "Segoe UI", Arial, sans-serif;
-      background: #f8f9fa;
-      margin: 0;
-      color: #222;
-    }
-    header {
-      background: linear-gradient(to right, #ce1126, #fcd116, #006b3f);
-      color: white;
-      text-align: center;
-      padding: 1.2em;
-    }
-    main {
-      padding: 2em;
-      max-width: 850px;
-      margin: auto;
-    }
-    section {
-      background: #fff;
-      border-radius: 10px;
-      padding: 1.5em;
-      box-shadow: 0 3px 8px rgba(0,0,0,0.1);
-      margin-bottom: 2em;
-    }
-    input, select {
-      width: 100%;
-      padding: 10px;
-      margin: 8px 0;
-      border-radius: 6px;
-      border: 1px solid #ccc;
-    }
-    button {
-      background-color: #006b3f;
-      color: white;
-      border: none;
-      border-radius: 6px;
-      padding: 10px 16px;
-      cursor: pointer;
-      font-size: 1em;
-    }
-    button:hover { background-color: #004f2e; }
-    .hidden { display: none; }
-    .record {
-      border-top: 3px solid #006b3f;
-      padding: 10px;
-      margin-top: 15px;
-      background: #f9f9f9;
-      border-radius: 6px;
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NBVS Dashboard</title>
+<style>
+  body { font-family: Arial; background: #eef; padding: 20px; }
+  h1 { color: #004d00; }
+  input, button { margin: 5px; padding: 10px; }
+  .counter { background: white; padding: 10px; margin-top: 10px; border-radius: 10px; }
+</style>
 </head>
 <body>
-  <header><h1>NBVS Ghana - Admin Dashboard</h1></header>
+  <h1>Admin Dashboard</h1>
+  <button onclick="logout()">Logout</button>
 
-  <main>
-    <!-- 🔐 Login Section -->
-    <section id="loginPanel">
-      <h2>Admin Login</h2>
-      <input type="password" id="adminPass" placeholder="Enter admin password" />
-      <button id="loginBtn">Login</button>
-      <p id="loginMsg" style="color:#c00;"></p>
-    </section>
+  <h2>Add Record</h2>
+  <input id="personName" placeholder="Full Name">
+  <input id="personID" placeholder="National ID">
+  <button onclick="addRecord()">Save Record</button>
 
-    <!-- 🧾 Admin Panel -->
-    <section id="adminPanel" class="hidden">
-      <h2>Add New Record</h2>
-      <input type="text" id="name" placeholder="Full Name" />
-      <input type="text" id="nia" placeholder="NIA ID" />
-      <input type="date" id="dob" />
-      <input type="text" id="region" placeholder="Region" />
-      <input type="text" id="criminal" placeholder="Criminal Record" />
-      <input type="text" id="driving" placeholder="Driving License" />
-      <input type="text" id="address" placeholder="Address" />
-      <input type="number" id="credit" placeholder="Credit Score" />
-      <select id="status">
-        <option value="Verified">Verified</option>
-        <option value="Pending">Pending</option>
-      </select>
-      <button id="addRecordBtn">Save Record</button>
-      <button id="logoutBtn" style="background:#ce1126;">Logout</button>
-    </section>
+  <h2>Search Record</h2>
+  <input id="searchID" placeholder="Enter National ID">
+  <button onclick="searchRecord()">Search</button>
+  <p id="result"></p>
 
-    <!-- 🔍 Public Search -->
-    <section>
-      <h2>Search Records</h2>
-      <input type="text" id="searchInput" placeholder="Enter name or NIA ID..." />
-      <button id="searchBtn">Search</button>
-      <button id="showAllBtn" style="background:#fcd116;color:#333;">Show All</button>
-      <div id="results"></div>
-    </section>
+  <div class="counter">
+    <h3>Activity Tracker</h3>
+    <p>Total Logins: <span id="loginCount">0</span></p>
+    <p>Total Searches: <span id="searchCount">0</span></p>
+  </div>
 
-    <!-- 📊 Tracker Display -->
-    <section>
-      <h3>System Stats</h3>
-      <p>🔐 Admin Logins: <span id="loginCount">0</span></p>
-      <p>🔎 Searches Made: <span id="searchCount">0</span></p>
-    </section>
-  </main>
+<script>
+if (!localStorage.getItem("isAdmin")) {
+  alert("Unauthorized. Please log in.");
+  window.location.href = "login.html";
+}
 
-  <footer style="text-align:center;background:#eee;padding:1em;margin-top:3em;">
-    © 2025 NBVS Ghana — National Background Verification System
-  </footer>
+if (!localStorage.getItem("loginCount")) localStorage.setItem("loginCount", "0");
+let logins = parseInt(localStorage.getItem("loginCount"));
+logins++;
+localStorage.setItem("loginCount", logins);
+document.getElementById("loginCount").innerText = logins;
 
-  <!-- CryptoJS for encryption -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+if (!localStorage.getItem("searchCount")) localStorage.setItem("searchCount", "0");
 
-  <!-- Firebase -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-app.js";
-    import { getFirestore, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-firestore.js";
+function addRecord() {
+  const name = document.getElementById("personName").value;
+  const id = document.getElementById("personID").value;
+  if (!name || !id) return alert("Enter both fields.");
+  localStorage.setItem(id, name);
+  alert("✅ Record saved!");
+}
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyCDh_qL3jiCMHROK0_Soul2Wsv3t3y4wv0",
-      authDomain: "nbvs-ghana.firebaseapp.com",
-      projectId: "nbvs-ghana",
-      storageBucket: "nbvs-ghana.firebasestorage.app",
-      messagingSenderId: "702636577113",
-      appId: "1:702636577113:web:8369b43a2aa43aeb95fc48",
-      measurementId: "G-2FHFSQRMZX"
-    };
+function searchRecord() {
+  let searches = parseInt(localStorage.getItem("searchCount"));
+  searches++;
+  localStorage.setItem("searchCount", searches);
+  document.getElementById("searchCount").innerText = searches;
 
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
+  const id = document.getElementById("searchID").value;
+  const name = localStorage.getItem(id);
+  document.getElementById("result").innerText = name ? `✅ Found: ${name}` : "❌ Record not found";
+}
 
-    // AES Encryption Setup
-    const secretKey = "N8bvS2o08Key!@#"; // your secret encryption key
-    const encryptedPass = CryptoJS.AES.encrypt("nbvs2008", secretKey).toString();
-
-    const loginPanel = document.getElementById("loginPanel");
-    const adminPanel = document.getElementById("adminPanel");
-    const loginMsg = document.getElementById("loginMsg");
-
-    // Load Tracker Data
-    let loginCount = parseInt(localStorage.getItem("loginCount")) || 0;
-    let searchCount = parseInt(localStorage.getItem("searchCount")) || 0;
-    document.getElementById("loginCount").textContent = loginCount;
-    document.getElementById("searchCount").textContent = searchCount;
-
-    // ✅ Admin Login
-    document.getElementById("loginBtn").addEventListener("click", () => {
-      const inputPass = document.getElementById("adminPass").value.trim();
-      const decrypted = CryptoJS.AES.decrypt(encryptedPass, secretKey).toString(CryptoJS.enc.Utf8);
-      if (inputPass === decrypted) {
-        localStorage.setItem("isAdmin", "true");
-        loginPanel.classList.add("hidden");
-        adminPanel.classList.remove("hidden");
-        loginCount++;
-        localStorage.setItem("loginCount", loginCount);
-        document.getElementById("loginCount").textContent = loginCount;
-        alert("✅ Access granted");
-      } else {
-        loginMsg.textContent = "❌ Wrong password!";
-      }
-    });
-
-    // 🚪 Logout
-    document.getElementById("logoutBtn").addEventListener("click", () => {
-      localStorage.removeItem("isAdmin");
-      location.reload();
-    });
-
-    // Auto-login check
-    window.onload = () => {
-      if (localStorage.getItem("isAdmin") === "true") {
-        loginPanel.classList.add("hidden");
-        adminPanel.classList.remove("hidden");
-      }
-    };
-
-    // ➕ Add Record
-    document.getElementById("addRecordBtn").addEventListener("click", async () => {
-      const name = document.getElementById("name").value;
-      const nia = document.getElementById("nia").value;
-      const dob = document.getElementById("dob").value;
-      const region = document.getElementById("region").value;
-      const criminal = document.getElementById("criminal").value;
-      const driving = document.getElementById("driving").value;
-      const address = document.getElementById("address").value;
-      const credit = document.getElementById("credit").value;
-      const status = document.getElementById("status").value;
-
-      if (!name || !nia) return alert("⚠️ Name and NIA are required");
-
-      try {
-        await addDoc(collection(db, "records"), { name, nia, dob, region, criminal, driving, address, credit, status });
-        alert("✅ Record saved!");
-      } catch (e) {
-        console.error(e);
-        alert("❌ Failed to save record");
-      }
-    });
-
-    // 🔍 Search
-    document.getElementById("searchBtn").addEventListener("click", async () => {
-      const val = document.getElementById("searchInput").value.trim().toLowerCase();
-      const resultsDiv = document.getElementById("results");
-      if (!val) return alert("Please enter something");
-
-      searchCount++;
-      localStorage.setItem("searchCount", searchCount);
-      document.getElementById("searchCount").textContent = searchCount;
-
-      const allDocs = await getDocs(collection(db, "records"));
-      let results = "";
-      allDocs.forEach((doc) => {
-        const r = doc.data();
-        if (r.name?.toLowerCase() === val || r.nia?.toLowerCase() === val) {
-          results += `
-          <div class="record">
-            <h3>${r.name}</h3>
-            <p><b>NIA ID:</b> ${r.nia}</p>
-            <p><b>Status:</b> ${r.status}</p>
-            <p><b>Region:</b> ${r.region}</p>
-          </div>`;
-        }
-      });
-      resultsDiv.innerHTML = results || "<p>❌ No record found.</p>";
-    });
-
-    // 📋 Show All
-    document.getElementById("showAllBtn").addEventListener("click", async () => {
-      const resultsDiv = document.getElementById("results");
-      const allDocs = await getDocs(collection(db, "records"));
-      let html = "";
-      allDocs.forEach((doc) => {
-        const r = doc.data();
-        html += `
-        <div class="record">
-          <h3>${r.name}</h3>
-          <p><b>NIA:</b> ${r.nia}</p>
-          <p><b>Status:</b> ${r.status}</p>
-        </div>`;
-      });
-      resultsDiv.innerHTML = html || "<p>No records.</p>";
-    });
-  </script>
+function logout() {
+  localStorage.removeItem("isAdmin");
+  window.location.href = "index.html";
+}
+</script>
 </body>
 </html>
-
