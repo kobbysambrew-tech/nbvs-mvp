@@ -3,11 +3,11 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>NBVS Ghana — Analytics</title>
+  <title>NBVS Ghana — Analytics Dashboard</title>
   <style>
     body {
       font-family: "Segoe UI", Arial, sans-serif;
-      background: #f5f7fa;
+      background: #f8f9fa;
       margin: 0;
       padding: 0;
       color: #222;
@@ -17,138 +17,108 @@
       background: linear-gradient(to right, #ce1126, #fcd116, #006b3f);
       color: white;
       text-align: center;
-      padding: 1.2em;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+      padding: 1.5em;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
     }
 
     h1 {
       margin: 0;
-      font-size: 1.6em;
+      font-size: 1.8em;
       letter-spacing: 0.5px;
     }
 
     main {
-      max-width: 800px;
+      max-width: 700px;
       margin: 2.5em auto;
       background: #fff;
       padding: 2em;
       border-radius: 12px;
-      box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+      box-shadow: 0 3px 8px rgba(0,0,0,0.1);
       text-align: center;
     }
 
-    .card {
-      background: #f8f9fa;
-      border-radius: 10px;
-      padding: 20px;
-      margin: 15px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.08);
-      transition: transform 0.2s ease;
-    }
-
-    .card:hover {
-      transform: translateY(-5px);
-    }
-
-    .number {
-      font-size: 2.5em;
+    h2 {
       color: #006b3f;
-      font-weight: bold;
-      margin-bottom: 5px;
+      margin-bottom: 0.5em;
     }
 
-    .label {
-      color: #444;
-      font-size: 1em;
-      font-weight: 500;
-    }
-
-    button {
-      background-color: #006b3f;
-      color: white;
-      padding: 10px 18px;
-      border: none;
-      border-radius: 6px;
-      font-size: 1em;
-      margin-top: 25px;
-      cursor: pointer;
-    }
-
-    button:hover {
-      background-color: #004f2e;
+    .metric {
+      background: #f1f1f1;
+      border-left: 5px solid #006b3f;
+      margin: 20px auto;
+      padding: 20px;
+      border-radius: 10px;
+      font-size: 1.2em;
+      max-width: 400px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
     }
 
     footer {
       text-align: center;
-      color: #666;
-      font-size: 0.9em;
+      background-color: #eee;
+      padding: 1em;
       margin-top: 3em;
-      padding-bottom: 1em;
+      color: #333;
+      font-size: 0.9em;
     }
   </style>
 </head>
 <body>
   <header>
-    <h1>📊 NBVS Ghana — System Analytics</h1>
+    <h1>NBVS Ghana — Analytics Dashboard</h1>
   </header>
 
   <main>
-    <div class="card">
-      <div class="number" id="loginCount">0</div>
-      <div class="label">Total Admin Logins</div>
+    <div class="metric">
+      <h2>Total Records in Database:</h2>
+      <p id="recordCount">Loading...</p>
     </div>
 
-    <div class="card">
-      <div class="number" id="searchCount">0</div>
-      <div class="label">Total Searches Performed</div>
+    <div class="metric">
+      <h2>Total Searches Performed:</h2>
+      <p id="searchCount">Loading...</p>
     </div>
-
-    <div class="card">
-      <div class="number" id="recordsCount">0</div>
-      <div class="label">Total Records in Database</div>
-    </div>
-
-    <button onclick="window.location.href='dashboard.html'">← Back to Dashboard</button>
   </main>
 
   <footer>
-    © 2025 NBVS Ghana — National Background Verification System
+    © 2025 NBVS Ghana — Analytics System
   </footer>
 
-  <script>
-    // 🔒 Restrict access to admins only
-    if (localStorage.getItem('isAdmin') !== 'true') {
-      alert('❌ Access denied. Please log in as admin.');
-      window.location.href = 'index.html';
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-app.js";
+    import { getFirestore, collection, getCountFromServer } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-firestore.js";
+
+    // Firebase config (same as dashboard)
+    const firebaseConfig = {
+      apiKey: "AIzaSyCDh_qL3jiCMHROK0_Soul2Wsv3t3y4wv0",
+      authDomain: "nbvs-ghana.firebaseapp.com",
+      projectId: "nbvs-ghana",
+      storageBucket: "nbvs-ghana.firebasestorage.app",
+      messagingSenderId: "702636577113",
+      appId: "1:702636577113:web:8369b43a2aa43aeb95fc48",
+      measurementId: "G-2FHFSQRMZX"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    async function updateAnalytics() {
+      try {
+        // Count all records
+        const recordSnap = await getCountFromServer(collection(db, "records"));
+        document.getElementById("recordCount").textContent = recordSnap.data().count;
+
+        // Count all searches
+        const searchSnap = await getCountFromServer(collection(db, "searchLogs"));
+        document.getElementById("searchCount").textContent = searchSnap.data().count;
+      } catch (error) {
+        console.error("Error loading analytics:", error);
+        document.getElementById("recordCount").textContent = "⚠️ Error loading data";
+        document.getElementById("searchCount").textContent = "⚠️ Error loading data";
+      }
     }
 
-    // 🧮 Load analytics data
-    const loginCount = parseInt(localStorage.getItem('loginCount')) || 0;
-    const searchCount = parseInt(localStorage.getItem('searchCount')) || 0;
-    const records = JSON.parse(localStorage.getItem('nbvsRecords')) || [];
-
-    document.getElementById('loginCount').textContent = loginCount;
-    document.getElementById('searchCount').textContent = searchCount;
-    document.getElementById('recordsCount').textContent = records.length;
-
-    // 💡 Optional animation (smooth counting)
-    function animateValue(id, start, end, duration) {
-      const obj = document.getElementById(id);
-      const range = end - start;
-      const increment = end > start ? 1 : -1;
-      const stepTime = Math.abs(Math.floor(duration / range));
-      let current = start;
-      const timer = setInterval(() => {
-        current += increment;
-        obj.textContent = current;
-        if (current == end) clearInterval(timer);
-      }, stepTime);
-    }
-
-    animateValue('loginCount', 0, loginCount, 800);
-    animateValue('searchCount', 0, searchCount, 800);
-    animateValue('recordsCount', 0, records.length, 800);
+    updateAnalytics();
   </script>
 </body>
 </html>
-
