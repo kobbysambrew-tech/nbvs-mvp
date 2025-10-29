@@ -1,73 +1,39 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>NBVS Ghana - Verify Record</title>
-  <style>
-    body {
-      font-family: "Segoe UI", Arial, sans-serif;
-      background: #f8f9fa;
-      margin: 0;
-      padding: 2em;
-      color: #333;
-    }
-    header {
-      text-align: center;
-      padding: 1em;
-      background: linear-gradient(to right, #ce1126, #fcd116, #006b3f);
-      color: white;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-    }
-    main {
-      max-width: 600px;
-      margin: 2em auto;
-      background: white;
-      padding: 2em;
-      border-radius: 12px;
-      box-shadow: 0 3px 10px rgba(0,0,0,0.1);
-    }
-    input {
-      width: 100%;
-      padding: 12px;
-      margin-bottom: 10px;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      font-size: 1em;
-    }
-    button {
-      background-color: #006b3f;
-      color: white;
-      padding: 12px;
-      border: none;
-      border-radius: 6px;
-      font-size: 1em;
-      cursor: pointer;
-      width: 100%;
-    }
-    button:hover { background-color: #004f2e; }
-    .record {
-      background: #f4f6f8;
-      padding: 1em;
-      border-radius: 8px;
-      margin-top: 1em;
-    }
-  </style>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>NBVS — Verify</title>
+<style>
+  body{font-family:Segoe UI,Arial,sans-serif;background:#f8f9fa;margin:0;padding:0}
+  header{background:linear-gradient(90deg,#ce1126,#fcd116,#006b3f);color:#fff;padding:16px;text-align:center}
+  main{max-width:720px;margin:28px auto;background:#fff;padding:20px;border-radius:10px;box-shadow:0 4px 12px rgba(0,0,0,0.06)}
+  input,button{width:100%;padding:12px;border-radius:8px;border:1px solid #ccc;font-size:16px}
+  button{background:#006b3f;color:#fff;border:none;margin-top:8px;cursor:pointer}
+  .record{background:#f4f6f8;padding:12px;border-radius:8px;margin-top:12px}
+  .no-record{color:#c00;text-align:center;margin-top:12px}
+</style>
 </head>
 <body>
-  <header>
-    <h1>NBVS Ghana - Verify Background</h1>
-  </header>
+  <header><h1>NBVS Ghana — Verify</h1></header>
   <main>
-    <input type="text" id="searchInput" placeholder="Enter full name or NIA ID..." />
+    <input id="searchInput" placeholder="Enter full name or NIA ID (e.g., GHA-2039485)" />
     <button id="searchBtn">Search</button>
     <div id="results"></div>
   </main>
 
-  <script type="module" src="verify.js"></script>
+  <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-app.js";
-    import { 
-      getFirestore, collection, getDocs, addDoc, serverTimestamp 
+    import {
+      getFirestore,
+      collection,
+      getDocs,
+      addDoc,
+      doc,
+      setDoc,
+      updateDoc,
+      increment,
+      serverTimestamp
     } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-firestore.js";
 
     const firebaseConfig = {
@@ -83,55 +49,87 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    document.getElementById("searchBtn").addEventListener("click", async () => {
-      const searchValue = document.getElementById("searchInput").value.trim().toLowerCase();
-      const resultsDiv = document.getElementById("results");
-      resultsDiv.innerHTML = "Searching...";
+    const searchBtn = document.getElementById("searchBtn");
+    const searchInput = document.getElementById("searchInput");
+    const resultsDiv = document.getElementById("results");
 
-      if (!searchValue) {
-        resultsDiv.innerHTML = "<p>⚠️ Please enter a name or NIA ID.</p>";
-        return;
+    async function incrementGlobalStat(field) {
+      try {
+        const ref = doc(db, "stats", "global");
+        // ensure doc exists (merge will create)
+        await setDoc(ref, {}, { merge: true });
+        await updateDoc(ref, { [field]: increment(1) });
+      } catch (e) {
+        console.warn("Could not increment global stat:", e);
       }
+    }
+
+    async function logSearch(term, found) {
+      try {
+        await addDoc(collection(db, "searchLogs"), {
+          term,
+          found: !!found,
+          timestamp: serverTimestamp()
+        });
+      } catch (e) {
+        console.warn("Could not write search log:", e);
+      }
+    }
+
+    searchBtn.addEventListener("click", async () => {
+      resultsDiv.innerHTML = "";
+      const q = (searchInput.value || "").trim().toLowerCase();
+      if (!q) { resultsDiv.innerHTML = "<p class='no-record'>⚠️ Please enter a name or NIA ID.</p>"; return; }
+
+      resultsDiv.innerHTML = "<p>Searching…</p>";
 
       try {
         const snapshot = await getDocs(collection(db, "records"));
-        let found = false;
-        resultsDiv.innerHTML = "";
+        const matches = [];
 
-        snapshot.forEach((doc) => {
-          const r = doc.data();
-          if (
-            r.name?.toLowerCase() === searchValue ||
-            r.nia?.toLowerCase() === searchValue
-          ) {
-            found = true;
-            resultsDiv.innerHTML += `
-              <div class="record">
-                <h3>${r.name}</h3>
-                <p><b>NIA ID:</b> ${r.nia}</p>
-                <p><b>Date of Birth:</b> ${r.dob}</p>
-                <p><b>Region:</b> ${r.region}</p>
-                <p><b>Status:</b> ${r.status}</p>
-                <p><b>Criminal Record:</b> ${r.criminal}</p>
-                <p><b>Driving License:</b> ${r.driving}</p>
-                <p><b>Credit Score:</b> ${r.credit}</p>
-              </div>`;
+        snapshot.forEach(docSnap => {
+          const r = docSnap.data();
+          if (!r) return;
+          const name = (r.name || "").toLowerCase();
+          const nia = (r.nia || "").toLowerCase();
+          if (name === q || nia === q || name.includes(q) || nia.includes(q)) {
+            matches.push(r);
           }
         });
 
-        if (!found) resultsDiv.innerHTML = "<p>❌ No record found.</p>";
+        // log and increment stats
+        await addDoc(collection(db, "searchLogs"), { term: q, found: matches.length>0, timestamp: serverTimestamp() }).catch(()=>{});
+        await incrementGlobalStat("totalSearches");
 
-        // 🧠 Log this search attempt in Firestore
-        await addDoc(collection(db, "searchLogs"), {
-          query: searchValue,
-          timestamp: serverTimestamp()
+        if (matches.length === 0) {
+          resultsDiv.innerHTML = "<p class='no-record'>❌ No record found.</p>";
+          return;
+        }
+
+        resultsDiv.innerHTML = "";
+        matches.forEach(r => {
+          const el = document.createElement("div");
+          el.className = "record";
+          el.innerHTML = `
+            <h3>${r.name}</h3>
+            <p><strong>NIA ID:</strong> ${r.nia || "N/A"}</p>
+            <p><strong>DOB:</strong> ${r.dob || "N/A"}</p>
+            <p><strong>Region:</strong> ${r.region || "N/A"}</p>
+            <p><strong>Status:</strong> ${r.status || "N/A"}</p>
+            <p><strong>Criminal:</strong> ${r.criminal || "N/A"}</p>
+            <p><strong>Driving:</strong> ${r.driving || "N/A"}</p>
+            <p><strong>Address:</strong> ${r.address || "N/A"}</p>
+            <p><strong>Credit:</strong> ${r.credit || "N/A"}</p>
+          `;
+          resultsDiv.appendChild(el);
         });
 
       } catch (err) {
-        console.error(err);
-        resultsDiv.innerHTML = "<p>⚠️ Error fetching records.</p>";
+        console.error("Search error:", err);
+        resultsDiv.innerHTML = "<p class='no-record'>⚠️ Error fetching records.</p>";
       }
     });
   </script>
 </body>
 </html>
+
