@@ -3,12 +3,13 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>NBVS Ghana — Search Analytics</title>
+  <title>NBVS Ghana — Analytics</title>
   <style>
     body {
       font-family: "Segoe UI", Arial, sans-serif;
+      background: #f5f7fa;
       margin: 0;
-      background: #f8f9fa;
+      padding: 0;
       color: #222;
     }
 
@@ -16,236 +17,138 @@
       background: linear-gradient(to right, #ce1126, #fcd116, #006b3f);
       color: white;
       text-align: center;
-      padding: 1em;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+      padding: 1.2em;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 1.6em;
+      letter-spacing: 0.5px;
     }
 
     main {
-      max-width: 900px;
-      margin: 2em auto;
-      background: white;
-      padding: 1.5em;
+      max-width: 800px;
+      margin: 2.5em auto;
+      background: #fff;
+      padding: 2em;
+      border-radius: 12px;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+      text-align: center;
+    }
+
+    .card {
+      background: #f8f9fa;
       border-radius: 10px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      padding: 20px;
+      margin: 15px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+      transition: transform 0.2s ease;
     }
 
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 1em;
+    .card:hover {
+      transform: translateY(-5px);
     }
 
-    th, td {
-      text-align: left;
-      padding: 10px;
-      border-bottom: 1px solid #ddd;
+    .number {
+      font-size: 2.5em;
+      color: #006b3f;
+      font-weight: bold;
+      margin-bottom: 5px;
     }
 
-    th {
-      background: #006b3f;
-      color: white;
-    }
-
-    tr:hover {
-      background: #f1f1f1;
-    }
-
-    .summary {
-      text-align: center;
+    .label {
+      color: #444;
       font-size: 1em;
-      margin-bottom: 1em;
-      color: #444;
-    }
-
-    footer {
-      text-align: center;
-      padding: 1em;
-      background: #eee;
-      margin-top: 2em;
-      color: #444;
-      font-size: 0.9em;
+      font-weight: 500;
     }
 
     button {
       background-color: #006b3f;
       color: white;
+      padding: 10px 18px;
       border: none;
-      padding: 10px 15px;
       border-radius: 6px;
+      font-size: 1em;
+      margin-top: 25px;
       cursor: pointer;
-      margin: 5px;
     }
 
     button:hover {
       background-color: #004f2e;
     }
 
-    #loginPanel {
+    footer {
       text-align: center;
-      margin-top: 5em;
-    }
-
-    input {
-      padding: 10px;
-      width: 250px;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-    }
-
-    @media screen and (max-width: 600px) {
-      table, thead, tbody, th, td, tr {
-        display: block;
-      }
-      th {
-        display: none;
-      }
-      td {
-        padding: 8px;
-        border: none;
-        border-bottom: 1px solid #ddd;
-      }
-      td::before {
-        content: attr(data-label);
-        font-weight: bold;
-        display: block;
-        color: #333;
-      }
+      color: #666;
+      font-size: 0.9em;
+      margin-top: 3em;
+      padding-bottom: 1em;
     }
   </style>
 </head>
 <body>
-  <script>
-  if (localStorage.getItem('isAdmin') !== 'true') {
-    alert('❌ Access denied. Please log in as admin.');
-    window.location.href = 'index.html';
-  }
-</script>
-
   <header>
-    <h1>NBVS Ghana — Analytics Dashboard</h1>
+    <h1>📊 NBVS Ghana — System Analytics</h1>
   </header>
 
-  <!-- 🔐 Login Panel -->
-  <section id="loginPanel">
-    <h2>Admin Login</h2>
-    <input type="password" id="adminPass" placeholder="Enter admin password" />
-    <button id="loginBtn">Login</button>
-    <p id="loginMsg" style="color:#c00;"></p>
-  </section>
-
-  <!-- 📊 Analytics Content -->
-  <main id="analyticsPanel" style="display:none;">
-    <div class="summary">
-      <p>📊 <b>Total Searches:</b> <span id="totalSearches">0</span></p>
-      <button id="refreshBtn">🔄 Refresh</button>
-      <button id="logoutBtn" style="background:#ce1126;">Logout</button>
+  <main>
+    <div class="card">
+      <div class="number" id="loginCount">0</div>
+      <div class="label">Total Admin Logins</div>
     </div>
 
-    <table>
-      <thead>
-        <tr>
-          <th>Search Term</th>
-          <th>Result Found</th>
-          <th>Time</th>
-        </tr>
-      </thead>
-      <tbody id="analyticsTable"></tbody>
-    </table>
+    <div class="card">
+      <div class="number" id="searchCount">0</div>
+      <div class="label">Total Searches Performed</div>
+    </div>
+
+    <div class="card">
+      <div class="number" id="recordsCount">0</div>
+      <div class="label">Total Records in Database</div>
+    </div>
+
+    <button onclick="window.location.href='dashboard.html'">← Back to Dashboard</button>
   </main>
 
   <footer>
-    © 2025 NBVS Ghana — Admin Analytics
+    © 2025 NBVS Ghana — National Background Verification System
   </footer>
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-app.js";
-    import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-firestore.js";
-
-    const firebaseConfig = {
-      apiKey: "AIzaSyCDh_qL3jiCMHROK0_Soul2Wsv3t3y4wv0",
-      authDomain: "nbvs-ghana.firebaseapp.com",
-      projectId: "nbvs-ghana",
-      storageBucket: "nbvs-ghana.firebasestorage.app",
-      messagingSenderId: "702636577113",
-      appId: "1:702636577113:web:8369b43a2aa43aeb95fc48",
-      measurementId: "G-2FHFSQRMZX"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-
-    const loginPanel = document.getElementById("loginPanel");
-    const analyticsPanel = document.getElementById("analyticsPanel");
-    const loginBtn = document.getElementById("loginBtn");
-    const loginMsg = document.getElementById("loginMsg");
-    const logoutBtn = document.getElementById("logoutBtn");
-    const refreshBtn = document.getElementById("refreshBtn");
-    const analyticsTable = document.getElementById("analyticsTable");
-    const totalSearches = document.getElementById("totalSearches");
-
-    const ADMIN_PASS = "nbvs2008";
-
-    // Login System
-    loginBtn.addEventListener("click", () => {
-      const entered = document.getElementById("adminPass").value.trim();
-      if (entered === ADMIN_PASS) {
-        localStorage.setItem("analyticsAdmin", "true");
-        loginPanel.style.display = "none";
-        analyticsPanel.style.display = "block";
-        loadAnalytics();
-      } else {
-        loginMsg.textContent = "❌ Wrong password!";
-      }
-    });
-
-    logoutBtn.addEventListener("click", () => {
-      localStorage.removeItem("analyticsAdmin");
-      location.reload();
-    });
-
-    window.onload = () => {
-      if (localStorage.getItem("analyticsAdmin") === "true") {
-        loginPanel.style.display = "none";
-        analyticsPanel.style.display = "block";
-        loadAnalytics();
-      }
-    };
-
-    // Load analytics data
-    async function loadAnalytics() {
-      analyticsTable.innerHTML = "<tr><td colspan='3'>Loading...</td></tr>";
-      try {
-        const snapshot = await getDocs(collection(db, "analytics"));
-        const data = [];
-        snapshot.forEach(doc => data.push(doc.data()));
-        totalSearches.textContent = data.length;
-
-        analyticsTable.innerHTML = "";
-        if (data.length === 0) {
-          analyticsTable.innerHTML = "<tr><td colspan='3'>No data found</td></tr>";
-          return;
-        }
-
-        data.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
-
-        data.forEach(row => {
-          const time = row.timestamp
-            ? new Date(row.timestamp).toLocaleString()
-            : "N/A";
-          analyticsTable.innerHTML += `
-            <tr>
-              <td data-label="Search Term">${row.term || "Unknown"}</td>
-              <td data-label="Result Found">${row.found ? "✅ Yes" : "❌ No"}</td>
-              <td data-label="Time">${time}</td>
-            </tr>`;
-        });
-      } catch (e) {
-        console.error("Error loading analytics:", e);
-        analyticsTable.innerHTML = "<tr><td colspan='3'>Error loading data</td></tr>";
-      }
+  <script>
+    // 🔒 Restrict access to admins only
+    if (localStorage.getItem('isAdmin') !== 'true') {
+      alert('❌ Access denied. Please log in as admin.');
+      window.location.href = 'index.html';
     }
 
-    refreshBtn.addEventListener("click", loadAnalytics);
+    // 🧮 Load analytics data
+    const loginCount = parseInt(localStorage.getItem('loginCount')) || 0;
+    const searchCount = parseInt(localStorage.getItem('searchCount')) || 0;
+    const records = JSON.parse(localStorage.getItem('nbvsRecords')) || [];
+
+    document.getElementById('loginCount').textContent = loginCount;
+    document.getElementById('searchCount').textContent = searchCount;
+    document.getElementById('recordsCount').textContent = records.length;
+
+    // 💡 Optional animation (smooth counting)
+    function animateValue(id, start, end, duration) {
+      const obj = document.getElementById(id);
+      const range = end - start;
+      const increment = end > start ? 1 : -1;
+      const stepTime = Math.abs(Math.floor(duration / range));
+      let current = start;
+      const timer = setInterval(() => {
+        current += increment;
+        obj.textContent = current;
+        if (current == end) clearInterval(timer);
+      }, stepTime);
+    }
+
+    animateValue('loginCount', 0, loginCount, 800);
+    animateValue('searchCount', 0, searchCount, 800);
+    animateValue('recordsCount', 0, records.length, 800);
   </script>
 </body>
 </html>
+
