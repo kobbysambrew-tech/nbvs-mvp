@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NBVS Ghana - Secure Payment</title>
+  <style>
+    body {
+      font-family: "Segoe UI", Arial, sans-serif;
+      background: linear-gradient(to bottom, #ce1126, #fcd116, #006b3f);
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+    }
+    .container {
+      background: #fff;
+      color: #333;
+      border-radius: 20px;
+      padding: 2em;
+      width: 90%;
+      max-width: 420px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.25);
+      text-align: center;
+      animation: fadeIn 0.8s ease;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    h1 {
+      color: #006b3f;
+      margin-bottom: 0.4em;
+    }
+    p {
+      margin-bottom: 1em;
+      color: #555;
+    }
+    .price {
+      font-size: 1.8em;
+      font-weight: bold;
+      margin-bottom: 1em;
+      color: #ce1126;
+    }
+    button {
+      background-color: #006b3f;
+      color: #fff;
+      padding: 12px 25px;
+      font-size: 1.1em;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+    button:hover {
+      background-color: #004f2e;
+      transform: scale(1.02);
+    }
+    .footer {
+      margin-top: 1.5em;
+      font-size: 0.9em;
+      color: #ddd;
+    }
+    a {
+      color: #fcd116;
+      text-decoration: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>NBVS Ghana Payment</h1>
+    <p>Securely pay to verify a background record.</p>
+    <div class="price">$2.99 per verification</div>
+    <button id="checkout-button">Proceed to Payment</button>
+    <div class="footer">
+      <a href="verify.html">← Back to Verification</a>
+    </div>
+  </div>
+
+  <script src="https://js.stripe.com/v3/"></script>
+  <script>
+    const stripe = Stripe("pk_test_51NxxxxxxREPLACE_ME"); // Replace with your own publishable key
+
+    document.getElementById("checkout-button").addEventListener("click", async () => {
+      // Simulated checkout flow for now (since no backend yet)
+      alert("Stripe test mode: payment successful ✅\\n(This will link to live payments later)");
+      window.location.href = "verify.html?paid=true";
+    });
+  </script>
+</body>
+</html>
