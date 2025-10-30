@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NBVS Ghana - Confirmation</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      background: linear-gradient(to bottom, #ce1126, #fcd116, #006b3f);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      color: #fff;
+    }
+    .card {
+      background: #fff;
+      color: #333;
+      padding: 2em;
+      border-radius: 20px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.25);
+      text-align: center;
+      width: 90%;
+      max-width: 420px;
+    }
+    h1 { color: #006b3f; }
+    button {
+      margin-top: 1em;
+      background-color: #006b3f;
+      color: #fff;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+    button:hover { background-color: #004f2e; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>✅ Payment Confirmed</h1>
+    <p>Thank you! Your verification payment was successful.</p>
+    <button onclick="window.location.href='verify.html?paid=true'">Continue to Verify</button>
+  </div>
+</body>
+</html>
