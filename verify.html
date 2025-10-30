@@ -74,6 +74,27 @@
       text-align: center;
       margin-top: 10px;
     }
+
+    .pay-section {
+      margin-top: 25px;
+      padding-top: 15px;
+      border-top: 2px solid #eee;
+    }
+
+    .pay-btn {
+      background: #fcd116;
+      color: #000;
+      font-weight: bold;
+      padding: 10px 20px;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    .pay-btn:hover {
+      background: #ffd633;
+    }
   </style>
 </head>
 <body>
@@ -83,6 +104,11 @@
     <button id="searchBtn">Verify</button>
     <div id="results"></div>
     <p id="errorMsg" class="error"></p>
+
+    <div class="pay-section">
+      <p>Want full access? Subscribe to NBVS Premium 🔒</p>
+      <button class="pay-btn" id="payBtn">Subscribe with Stripe</button>
+    </div>
   </div>
 
   <script type="module">
@@ -99,12 +125,19 @@
       measurementId: "G-2FHFSQRMZX"
     };
 
+    // Initialize Firebase
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
     const searchBtn = document.getElementById("searchBtn");
     const resultsDiv = document.getElementById("results");
     const errorMsg = document.getElementById("errorMsg");
+    const payBtn = document.getElementById("payBtn");
+
+    // Stripe placeholder (connect real key later)
+    payBtn.addEventListener("click", () => {
+      alert("Stripe payments will be available soon!");
+    });
 
     searchBtn.addEventListener("click", async () => {
       errorMsg.textContent = "";
@@ -133,7 +166,6 @@
           }
         });
 
-        // Log search attempt
         await addDoc(collection(db, "searchLogs"), {
           query,
           found,
@@ -158,7 +190,7 @@
         }
       } catch (err) {
         console.error("Error fetching record:", err);
-        errorMsg.textContent = "⚠️ Error fetching record. Please try again.";
+        errorMsg.textContent = "⚠️ Error connecting to database.";
       }
     });
   </script>
