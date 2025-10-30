@@ -1,139 +1,79 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>NBVS — Verify</title>
-<style>
-  body{font-family:Segoe UI,Arial,sans-serif;background:#f8f9fa;margin:0;padding:0}
-  header{background:linear-gradient(90deg,#ce1126,#fcd116,#006b3f);color:#fff;padding:16px;text-align:center}
-  main{max-width:720px;margin:28px auto;background:#fff;padding:20px;border-radius:10px;box-shadow:0 4px 12px rgba(0,0,0,0.06)}
-  input,button{width:100%;padding:12px;border-radius:8px;border:1px solid #ccc;font-size:16px}
-  button{background:#006b3f;color:#fff;border:none;margin-top:8px;cursor:pointer}
-  .record{background:#f4f6f8;padding:12px;border-radius:8px;margin-top:12px}
-  .no-record{color:#c00;text-align:center;margin-top:12px}
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NBVS Ghana - Verify Record</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      background: linear-gradient(to bottom, #ce1126, #fcd116, #006b3f);
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      margin: 0;
+    }
+    .container {
+      background: #fff;
+      color: #222;
+      border-radius: 15px;
+      padding: 2em;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+      text-align: center;
+      width: 90%;
+      max-width: 400px;
+    }
+    input {
+      width: 100%;
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      margin-bottom: 1em;
+    }
+    button {
+      background-color: #006b3f;
+      color: #fff;
+      padding: 12px;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+    button:hover { background-color: #004f2e; }
+    #results { margin-top: 20px; }
+  </style>
 </head>
 <body>
-  <header><h1>NBVS Ghana — Verify</h1></header>
-  <main>
-    <input id="searchInput" placeholder="Enter full name or NIA ID (e.g., GHA-2039485)" />
-    <button id="searchBtn">Search</button>
+  <div class="container">
+    <h2>NBVS Ghana Verification</h2>
+    <input type="text" id="searchInput" placeholder="Enter NIA ID or Name">
+    <button id="searchBtn">Verify</button>
     <div id="results"></div>
-    <a href="payment.html">
-  <button style="background:#006b3f;color:white;">Pay to Verify</button>
-</a>
+  </div>
 
-  </main>
-
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-app.js";
-    import {
-      getFirestore,
-      collection,
-      getDocs,
-      addDoc,
-      doc,
-      setDoc,
-      updateDoc,
-      increment,
-      serverTimestamp
-    } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-firestore.js";
-
-    const firebaseConfig = {
-      apiKey: "AIzaSyCDh_qL3jiCMHROK0_Soul2Wsv3t3y4wv0",
-      authDomain: "nbvs-ghana.firebaseapp.com",
-      projectId: "nbvs-ghana",
-      storageBucket: "nbvs-ghana.firebasestorage.app",
-      messagingSenderId: "702636577113",
-      appId: "1:702636577113:web:8369b43a2aa43aeb95fc48",
-      measurementId: "G-2FHFSQRMZX"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-
-    const searchBtn = document.getElementById("searchBtn");
-    const searchInput = document.getElementById("searchInput");
-    const resultsDiv = document.getElementById("results");
-
-    async function incrementGlobalStat(field) {
-      try {
-        const ref = doc(db, "stats", "global");
-        // ensure doc exists (merge will create)
-        await setDoc(ref, {}, { merge: true });
-        await updateDoc(ref, { [field]: increment(1) });
-      } catch (e) {
-        console.warn("Could not increment global stat:", e);
+  <script>
+    document.getElementById("searchBtn").addEventListener("click", () => {
+      const paid = new URLSearchParams(window.location.search).get("paid");
+      if (!paid) {
+        alert("⚠️ Please complete payment before verification.");
+        window.location.href = "payment.html";
+        return;
       }
-    }
 
-    async function logSearch(term, found) {
-      try {
-        await addDoc(collection(db, "searchLogs"), {
-          term,
-          found: !!found,
-          timestamp: serverTimestamp()
-        });
-      } catch (e) {
-        console.warn("Could not write search log:", e);
-      }
-    }
+      // Simulated success after payment
+      const val = document.getElementById("searchInput").value.trim();
+      if (!val) return alert("Please enter a valid name or ID.");
 
-    searchBtn.addEventListener("click", async () => {
-      resultsDiv.innerHTML = "";
-      const q = (searchInput.value || "").trim().toLowerCase();
-      if (!q) { resultsDiv.innerHTML = "<p class='no-record'>⚠️ Please enter a name or NIA ID.</p>"; return; }
-
-      resultsDiv.innerHTML = "<p>Searching…</p>";
-
-      try {
-        const snapshot = await getDocs(collection(db, "records"));
-        const matches = [];
-
-        snapshot.forEach(docSnap => {
-          const r = docSnap.data();
-          if (!r) return;
-          const name = (r.name || "").toLowerCase();
-          const nia = (r.nia || "").toLowerCase();
-          if (name === q || nia === q || name.includes(q) || nia.includes(q)) {
-            matches.push(r);
-          }
-        });
-
-        // log and increment stats
-        await addDoc(collection(db, "searchLogs"), { term: q, found: matches.length>0, timestamp: serverTimestamp() }).catch(()=>{});
-        await incrementGlobalStat("totalSearches");
-
-        if (matches.length === 0) {
-          resultsDiv.innerHTML = "<p class='no-record'>❌ No record found.</p>";
-          return;
-        }
-
-        resultsDiv.innerHTML = "";
-        matches.forEach(r => {
-          const el = document.createElement("div");
-          el.className = "record";
-          el.innerHTML = `
-            <h3>${r.name}</h3>
-            <p><strong>NIA ID:</strong> ${r.nia || "N/A"}</p>
-            <p><strong>DOB:</strong> ${r.dob || "N/A"}</p>
-            <p><strong>Region:</strong> ${r.region || "N/A"}</p>
-            <p><strong>Status:</strong> ${r.status || "N/A"}</p>
-            <p><strong>Criminal:</strong> ${r.criminal || "N/A"}</p>
-            <p><strong>Driving:</strong> ${r.driving || "N/A"}</p>
-            <p><strong>Address:</strong> ${r.address || "N/A"}</p>
-            <p><strong>Credit:</strong> ${r.credit || "N/A"}</p>
-          `;
-          resultsDiv.appendChild(el);
-        });
-
-      } catch (err) {
-        console.error("Search error:", err);
-        resultsDiv.innerHTML = "<p class='no-record'>⚠️ Error fetching records.</p>";
-      }
+      document.getElementById("results").innerHTML = `
+        ✅ Record found!<br>
+        Name: ${val}<br>
+        Status: Cleared<br><br>
+        <a href="confirmation.html">Go to Confirmation</a>
+      `;
     });
   </script>
 </body>
 </html>
-
