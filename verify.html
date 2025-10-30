@@ -57,7 +57,7 @@
   <!-- Firebase -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-app.js";
-    import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-firestore.js";
+    import { getFirestore, collection, getDocs, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyCDh_qL3jiCMHROK0_Soul2Wsv3t3y4wv0",
@@ -90,10 +90,11 @@
       }
 
       resultsDiv.innerHTML = "🔍 Searching...";
+      let found = false;
+      let resultData = null;
+
       try {
         const snapshot = await getDocs(collection(db, "records"));
-        let found = false;
-
         snapshot.forEach((doc) => {
           const data = doc.data();
           if (
@@ -101,20 +102,30 @@
             (data.nia && data.nia.toLowerCase() === query)
           ) {
             found = true;
-            resultsDiv.innerHTML = `
-              ✅ Record Found<br><br>
-              <strong>Name:</strong> ${data.name}<br>
-              <strong>NIA ID:</strong> ${data.nia}<br>
-              <strong>Region:</strong> ${data.region}<br>
-              <strong>Status:</strong> ${data.status}<br>
-              <br><a href="confirmation.html">Go to Confirmation</a>
-            `;
+            resultData = data;
           }
         });
 
-        if (!found) {
+        // Log the search attempt to Firestore
+        await addDoc(collection(db, "searchLogs"), {
+          query,
+          found,
+          timestamp: serverTimestamp()
+        });
+
+        if (found && resultData) {
+          resultsDiv.innerHTML = `
+            ✅ Record Found<br><br>
+            <strong>Name:</strong> ${resultData.name}<br>
+            <strong>NIA ID:</strong> ${resultData.nia}<br>
+            <strong>Region:</strong> ${resultData.region}<br>
+            <strong>Status:</strong> ${resultData.status}<br><br>
+            <a href="confirmation.html">Go to Confirmation</a>
+          `;
+        } else {
           resultsDiv.innerHTML = "❌ No record found.";
         }
+
       } catch (err) {
         console.error(err);
         resultsDiv.innerHTML = "⚠️ Error fetching record.";
