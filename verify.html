@@ -54,8 +54,28 @@
     <div id="results"></div>
   </div>
 
-  <script>
-    document.getElementById("searchBtn").addEventListener("click", () => {
+  <!-- Firebase -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-app.js";
+    import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCDh_qL3jiCMHROK0_Soul2Wsv3t3y4wv0",
+      authDomain: "nbvs-ghana.firebaseapp.com",
+      projectId: "nbvs-ghana",
+      storageBucket: "nbvs-ghana.firebasestorage.app",
+      messagingSenderId: "702636577113",
+      appId: "1:702636577113:web:8369b43a2aa43aeb95fc48",
+      measurementId: "G-2FHFSQRMZX"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    const searchBtn = document.getElementById("searchBtn");
+    const resultsDiv = document.getElementById("results");
+
+    searchBtn.addEventListener("click", async () => {
       const paid = new URLSearchParams(window.location.search).get("paid");
       if (!paid) {
         alert("⚠️ Please complete payment before verification.");
@@ -63,16 +83,42 @@
         return;
       }
 
-      // Simulated success after payment
-      const val = document.getElementById("searchInput").value.trim();
-      if (!val) return alert("Please enter a valid name or ID.");
+      const query = document.getElementById("searchInput").value.trim().toLowerCase();
+      if (!query) {
+        alert("Please enter a valid name or NIA ID.");
+        return;
+      }
 
-      document.getElementById("results").innerHTML = `
-        ✅ Record found!<br>
-        Name: ${val}<br>
-        Status: Cleared<br><br>
-        <a href="confirmation.html">Go to Confirmation</a>
-      `;
+      resultsDiv.innerHTML = "🔍 Searching...";
+      try {
+        const snapshot = await getDocs(collection(db, "records"));
+        let found = false;
+
+        snapshot.forEach((doc) => {
+          const data = doc.data();
+          if (
+            (data.name && data.name.toLowerCase() === query) ||
+            (data.nia && data.nia.toLowerCase() === query)
+          ) {
+            found = true;
+            resultsDiv.innerHTML = `
+              ✅ Record Found<br><br>
+              <strong>Name:</strong> ${data.name}<br>
+              <strong>NIA ID:</strong> ${data.nia}<br>
+              <strong>Region:</strong> ${data.region}<br>
+              <strong>Status:</strong> ${data.status}<br>
+              <br><a href="confirmation.html">Go to Confirmation</a>
+            `;
+          }
+        });
+
+        if (!found) {
+          resultsDiv.innerHTML = "❌ No record found.";
+        }
+      } catch (err) {
+        console.error(err);
+        resultsDiv.innerHTML = "⚠️ Error fetching record.";
+      }
     });
   </script>
 </body>
