@@ -27,6 +27,62 @@
     <button id="searchBtn">Search</button>
     <div id="results"></div>
   </main>
+<!-- ✅ Subscription / Usage Zone -->
+<section id="billingSection" style="margin-top:20px; background:#fff; padding:15px; border-radius:10px; box-shadow:0 2px 6px rgba(0,0,0,0.15);">
+
+  <h2>NBVS Access</h2>
+
+  <p id="freeSearchesDisplay" style="font-size:1.1em; font-weight:600;">
+    Free Searches: Loading...
+  </p>
+
+  <p id="planDisplay" style="font-size:1.1em;">
+    Current Plan: Loading...
+  </p>
+
+  <hr>
+
+  <h3>Upgrade Plans</h3>
+
+  <!-- ✅ BASIC PLAN -->
+  <button id="buyBasicBtn" style="
+    background:#006b3f; 
+    color:white;
+    border:none;
+    padding:10px 16px;
+    border-radius:6px;
+    cursor:pointer;
+    width:100%;
+    margin-bottom:8px;">
+    Buy BASIC Access (10 searches) — $3.99
+  </button>
+
+  <!-- ✅ PRO PLAN -->
+  <button id="buyProBtn" style="
+    background:#ce1126; 
+    color:white;
+    border:none;
+    padding:10px 16px;
+    border-radius:6px;
+    cursor:pointer;
+    width:100%;
+    margin-bottom:8px;">
+    Buy PRO Unlimited (30 days) — $14.99
+  </button>
+
+  <!-- ✅ NBVS WALLET -->
+  <button id="walletBtn" style="
+    background:#fcd116; 
+    color:#222;
+    border:none;
+    padding:10px 16px;
+    border-radius:6px;
+    cursor:pointer;
+    width:100%;
+    font-weight:bold;">
+    NBVS Wallet
+  </button>
+</section>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-app.js";
