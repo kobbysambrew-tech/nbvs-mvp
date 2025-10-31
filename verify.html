@@ -1,195 +1,232 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>NBVS Ghana — Verify Record</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NBVS Ghana — Verify Record</title>
 
-  <style>
-    body {
-      font-family: "Segoe UI", Arial, sans-serif;
-      background: #f8f9fa;
-      margin: 0;
-      padding: 0;
-    }
+<style>
+  body {
+    font-family: "Segoe UI", Arial, sans-serif;
+    background: #f8f9fa;
+    margin: 0;
+    padding: 0;
+  }
 
-    header {
-      background: linear-gradient(to right, #ce1126, #fcd116, #006b3f);
-      color: white;
-      text-align: center;
-      padding: 1.4em;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-    }
+  header {
+    background: linear-gradient(to right, #ce1126, #fcd116, #006b3f);
+    padding: 1.5em;
+    text-align: center;
+    color: white;
+    box-shadow: 0px 3px 8px rgba(0,0,0,0.15);
+  }
 
-    main {
-      max-width: 750px;
-      margin: 2em auto;
-      background: #fff;
-      padding: 2em;
-      border-radius: 12px;
-      box-shadow: 0 3px 8px rgba(0,0,0,0.1);
-    }
+  main {
+    max-width: 650px;
+    margin: 2em auto;
+    background: white;
+    padding: 2em;
+    border-radius: 12px;
+    box-shadow: 0px 3px 10px rgba(0,0,0,0.1);
+  }
 
-    input {
-      width: 100%;
-      padding: 12px;
-      border: 1px solid #ddd;
-      border-radius: 6px;
-      margin-bottom: 10px;
-      font-size: 1em;
-    }
+  input {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    margin-bottom: 10px;
+  }
 
-    button {
-      width: 100%;
-      background-color: #006b3f;
-      color: white;
-      padding: 12px;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 1em;
-      margin-top: 6px;
-    }
+  button {
+    width: 100%;
+    padding: 12px;
+    background: #006b3f;
+    border: none;
+    color: white;
+    font-size: 1.1em;
+    border-radius: 6px;
+    cursor: pointer;
+    margin-top: 8px;
+  }
 
-    button:hover {
-      background-color: #004f2e;
-    }
+  button:hover {
+    background: #004f2e;
+  }
 
-    .record {
-      margin-top: 20px;
-      background: #f9f9f9;
-      border-left: 4px solid #006b3f;
-      padding: 15px;
-      border-radius: 8px;
-      line-height: 1.55;
-    }
+  .record {
+    background: #f9f9f9;
+    padding: 15px;
+    margin-top: 20px;
+    border-left: 4px solid #006b3f;
+    border-radius: 6px;
+  }
 
-    .badge {
-      padding: 4px 8px;
-      border-radius: 6px;
-      color: #fff;
-      font-size: 0.85em;
-    }
+  .hidden {
+    display: none;
+  }
 
-    .Verified {
-      background: #006b3f;
-    }
+  .pay-box {
+    border: 2px solid #fcd116;
+    padding: 15px;
+    margin-top: 20px;
+    border-radius: 10px;
+    background: #fff8d1;
+  }
 
-    .Pending {
-      background: #f0ad4e;
-    }
+  .sub-btn {
+    background: #ce1126 !important;
+  }
 
-    .no-record {
-      color: #c00;
-      margin-top: 20px;
-      font-weight: 600;
-      text-align: center;
-    }
-
-    footer {
-      text-align: center;
-      padding: 1em;
-      background: #eee;
-      margin-top: 3em;
-      color: #555;
-      font-size: 0.9em;
-    }
-  </style>
+</style>
 </head>
-
 <body>
-  <header>
-    <h1>NBVS Ghana — Verify Record</h1>
-  </header>
 
-  <main>
-    <h2>Search Individual Record</h2>
+<header>
+  <h1>NBVS Ghana — Verify Record</h1>
+</header>
 
-    <input type="text" id="searchInput" placeholder="Enter Full Name or NIA ID..." />
-    <button id="searchBtn">Search</button>
+<main>
 
-    <div id="results"></div>
-  </main>
+  <!-- SEARCH -->
+  <h2>Search Record</h2>
+  <input id="searchInput" placeholder="Enter Name or NIA ID">
+  <button id="searchBtn">Search</button>
 
-  <footer>
-    © 2025 NBVS Ghana — National Background Verification System
-  </footer>
+  <p id="freeMsg"></p>
 
-  <!-- ✅ Firebase Search Script -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-app.js";
-    import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-firestore.js";
+  <!-- PAYMENT WALL -->
+  <div id="paywall" class="hidden">
+    <h3>Search Limit Reached</h3>
+    <p>You have used your 3 free searches.</p>
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyCDh_qL3jiCMHROK0_Soul2Wsv3t3y4wv0",
-      authDomain: "nbvs-ghana.firebaseapp.com",
-      projectId: "nbvs-ghana",
-      storageBucket: "nbvs-ghana.firebasestorage.app",
-      messagingSenderId: "702636577113",
-      appId: "1:702636577113:web:8369b43a2aa43aeb95fc48",
-      measurementId: "G-2FHFSQRMZX"
-    };
+    <div class="pay-box">
+      <h3>Pay Per Search — ₵30</h3>
+      <button id="payOnceBtn">Unlock 1 Search</button>
+    </div>
 
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
+    <div class="pay-box">
+      <h3>Subscribe for Unlimited Searches</h3>
+      <button class="sub-btn" id="dailyBtn">Daily Pass — ₵10</button>
+      <button class="sub-btn" id="monthlyBtn">Monthly — ₵80</button>
+      <button class="sub-btn" id="yearlyBtn">Yearly — ₵600</button>
+    </div>
+  </div>
 
-    const searchBtn = document.getElementById("searchBtn");
+  <!-- RESULTS -->
+  <div id="results"></div>
+
+</main>
+
+<!-- ✅ FIREBASE -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-app.js";
+  import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyCDh_qL3jiCMHROK0_Soul2Wsv3t3y4wv0",
+    authDomain: "nbvs-ghana.firebaseapp.com",
+    projectId: "nbvs-ghana",
+    storageBucket: "nbvs-ghana.firebasestorage.app",
+    messagingSenderId: "702636577113",
+    appId: "1:702636577113:web:8369b43a2aa43aeb95fc48",
+    measurementId: "G-2FHFSQRMZX"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  // ✅ SEARCH LIMITS
+  let freeSearches = parseInt(localStorage.getItem("freeSearches") || "3");
+  let unlocked = localStorage.getItem("unlocked") === "true";
+  let subscribed = localStorage.getItem("subscribed") === "true";
+
+  function updateFreeMsg() {
+    document.getElementById("freeMsg").textContent = `Free searches left: ${freeSearches}`;
+  }
+  updateFreeMsg();
+
+  // ✅ SEARCH BUTTON
+  document.getElementById("searchBtn").addEventListener("click", async () => {
+    // Paywall check
+    if (!subscribed && !unlocked && freeSearches <= 0) {
+      document.getElementById("paywall").classList.remove("hidden");
+      document.getElementById("results").innerHTML = "";
+      return;
+    }
+
+    // If using free search
+    if (!subscribed && !unlocked) {
+      freeSearches--;
+      localStorage.setItem("freeSearches", freeSearches);
+      updateFreeMsg();
+    }
+
+    // If user unlocked 1 search
+    if (unlocked) {
+      unlocked = false;
+      localStorage.setItem("unlocked", "false");
+    }
+
+    const q = document.getElementById("searchInput").value.trim().toLowerCase();
     const resultsDiv = document.getElementById("results");
+    resultsDiv.innerHTML = "Searching...";
 
-    searchBtn.addEventListener("click", async () => {
-      const q = document.getElementById("searchInput").value.trim().toLowerCase();
-      if (!q) {
-        resultsDiv.innerHTML = "<div class='no-record'>⚠️ Please enter a name or NIA ID.</div>";
-        return;
-      }
+    const docsSnap = await getDocs(collection(db, "records"));
+    let found = null;
 
-      resultsDiv.innerHTML = "🔍 Searching...";
-
-      try {
-        const docsSnap = await getDocs(collection(db, "records"));
-        const matches = [];
-
-        docsSnap.forEach(doc => {
-          const r = doc.data();
-          if (
-            r.name?.toLowerCase() === q ||
-            r.nia?.toLowerCase() === q
-          ) {
-            matches.push(r);
-          }
-        });
-
-        if (matches.length === 0) {
-          resultsDiv.innerHTML = "<div class='no-record'>❌ No record found.</div>";
-          return;
-        }
-
-        // ✅ Display matches
-        resultsDiv.innerHTML = "";
-        matches.forEach(r => {
-          resultsDiv.innerHTML += `
-            <div class="record">
-              <h3>${r.name} — 
-                <span class="badge ${r.status}">${r.status}</span>
-              </h3>
-              <p><b>NIA ID:</b> ${r.nia}</p>
-              <p><b>Date of Birth:</b> ${r.dob}</p>
-              <p><b>Region:</b> ${r.region}</p>
-              <p><b>Address:</b> ${r.address}</p>
-              <p><b>Criminal Record:</b> ${r.criminal}</p>
-              <p><b>Driving License:</b> ${r.driving}</p>
-              <p><b>Credit Score:</b> ${r.credit}</p>
-            </div>
-          `;
-        });
-
-      } catch (error) {
-        resultsDiv.innerHTML = "<div class='no-record'>⚠️ Error fetching record.</div>";
-        console.error(error);
+    docsSnap.forEach(doc => {
+      const r = doc.data();
+      if (r.name?.toLowerCase() === q || r.nia?.toLowerCase() === q) {
+        found = r;
       }
     });
 
-  </script>
+    if (!found) {
+      resultsDiv.innerHTML = "<p>No record found.</p>";
+      return;
+    }
+
+    resultsDiv.innerHTML = `
+      <div class="record">
+        <h3>${found.name} — ${found.status}</h3>
+        <p><b>NIA ID:</b> ${found.nia}</p>
+        <p><b>DOB:</b> ${found.dob}</p>
+        <p><b>Region:</b> ${found.region}</p>
+        <p><b>Address:</b> ${found.address}</p>
+        <p><b>Criminal Record:</b> ${found.criminal}</p>
+        <p><b>Driving License:</b> ${found.driving}</p>
+        <p><b>Credit Score:</b> ${found.credit}</p>
+      </div>
+    `;
+  });
+
+  // ✅ FAKE PAYMENT UNLOCK (BETA)
+  document.getElementById("payOnceBtn").addEventListener("click", () => {
+    alert("✅ Payment Successful — 1 Search Unlocked!");
+    localStorage.setItem("unlocked", "true");
+    document.getElementById("paywall").classList.add("hidden");
+  });
+
+  document.getElementById("dailyBtn").addEventListener("click", () => {
+    alert("✅ Daily Subscription Activated!");
+    localStorage.setItem("subscribed", "true");
+    document.getElementById("paywall").classList.add("hidden");
+  });
+
+  document.getElementById("monthlyBtn").addEventListener("click", () => {
+    alert("✅ Monthly Subscription Activated!");
+    localStorage.setItem("subscribed", "true");
+    document.getElementById("paywall").classList.add("hidden");
+  });
+
+  document.getElementById("yearlyBtn").addEventListener("click", () => {
+    alert("✅ Yearly Subscription Activated!");
+    localStorage.setItem("subscribed", "true");
+    document.getElementById("paywall").classList.add("hidden");
+  });
+
+</script>
 </body>
 </html>
 
