@@ -3,117 +3,122 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>NBVS Ghana - Verify Record</title>
+  <title>NBVS Ghana — Verify Record</title>
+
   <style>
     body {
       font-family: "Segoe UI", Arial, sans-serif;
-      background: linear-gradient(to bottom, #ce1126, #fcd116, #006b3f);
-      color: #fff;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh;
+      background: #f8f9fa;
       margin: 0;
+      padding: 0;
     }
 
-    .container {
-      background: #fff;
-      color: #222;
-      padding: 2em;
-      border-radius: 15px;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-      width: 90%;
-      max-width: 500px;
+    header {
+      background: linear-gradient(to right, #ce1126, #fcd116, #006b3f);
+      color: white;
       text-align: center;
+      padding: 1.4em;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
     }
 
-    h2 {
-      color: #006b3f;
-      margin-bottom: 0.8em;
+    main {
+      max-width: 750px;
+      margin: 2em auto;
+      background: #fff;
+      padding: 2em;
+      border-radius: 12px;
+      box-shadow: 0 3px 8px rgba(0,0,0,0.1);
     }
 
     input {
       width: 100%;
       padding: 12px;
-      border-radius: 8px;
-      border: 1px solid #ccc;
+      border: 1px solid #ddd;
+      border-radius: 6px;
       margin-bottom: 10px;
+      font-size: 1em;
     }
 
     button {
+      width: 100%;
       background-color: #006b3f;
-      color: #fff;
-      padding: 12px 18px;
+      color: white;
+      padding: 12px;
       border: none;
-      border-radius: 8px;
+      border-radius: 6px;
       cursor: pointer;
       font-size: 1em;
-      transition: background-color 0.3s;
+      margin-top: 6px;
     }
 
     button:hover {
       background-color: #004f2e;
     }
 
-    #results {
+    .record {
       margin-top: 20px;
-      text-align: left;
-      background: #f8f9fa;
+      background: #f9f9f9;
+      border-left: 4px solid #006b3f;
+      padding: 15px;
       border-radius: 8px;
-      padding: 1em;
-      color: #222;
+      line-height: 1.55;
     }
 
-    .status {
-      font-weight: bold;
-      color: #006b3f;
+    .badge {
+      padding: 4px 8px;
+      border-radius: 6px;
+      color: #fff;
+      font-size: 0.85em;
     }
 
-    .error {
-      color: red;
+    .Verified {
+      background: #006b3f;
+    }
+
+    .Pending {
+      background: #f0ad4e;
+    }
+
+    .no-record {
+      color: #c00;
+      margin-top: 20px;
+      font-weight: 600;
       text-align: center;
-      margin-top: 10px;
     }
 
-    .pay-section {
-      margin-top: 25px;
-      padding-top: 15px;
-      border-top: 2px solid #eee;
-    }
-
-    .pay-btn {
-      background: #fcd116;
-      color: #000;
-      font-weight: bold;
-      padding: 10px 20px;
-      border-radius: 8px;
-      border: none;
-      cursor: pointer;
-      transition: 0.3s;
-    }
-
-    .pay-btn:hover {
-      background: #ffd633;
+    footer {
+      text-align: center;
+      padding: 1em;
+      background: #eee;
+      margin-top: 3em;
+      color: #555;
+      font-size: 0.9em;
     }
   </style>
 </head>
+
 <body>
-  <div class="container">
-    <h2>NBVS Ghana Verification</h2>
-    <input type="text" id="searchInput" placeholder="Enter NIA ID or Name" />
-    <button id="searchBtn">Verify</button>
+  <header>
+    <h1>NBVS Ghana — Verify Record</h1>
+  </header>
+
+  <main>
+    <h2>Search Individual Record</h2>
+
+    <input type="text" id="searchInput" placeholder="Enter Full Name or NIA ID..." />
+    <button id="searchBtn">Search</button>
+
     <div id="results"></div>
-    <p id="errorMsg" class="error"></p>
+  </main>
 
-    <div class="pay-section">
-      <p>Want full access? Subscribe to NBVS Premium 🔒</p>
-      <button class="pay-btn" id="payBtn">Subscribe with Stripe</button>
-    </div>
-  </div>
+  <footer>
+    © 2025 NBVS Ghana — National Background Verification System
+  </footer>
 
+  <!-- ✅ Firebase Search Script -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-app.js";
-    import { getFirestore, collection, getDocs, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-firestore.js";
+    import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyCDh_qL3jiCMHROK0_Soul2Wsv3t3y4wv0",
@@ -125,74 +130,66 @@
       measurementId: "G-2FHFSQRMZX"
     };
 
-    // Initialize Firebase
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
     const searchBtn = document.getElementById("searchBtn");
     const resultsDiv = document.getElementById("results");
-    const errorMsg = document.getElementById("errorMsg");
-    const payBtn = document.getElementById("payBtn");
-
-    // Stripe placeholder (connect real key later)
-    payBtn.addEventListener("click", () => {
-      alert("Stripe payments will be available soon!");
-    });
 
     searchBtn.addEventListener("click", async () => {
-      errorMsg.textContent = "";
-      resultsDiv.innerHTML = "";
-
-      const query = document.getElementById("searchInput").value.trim().toLowerCase();
-      if (!query) {
-        errorMsg.textContent = "⚠️ Please enter a valid name or NIA ID.";
+      const q = document.getElementById("searchInput").value.trim().toLowerCase();
+      if (!q) {
+        resultsDiv.innerHTML = "<div class='no-record'>⚠️ Please enter a name or NIA ID.</div>";
         return;
       }
 
       resultsDiv.innerHTML = "🔍 Searching...";
-      let found = false;
-      let resultData = null;
 
       try {
-        const snapshot = await getDocs(collection(db, "records"));
-        snapshot.forEach((doc) => {
-          const data = doc.data();
+        const docsSnap = await getDocs(collection(db, "records"));
+        const matches = [];
+
+        docsSnap.forEach(doc => {
+          const r = doc.data();
           if (
-            (data.name && data.name.toLowerCase() === query) ||
-            (data.nia && data.nia.toLowerCase() === query)
+            r.name?.toLowerCase() === q ||
+            r.nia?.toLowerCase() === q
           ) {
-            found = true;
-            resultData = data;
+            matches.push(r);
           }
         });
 
-        await addDoc(collection(db, "searchLogs"), {
-          query,
-          found,
-          timestamp: serverTimestamp()
+        if (matches.length === 0) {
+          resultsDiv.innerHTML = "<div class='no-record'>❌ No record found.</div>";
+          return;
+        }
+
+        // ✅ Display matches
+        resultsDiv.innerHTML = "";
+        matches.forEach(r => {
+          resultsDiv.innerHTML += `
+            <div class="record">
+              <h3>${r.name} — 
+                <span class="badge ${r.status}">${r.status}</span>
+              </h3>
+              <p><b>NIA ID:</b> ${r.nia}</p>
+              <p><b>Date of Birth:</b> ${r.dob}</p>
+              <p><b>Region:</b> ${r.region}</p>
+              <p><b>Address:</b> ${r.address}</p>
+              <p><b>Criminal Record:</b> ${r.criminal}</p>
+              <p><b>Driving License:</b> ${r.driving}</p>
+              <p><b>Credit Score:</b> ${r.credit}</p>
+            </div>
+          `;
         });
 
-        if (found && resultData) {
-          resultsDiv.innerHTML = `
-            ✅ <strong>Record Found</strong><br><br>
-            <b>Name:</b> ${resultData.name}<br>
-            <b>NIA ID:</b> ${resultData.nia}<br>
-            <b>Date of Birth:</b> ${resultData.dob || "N/A"}<br>
-            <b>Region:</b> ${resultData.region || "N/A"}<br>
-            <b>Address:</b> ${resultData.address || "N/A"}<br>
-            <b>Credit Score:</b> ${resultData.credit || "N/A"}<br>
-            <b>Driving License:</b> ${resultData.driving || "N/A"}<br>
-            <b>Criminal Record:</b> ${resultData.criminal || "N/A"}<br>
-            <b>Status:</b> <span class="status">${resultData.status || "Unknown"}</span>
-          `;
-        } else {
-          resultsDiv.innerHTML = "❌ No record found.";
-        }
-      } catch (err) {
-        console.error("Error fetching record:", err);
-        errorMsg.textContent = "⚠️ Error connecting to database.";
+      } catch (error) {
+        resultsDiv.innerHTML = "<div class='no-record'>⚠️ Error fetching record.</div>";
+        console.error(error);
       }
     });
+
   </script>
 </body>
 </html>
+
