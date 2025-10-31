@@ -1,67 +1,34 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>NBVS Analytics Dashboard</title>
+  <title>NBVS Analytics</title>
   <style>
-    body {
-      font-family: "Poppins", sans-serif;
-      background: linear-gradient(to bottom, #d6e4ff, #fff);
-      color: #222;
-      margin: 0;
-      padding: 0;
-      text-align: center;
-    }
-
-    header {
-      background: #004aad;
-      color: white;
-      padding: 15px;
-      font-size: 1.4rem;
-      font-weight: bold;
-    }
-
-    .container {
-      margin: 40px auto;
-      width: 90%;
-      max-width: 600px;
-      background: #fff;
-      padding: 25px;
-      border-radius: 12px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-    }
-
-    .stat {
-      font-size: 1.2rem;
-      margin: 20px 0;
-      padding: 15px;
-      border-radius: 8px;
-      background: #f5f7ff;
-      border-left: 6px solid #004aad;
-    }
-
-    footer {
-      margin-top: 40px;
-      color: #777;
-      font-size: 0.9rem;
-    }
+    body { font-family: Arial; padding: 20px; background:#f8f9fa; }
+    h1 { color:#006b3f; }
+    table { width:100%; border-collapse: collapse; margin-top:20px; }
+    th, td { border:1px solid #ccc; padding:8px; }
+    th { background:#006b3f; color:white; }
   </style>
 </head>
 <body>
-  <header>📊 NBVS Analytics Dashboard</header>
+  <h1>NBVS Analytics Dashboard</h1>
+  <p><b>Total Searches:</b> <span id="total"></span></p>
 
-  <div class="container">
-    <div id="totalRecords" class="stat">Total Records: Loading...</div>
-    <div id="totalSearches" class="stat">Total Searches Performed: Loading...</div>
-    <div id="totalLogins" class="stat">Total Admin Logins: Loading...</div>
-  </div>
-
-  <footer>National Background Verification System © 2025</footer>
+  <table>
+    <thead>
+      <tr>
+        <th>Search Term</th>
+        <th>Timestamp</th>
+        <th>Platform</th>
+      </tr>
+    </thead>
+    <tbody id="logs"></tbody>
+  </table>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-app.js";
-    import { getFirestore, collection, getCountFromServer, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-firestore.js";
+    import { getFirestore, collection, getDocs } 
+      from "https://www.gstatic.com/firebasejs/10.7.2/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyCDh_qL3jiCMHROK0_Soul2Wsv3t3y4wv0",
@@ -76,37 +43,25 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    const totalRecordsDiv = document.getElementById("totalRecords");
-    const totalSearchesDiv = document.getElementById("totalSearches");
-    const totalLoginsDiv = document.getElementById("totalLogins");
+    async function loadLogs() {
+      const snap = await getDocs(collection(db, "search_logs"));
+      document.getElementById("total").textContent = snap.size;
 
-    async function loadAnalytics() {
-      try {
-        // ✅ Get total records
-        const recordsSnap = await getCountFromServer(collection(db, "records"));
-        totalRecordsDiv.textContent = `Total Records in Database: ${recordsSnap.data().count}`;
-
-        // ✅ Get stats (searches + logins)
-        const statsRef = doc(db, "stats", "global");
-        const statsSnap = await getDoc(statsRef);
-
-        if (statsSnap.exists()) {
-          const stats = statsSnap.data();
-          totalSearchesDiv.textContent = `Total Searches Performed: ${stats.totalSearches || 0}`;
-          totalLoginsDiv.textContent = `Total Admin Logins: ${stats.adminLogins || 0}`;
-        } else {
-          totalSearchesDiv.textContent = "Total Searches Performed: 0";
-          totalLoginsDiv.textContent = "Total Admin Logins: 0";
-        }
-      } catch (err) {
-        console.error("Error loading analytics:", err);
-        totalRecordsDiv.textContent = "Error loading data";
-        totalSearchesDiv.textContent = "Error loading data";
-        totalLoginsDiv.textContent = "Error loading data";
-      }
+      const logsDiv = document.getElementById("logs");
+      snap.forEach(doc => {
+        const r = doc.data();
+        const row = `
+          <tr>
+            <td>${r.searchTerm}</td>
+            <td>${r.timestamp?.toDate()}</td>
+            <td>${r.platform}</td>
+          </tr>
+        `;
+        logsDiv.innerHTML += row;
+      });
     }
 
-    loadAnalytics();
+    loadLogs();
   </script>
 </body>
 </html>
