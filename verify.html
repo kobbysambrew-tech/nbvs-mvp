@@ -210,6 +210,174 @@ async function updateUser(data) {
       console.error(error);
     }
   }
+/*  
+ --------------------------------------------
+ ✅ NBVS Ghana – Monetization & Access Control
+---------------------------------------------
+ Features enabled:
+ ✅ 3 free searches
+ ✅ BASIC plan – 10 searches ($3.99)
+ ✅ PRO plan – Unlimited 30 days ($14.99)
+ ✅ NBVS Wallet (global balance)
+ ✅ Access lock/unlock
+ ✅ Auto UI update
+---------------------------------------------
+*/
+
+// ✅ Firebase imports already present (do NOT duplicate them)
+// We assume:
+// const app = initializeApp(firebaseConfig);
+// const db  = getFirestore(app);
+
+// ✅ Reference to the stats document
+import { doc, getDoc, setDoc, updateDoc } 
+from "https://www.gstatic.com/firebasejs/10.7.2/firebase-firestore.js";
+
+const statsDoc = doc(db, "stats", "global");
+
+// ✅ DOM elements
+const freeSearchesDisplay = document.getElementById("freeSearchesDisplay");
+const planDisplay = document.getElementById("planDisplay");
+const buyBasicBtn = document.getElementById("buyBasicBtn");
+const buyProBtn = document.getElementById("buyProBtn");
+const walletBtn = document.getElementById("walletBtn");
+
+
+// ✅ Local storage tracking
+function getUserData() {
+  return {
+    freeSearches: parseInt(localStorage.getItem("freeSearches") || "3"),
+    plan: localStorage.getItem("plan") || "FREE",
+    planExpiry: localStorage.getItem("planExpiry") || null
+  };
+}
+
+function saveUserData(data) {
+  localStorage.setItem("freeSearches", data.freeSearches);
+  localStorage.setItem("plan", data.plan);
+  if (data.planExpiry) localStorage.setItem("planExpiry", data.planExpiry);
+}
+
+
+// ✅ Check if PRO plan expired
+function checkProExpiry() {
+  const now = Date.now();
+  const expiry = parseInt(localStorage.getItem("planExpiry") || "0");
+  if (expiry && now > expiry) {
+    localStorage.setItem("plan", "FREE");
+    alert("⚠️ Your PRO plan expired.");
+  }
+}
+
+
+// ✅ Update UI display
+function updateUI() {
+  checkProExpiry();
+  const data = getUserData();
+
+  freeSearchesDisplay.textContent = `Free Searches: ${data.freeSearches}`;
+  planDisplay.textContent = `Current Plan: ${data.plan}`;
+}
+
+
+// ✅ Deduct search on use
+async function deductSearch() {
+  checkProExpiry();
+  const data = getUserData();
+
+  // ✅ PRO plan – unlimited
+  if (data.plan === "PRO") {
+    return true;
+  }
+
+  // ✅ BASIC plan – has limited searches
+  if (data.plan === "BASIC") {
+    if (data.freeSearches > 0) {
+      data.freeSearches -= 1;
+      saveUserData(data);
+      updateUI();
+      return true;
+    } else {
+      alert("❌ BASIC plan search limit reached.");
+      return false;
+    }
+  }
+
+  // ✅ FREE plan – 3 free searches
+  if (data.plan === "FREE") {
+    if (data.freeSearches > 0) {
+      data.freeSearches -= 1;
+      saveUserData(data);
+      updateUI();
+      return true;
+    } else {
+      alert("❌ Free searches used up. Please upgrade your plan.");
+      return false;
+    }
+  }
+}
+
+
+
+// ✅ MOCK PAYMENT HANDLERS (Replace with Stripe when ready)
+async function addToWallet(amount) {
+  const snap = await getDoc(statsDoc);
+  if (!snap.exists()) {
+    await setDoc(statsDoc, { walletBalance: amount });
+  } else {
+    const newBalance = (snap.data().walletBalance || 0) + amount;
+    await updateDoc(statsDoc, { walletBalance: newBalance });
+  }
+}
+
+
+// ✅ BASIC – $3.99 – 10 searches
+buyBasicBtn.addEventListener("click", async () => {
+  alert("✅ Payment simulated — $3.99 received.");
+
+  await addToWallet(3.99);
+
+  saveUserData({
+    freeSearches: 10,
+    plan: "BASIC",
+    planExpiry: null
+  });
+
+  updateUI();
+  alert("✅ BASIC plan activated with 10 searches.");
+});
+
+
+// ✅ PRO – $14.99 – Unlimited 30 days
+buyProBtn.addEventListener("click", async () => {
+  alert("✅ Payment simulated — $14.99 received.");
+
+  await addToWallet(14.99);
+
+  const expiry = Date.now() + 30 * 24 * 60 * 60 * 1000; // 30 days
+
+  saveUserData({
+    freeSearches: 9999,
+    plan: "PRO",
+    planExpiry: expiry
+  });
+
+  updateUI();
+  alert("✅ PRO Unlimited (30 days) Activated.");
+});
+
+
+// ✅ NBVS Wallet Viewer
+walletBtn.addEventListener("click", async () => {
+  const snap = await getDoc(statsDoc);
+  let bal = snap.exists() ? snap.data().walletBalance : 0;
+
+  alert(`💰 NBVS Global Wallet Balance: $${bal.toFixed(2)}`);
+});
+
+
+// ✅ INIT
+updateUI();
 
   function buyCredits() {
     alert("Payment system coming soon! (Stripe + NBVS Wallet)");
