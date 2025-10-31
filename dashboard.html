@@ -183,6 +183,75 @@
         adminPanel.classList.remove("hidden");
       }
     };
+    <script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-app.js";
+  import { 
+    getAuth, 
+    signInWithEmailAndPassword, 
+    signOut 
+  } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-auth.js";
+
+  import { 
+    getFirestore, 
+    collection, 
+    addDoc, 
+    getDocs 
+  } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-firestore.js";
+
+  // ✅ Firebase config
+  const firebaseConfig = {
+    apiKey: "AIzaSyCDh_qL3jiCMHROK0_Soul2Wsv3t3y4wv0",
+    authDomain: "nbvs-ghana.firebaseapp.com",
+    projectId: "nbvs-ghana",
+    storageBucket: "nbvs-ghana.firebasestorage.app",
+    messagingSenderId: "702636577113",
+    appId: "1:702636577113:web:8369b43a2aa43aeb95fc48",
+    measurementId: "G-2FHFSQRMZX"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+  const auth = getAuth(app);
+
+  const loginBtn = document.getElementById("loginBtn");
+  const logoutBtn = document.getElementById("logoutBtn");
+  const loginPanel = document.getElementById("loginPanel");
+  const adminPanel = document.getElementById("adminPanel");
+  const loginMsg = document.getElementById("loginMsg");
+
+  // ✅ LOGIN WITH EMAIL + PASSWORD
+  loginBtn.addEventListener("click", async () => {
+    const email = "admin@nbvsghana.com"; // fixed admin email
+    const password = document.getElementById("adminPass").value.trim(); // user enters password only
+
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+
+      // ✅ Show admin panel
+      loginPanel.classList.add("hidden");
+      adminPanel.classList.remove("hidden");
+
+      alert("✅ Admin access granted");
+    } catch (error) {
+      loginMsg.textContent = "❌ Wrong password!";
+    }
+  });
+
+  // ✅ AUTO LOGIN IF AUTH SESSION EXISTS
+  auth.onAuthStateChanged((user) => {
+    if (user) {
+      loginPanel.classList.add("hidden");
+      adminPanel.classList.remove("hidden");
+    }
+  });
+
+  // ✅ LOGOUT
+  logoutBtn.addEventListener("click", async () => {
+    await signOut(auth);
+    location.reload();
+  });
+</script>
+
 
     // ✅ Logout
     logoutBtn.addEventListener("click", () => {
