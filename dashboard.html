@@ -35,6 +35,21 @@
 
   <!-- ✅ ADMIN PANEL -->
   <section id="adminPanel" class="hidden">
+<!-- ADD THIS INSIDE YOUR adminPanel section (where admin controls are) -->
+<hr />
+<h3>Global Wallet (admin)</h3>
+<div>
+  <div>Balance: <span id="globalBalance">Loading...</span></div>
+  <div style="margin-top:8px">
+    <input id="adjAmount" placeholder="Amount (positive to add, negative to subtract)" />
+    <button id="adjBtn" style="margin-top:6px">Apply Adjustment</button>
+  </div>
+  <div style="margin-top:8px">
+    <button id="resetWalletBtn" style="background:#f0ad4e">Reset to ¢0</button>
+    <button id="goWalletPage" style="background:#006b3f">Open Wallet Page</button>
+  </div>
+  <div id="walletMsg" style="color:#c00;margin-top:8px"></div>
+</div>
 
     <h2>Add New Record</h2>
     <input id="name" placeholder="Full Name" />
