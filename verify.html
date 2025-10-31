@@ -19,74 +19,99 @@
 
   <main>
     <h2>Search Individual Record</h2>
+    <p style="background:#006b3f; color:white; padding:8px; border-radius:6px;">
+  ✅ Free Searches Remaining: <b id="freeCount">3</b>
+</p>
+
     <input id="searchInput" placeholder="Enter Name or NIA ID" />
     <button id="searchBtn">Search</button>
     <div id="results"></div>
   </main>
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-app.js";
-    import { getFirestore, collection, getDocs, addDoc, serverTimestamp } 
-      from "https://www.gstatic.com/firebasejs/10.7.2/firebase-firestore.js";
+  <script>
+  // ✅ Track free searches in localStorage
+  if (!localStorage.getItem("freeSearches")) {
+    localStorage.setItem("freeSearches", 3); 
+  }
 
-    // ✅ Firebase config
-    const firebaseConfig = {
-      apiKey: "AIzaSyCDh_qL3jiCMHROK0_Soul2Wsv3t3y4wv0",
-      authDomain: "nbvs-ghana.firebaseapp.com",
-      projectId: "nbvs-ghana",
-      storageBucket: "nbvs-ghana.firebasestorage.app",
-      messagingSenderId: "702636577113",
-      appId: "1:702636577113:web:8369b43a2aa43aeb95fc48",
-      measurementId: "G-2FHFSQRMZX"
-    };
+  function updateFreeSearchUI() {
+    let count = localStorage.getItem("freeSearches");
+    document.getElementById("freeCount").innerText = count;
+  }
 
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
+  updateFreeSearchUI();
 
-    document.getElementById("searchBtn").addEventListener("click", async () => {
-      const queryValue = document.getElementById("searchInput").value.trim().toLowerCase();
-      const resultsDiv = document.getElementById("results");
-      resultsDiv.innerHTML = "Searching...";
+  async function searchRecord() {
+    let free = parseInt(localStorage.getItem("freeSearches"));
 
-      // ✅ Log search attempt
-      await addDoc(collection(db, "search_logs"), {
-        searchTerm: queryValue,
-        timestamp: serverTimestamp(),
-        platform: "web",
-      });
+    // ✅ If no free searches left → show paywall
+    if (free <= 0) {
+      document.getElementById("results").innerHTML = `
+        <div style="padding:20px; text-align:center;">
+          <h2>⚠️ Search Limit Reached</h2>
+          <p>You have used your 3 free searches.</p>
+          <button onclick="buyCredits()" 
+            style="padding:10px 18px; background:#006b3f; color:#fff; border:none; border-radius:6px;">
+            Buy More Searches
+          </button>
+        </div>
+      `;
+      return;
+    }
 
+    // ✅ Normal search
+    const queryValue = document.getElementById("searchInput").value.trim().toLowerCase();
+    const resultsDiv = document.getElementById("results");
+    resultsDiv.innerHTML = "Searching...";
+
+    try {
       const allDocs = await getDocs(collection(db, "records"));
-      let found = null;
-
+      let matches = [];
       allDocs.forEach(doc => {
         const r = doc.data();
-        if (
-          r.name?.toLowerCase() === queryValue || 
-          r.nia?.toLowerCase() === queryValue
-        ) {
-          found = r;
+        if (r.name?.toLowerCase() === queryValue || r.nia?.toLowerCase() === queryValue) {
+          matches.push(r);
         }
       });
 
-      if (!found) {
-        resultsDiv.innerHTML = `<p style="color:red;font-weight:bold;">❌ No record found.</p>`;
+      // ✅ Deduct a free search ONLY if query is valid
+      free -= 1;
+      localStorage.setItem("freeSearches", free);
+      updateFreeSearchUI();
+
+      if (matches.length === 0) {
+        resultsDiv.innerHTML = `<p style="color:#c00;">❌ Record not found.</p>`;
         return;
       }
 
-      // ✅ Show result
-      resultsDiv.innerHTML = `
-        <div class="record">
-          <h3>${found.name} — <b>${found.status}</b></h3>
-          <p><b>NIA:</b> ${found.nia}</p>
-          <p><b>DOB:</b> ${found.dob}</p>
-          <p><b>Region:</b> ${found.region}</p>
-          <p><b>Address:</b> ${found.address}</p>
-          <p><b>Credit Score:</b> ${found.credit}</p>
-          <p><b>Driving License:</b> ${found.driving}</p>
-          <p><b>Criminal Record:</b> ${found.criminal}</p>
-        </div>`;
-    });
-  </script>
+      // ✅ Show results
+      resultsDiv.innerHTML = "";
+      matches.forEach(r => {
+        resultsDiv.innerHTML += `
+          <div class="record">
+            <h3>${r.name} — <span class="${r.status}">${r.status}</span></h3>
+            <p><b>NIA ID:</b> ${r.nia}</p>
+            <p><b>Date of Birth:</b> ${r.dob}</p>
+            <p><b>Region:</b> ${r.region}</p>
+            <p><b>Criminal:</b> ${r.criminal}</p>
+            <p><b>Driving:</b> ${r.driving}</p>
+            <p><b>Address:</b> ${r.address}</p>
+            <p><b>Credit:</b> ${r.credit}</p>
+          </div>
+        `;
+      });
+
+    } catch (error) {
+      resultsDiv.innerHTML = "<p>⚠️ Error fetching records.</p>";
+      console.error(error);
+    }
+  }
+
+  function buyCredits() {
+    alert("Payment system coming soon! (Stripe + NBVS Wallet)");
+  }
+</script>
+
 </body>
 </html>
 
