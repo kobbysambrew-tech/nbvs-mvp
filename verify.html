@@ -1,136 +1,92 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>NBVS Ghana — Verify</title>
-<style>
-  body{font-family:"Segoe UI",Arial,sans-serif;background:#f8f9fa;margin:0}
-  header{background:linear-gradient(to right,#ce1126,#fcd116,#006b3f);color:#fff;padding:1.2rem;text-align:center}
-  main{max-width:750px;margin:2rem auto;background:#fff;padding:1.6rem;border-radius:10px;box-shadow:0 3px 12px rgba(0,0,0,0.08)}
-  input{width:100%;padding:12px;border:1px solid #ddd;border-radius:8px;margin-bottom:10px}
-  button{background:#006b3f;color:#fff;padding:12px;border:none;border-radius:8px;cursor:pointer;width:100%}
-  .record{background:#f9f9f9;padding:12px;border-left:4px solid #006b3f;border-radius:8px;margin-top:12px}
-  .payNote{margin-top:12px;padding:10px;background:#fff8d1;border:1px solid #fcd116;border-radius:8px}
-  a{color:#006b3f}
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NBVS Ghana — Verify Record</title>
+  <style>
+    body { font-family: Arial; background: #f8f9fa; margin: 0; padding: 0; }
+    header { background: linear-gradient(to right, #ce1126, #fcd116, #006b3f); color: white; text-align: center; padding: 1.4em; }
+    main { max-width: 700px; margin: 2em auto; background: white; padding: 1.8em; border-radius: 10px; }
+    input { width: 100%; padding: 12px; margin-bottom: 12px; border-radius: 6px; border: 1px solid #ccc; }
+    button { background: #006b3f; color: white; padding: 10px 16px; border: none; border-radius: 6px; cursor: pointer; }
+    button:hover { background: #004f2e; }
+    .record { background: #f1f1f1; padding: 12px; margin-top: 15px; border-left: 4px solid #006b3f; }
+  </style>
 </head>
 <body>
-<header><h1>NBVS Ghana — Verify</h1></header>
-<main>
-  <p class="small">Each verification costs <strong>¢30</strong>. You can top up the global wallet from the Wallet page.</p>
+  <header><h1>NBVS Ghana — Verify Background Record</h1></header>
 
-  <input id="searchInput" placeholder="Enter full name or NIA ID">
-  <button id="searchBtn">Search</button>
+  <main>
+    <h2>Search Individual Record</h2>
+    <input id="searchInput" placeholder="Enter Name or NIA ID" />
+    <button id="searchBtn">Search</button>
+    <div id="results"></div>
+  </main>
 
-  <div id="results"></div>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-app.js";
+    import { getFirestore, collection, getDocs, addDoc, serverTimestamp } 
+      from "https://www.gstatic.com/firebasejs/10.7.2/firebase-firestore.js";
 
-  <div class="payNote" id="payNote" style="display:none">
-    <p><strong>Global wallet balance is insufficient.</strong></p>
-    <p><a href="wallet.html">Top up the global wallet now</a></p>
-  </div>
-</main>
+    // ✅ Firebase config
+    const firebaseConfig = {
+      apiKey: "AIzaSyCDh_qL3jiCMHROK0_Soul2Wsv3t3y4wv0",
+      authDomain: "nbvs-ghana.firebaseapp.com",
+      projectId: "nbvs-ghana",
+      storageBucket: "nbvs-ghana.firebasestorage.app",
+      messagingSenderId: "702636577113",
+      appId: "1:702636577113:web:8369b43a2aa43aeb95fc48",
+      measurementId: "G-2FHFSQRMZX"
+    };
 
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-app.js";
-  import {
-    getFirestore, collection, getDocs, doc, getDoc, updateDoc, addDoc
-  } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-firestore.js";
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
 
-  const firebaseConfig = {
-    apiKey: "AIzaSyCDh_qL3jiCMHROK0_Soul2Wsv3t3y4wv0",
-    authDomain: "nbvs-ghana.firebaseapp.com",
-    projectId: "nbvs-ghana",
-    storageBucket: "nbvs-ghana.firebasestorage.app",
-    messagingSenderId: "702636577113",
-    appId: "1:702636577113:web:8369b43a2aa43aeb95fc48",
-    measurementId: "G-2FHFSQRMZX"
-  };
+    document.getElementById("searchBtn").addEventListener("click", async () => {
+      const queryValue = document.getElementById("searchInput").value.trim().toLowerCase();
+      const resultsDiv = document.getElementById("results");
+      resultsDiv.innerHTML = "Searching...";
 
-  const app = initializeApp(firebaseConfig);
-  const db = getFirestore(app);
-
-  const WALLET_DOC = doc(db, "wallet", "global");
-  const TX_COLL = collection(db, "walletTransactions");
-  const SEARCH_LOGS = collection(db, "searchLogs"); // still using searchLogs
-
-  const COST = 30; // ¢30 per search
-
-  const searchBtn = document.getElementById("searchBtn");
-  const resultsDiv = document.getElementById("results");
-  const payNote = document.getElementById("payNote");
-
-  async function getWalletBalance() {
-    const s = await getDoc(WALLET_DOC);
-    if (!s.exists()) return 0;
-    return s.data().balance || 0;
-  }
-
-  async function deductFromWallet(amount) {
-    // read-modify-write (not atomic but OK for beta)
-    const s = await getDoc(WALLET_DOC);
-    let current = s.exists() ? (s.data().balance || 0) : 0;
-    const newBal = current - amount;
-    if (newBal < 0) throw new Error("Insufficient balance");
-    await updateDoc(WALLET_DOC, { balance: newBal });
-    await addDoc(TX_COLL, { type: "deduction", amount: amount, timestamp: new Date(), note: "verify deduction" });
-    return newBal;
-  }
-
-  async function logSearch(query, found) {
-    await addDoc(SEARCH_LOGS, { query, found, timestamp: new Date() });
-  }
-
-  searchBtn.addEventListener("click", async () => {
-    const qRaw = document.getElementById("searchInput").value.trim();
-    const q = qRaw.toLowerCase();
-    resultsDiv.innerHTML = "";
-    payNote.style.display = "none";
-    if (!q) { resultsDiv.innerHTML = "<div class='record'>⚠️ Enter a name or NIA ID</div>"; return; }
-
-    try {
-      const bal = await getWalletBalance();
-      if (bal < COST) {
-        payNote.style.display = "block";
-        resultsDiv.innerHTML = `<div class="record">Global balance ¢${bal} — needs ¢${COST}. <a href="wallet.html">Top up</a></div>`;
-        return;
-      }
-
-      // deduct first (beta)
-      await deductFromWallet(COST);
-
-      // search records
-      const snap = await getDocs(collection(db, "records"));
-      let foundRec = null;
-      snap.forEach(d => {
-        const r = d.data();
-        if (r.name?.toLowerCase() === q || r.nia?.toLowerCase() === q) foundRec = r;
+      // ✅ Log search attempt
+      await addDoc(collection(db, "search_logs"), {
+        searchTerm: queryValue,
+        timestamp: serverTimestamp(),
+        platform: "web",
       });
 
-      await logSearch(q, !!foundRec);
+      const allDocs = await getDocs(collection(db, "records"));
+      let found = null;
 
-      if (!foundRec) {
-        resultsDiv.innerHTML = "<div class='record'>❌ No record found.</div>";
+      allDocs.forEach(doc => {
+        const r = doc.data();
+        if (
+          r.name?.toLowerCase() === queryValue || 
+          r.nia?.toLowerCase() === queryValue
+        ) {
+          found = r;
+        }
+      });
+
+      if (!found) {
+        resultsDiv.innerHTML = `<p style="color:red;font-weight:bold;">❌ No record found.</p>`;
         return;
       }
 
+      // ✅ Show result
       resultsDiv.innerHTML = `
         <div class="record">
-          <h3>${foundRec.name} — ${foundRec.status}</h3>
-          <p><b>NIA:</b> ${foundRec.nia}</p>
-          <p><b>DOB:</b> ${foundRec.dob || "N/A"}</p>
-          <p><b>Region:</b> ${foundRec.region || "N/A"}</p>
-          <p><b>Address:</b> ${foundRec.address || "N/A"}</p>
-          <p><b>Criminal:</b> ${foundRec.criminal || "N/A"}</p>
-          <p><b>Driving:</b> ${foundRec.driving || "N/A"}</p>
-          <p><b>Credit:</b> ${foundRec.credit || "N/A"}</p>
-        </div>
-      `;
-    } catch (err) {
-      console.error(err);
-      resultsDiv.innerHTML = `<div class="record">⚠️ Error: ${err.message || "failed"}</div>`;
-    }
-  });
-</script>
+          <h3>${found.name} — <b>${found.status}</b></h3>
+          <p><b>NIA:</b> ${found.nia}</p>
+          <p><b>DOB:</b> ${found.dob}</p>
+          <p><b>Region:</b> ${found.region}</p>
+          <p><b>Address:</b> ${found.address}</p>
+          <p><b>Credit Score:</b> ${found.credit}</p>
+          <p><b>Driving License:</b> ${found.driving}</p>
+          <p><b>Criminal Record:</b> ${found.criminal}</p>
+        </div>`;
+    });
+  </script>
 </body>
 </html>
+
