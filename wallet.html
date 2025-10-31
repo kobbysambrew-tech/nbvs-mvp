@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>NBVS Wallet — Top Up</title>
+<style>
+  body{font-family:"Segoe UI",Arial,sans-serif;background:#f8f9fa;margin:0}
+  header{background:linear-gradient(to right,#ce1126,#fcd116,#006b3f);color:#fff;padding:1.2rem;text-align:center}
+  main{max-width:700px;margin:2rem auto;background:#fff;padding:1.6rem;border-radius:10px;box-shadow:0 3px 12px rgba(0,0,0,0.08)}
+  .balance{font-size:2rem;color:#006b3f;font-weight:700;margin:0.5rem 0}
+  button{background:#006b3f;color:#fff;padding:10px 14px;border:none;border-radius:8px;cursor:pointer;margin:6px 0;width:100%}
+  .topup{background:#ffd54f;color:#000;padding:10px 14px;border-radius:8px;border:none;cursor:pointer;margin:6px 0;width:100%}
+  .small{font-size:0.95rem;color:#555}
+  .row{display:flex;gap:10px}
+  .col{flex:1}
+  .tx{background:#f5f5f5;padding:10px;border-radius:8px;margin-top:10px}
+  a{color:#006b3f;text-decoration:none}
+</style>
+</head>
+<body>
+<header><h1>NBVS Wallet — Top Up (Global)</h1></header>
+<main>
+  <p class="small">This is the global NBVS Wallet used for demo / beta. Each verify costs <strong>¢30</strong>.</p>
+  <div>
+    <div>Global Balance</div>
+    <div id="balance" class="balance">Loading…</div>
+  </div>
+
+  <h3>Quick Top-Up (Fake payment for beta)</h3>
+
+  <div class="row">
+    <div class="col"><button class="topup" data-amount="30">Top up ¢30</button></div>
+    <div class="col"><button class="topup" data-amount="50">Top up ¢50</button></div>
+  </div>
+  <div class="row">
+    <div class="col"><button class="topup" data-amount="100">Top up ¢100</button></div>
+    <div class="col"><button class="topup" data-amount="200">Top up ¢200</button></div>
+  </div>
+
+  <p class="small">When you tap a top-up button the system simulates a successful payment and credits the global wallet.</p>
+
+  <h3>Recent Transactions (last 10)</h3>
+  <div id="txList">Loading…</div>
+
+  <p style="margin-top:1rem"><a href="verify.html">← Back to Verify</a></p>
+</main>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-app.js";
+  import {
+    getFirestore, doc, getDoc, setDoc, updateDoc, collection, addDoc, getDocs, query, orderBy, limit
+  } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyCDh_qL3jiCMHROK0_Soul2Wsv3t3y4wv0",
+    authDomain: "nbvs-ghana.firebaseapp.com",
+    projectId: "nbvs-ghana",
+    storageBucket: "nbvs-ghana.firebasestorage.app",
+    messagingSenderId: "702636577113",
+    appId: "1:702636577113:web:8369b43a2aa43aeb95fc48",
+    measurementId: "G-2FHFSQRMZX"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  const BALANCE_DOC = doc(db, "wallet", "global"); // collection 'wallet' doc id 'global'
+  const TX_COLL = collection(db, "walletTransactions");
+
+  const balanceEl = document.getElementById("balance");
+  const txListEl = document.getElementById("txList");
+
+  // ensure wallet exists
+  async function ensureWallet() {
+    const snap = await getDoc(BALANCE_DOC);
+    if (!snap.exists()) {
+      await setDoc(BALANCE_DOC, { balance: 0 });
+      return 0;
+    }
+    return snap.data().balance || 0;
+  }
+
+  async function refreshBalance() {
+    const snap = await getDoc(BALANCE_DOC);
+    const bal = snap.exists() ? (snap.data().balance || 0) : 0;
+    balanceEl.textContent = `¢ ${bal}`;
+    return bal;
+  }
+
+  async function loadTx() {
+    txListEl.innerHTML = "Loading...";
+    const q = query(TX_COLL, orderBy("timestamp", "desc"), limit(10));
+    const snaps = await getDocs(q);
+    txListEl.innerHTML = "";
+    snaps.forEach(d => {
+      const t = d.data();
+      const el = document.createElement("div");
+      el.className = "tx";
+      el.innerHTML = `<div><strong>${t.type}</strong> — ¢${t.amount}</div>
+        <div class="small">${new Date(t.timestamp?.toMillis?.() || Date.now()).toLocaleString()}</div>
+        <div class="small">${t.note || ""}</div>`;
+      txListEl.appendChild(el);
+    });
+    if (!snaps.docs.length) txListEl.innerHTML = "<div class='small'>No transactions yet.</div>";
+  }
+
+  async function fakeTopUp(amount) {
+    // Simulate payment success
+    // Update global wallet balance (read-modify-write)
+    const snap = await getDoc(BALANCE_DOC);
+    let current = snap.exists() ? (snap.data().balance || 0) : 0;
+    const newBal = current + Number(amount);
+
+    await updateDoc(BALANCE_DOC, { balance: newBal });
+    await addDoc(TX_COLL, { type: "topup", amount: Number(amount), timestamp: new Date(), note: "Fake beta topup" });
+    await refreshBalance();
+    await loadTx();
+    alert(`✅ Top-up successful — new balance ¢ ${newBal}`);
+  }
+
+  // wire buttons
+  document.querySelectorAll(".topup").forEach(btn => {
+    btn.addEventListener("click", async () => {
+      const amt = Number(btn.dataset.amount);
+      if (!amt) return;
+      if (!confirm(`Simulate top-up of ¢${amt}? (Beta test)`)) return;
+      try {
+        await ensureWallet();
+        await fakeTopUp(amt);
+      } catch (e) {
+        console.error(e);
+        alert("Error topping up — check console.");
+      }
+    });
+  });
+
+  // init
+  (async () => {
+    try {
+      await ensureWallet();
+      await refreshBalance();
+      await loadTx();
+    } catch (e) {
+      console.error(e);
+      balanceEl.textContent = "Error";
+      txListEl.textContent = "Error loading transactions.";
+    }
+  })();
+
+</script>
+</body>
+</html>
