@@ -1,6 +1,46 @@
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-app.js";
 import { getFirestore, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-firestore.js";
+// ---- wallet admin functions ----
+// make sure these imports exist at top of your dashboard script:
+// import { doc, getDoc, updateDoc, setDoc, addDoc } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-firestore.js";
+
+const WALLET_DOC = doc(db, "wallet", "global");
+const TX_COLL = collection(db, "walletTransactions");
+
+async function refreshGlobalBalance() {
+  const s = await getDoc(WALLET_DOC);
+  const bal = s.exists() ? (s.data().balance || 0) : 0;
+  document.getElementById("globalBalance").textContent = `¢ ${bal}`;
+}
+
+document.getElementById("goWalletPage").addEventListener("click", () => {
+  window.open("wallet.html", "_blank");
+});
+
+document.getElementById("adjBtn").addEventListener("click", async () => {
+  const v = Number(document.getElementById("adjAmount").value || 0);
+  if (!v) { document.getElementById("walletMsg").textContent = "Enter non-zero amount"; return; }
+  // read-modify-write
+  const s = await getDoc(WALLET_DOC);
+  const current = s.exists() ? (s.data().balance || 0) : 0;
+  const newBal = current + v;
+  await updateDoc(WALLET_DOC, { balance: newBal });
+  await addDoc(TX_COLL, { type: "admin-adjust", amount: v, timestamp: new Date(), note: "admin adjustment" });
+  document.getElementById("walletMsg").textContent = `Done. New balance ¢ ${newBal}`;
+  await refreshGlobalBalance();
+});
+
+document.getElementById("resetWalletBtn").addEventListener("click", async () => {
+  if (!confirm("Reset global wallet to 0?")) return;
+  await updateDoc(WALLET_DOC, { balance: 0 });
+  await addDoc(TX_COLL, { type: "admin-reset", amount: 0, timestamp: new Date(), note: "reset to 0" });
+  document.getElementById("walletMsg").textContent = "Wallet reset to ¢0";
+  await refreshGlobalBalance();
+});
+
+// init balance on dashboard load
+refreshGlobalBalance();
 
 const firebaseConfig = {
   apiKey: "AIzaSyCDh_qL3jiCMHROK0_Soul2Wsv3t3y4wv0",
