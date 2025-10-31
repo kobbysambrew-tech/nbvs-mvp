@@ -1,389 +1,390 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>NBVS Ghana — Verify Record</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>NBVS Ghana — Verify</title>
   <style>
-    body { font-family: Arial; background: #f8f9fa; margin: 0; padding: 0; }
-    header { background: linear-gradient(to right, #ce1126, #fcd116, #006b3f); color: white; text-align: center; padding: 1.4em; }
-    main { max-width: 700px; margin: 2em auto; background: white; padding: 1.8em; border-radius: 10px; }
-    input { width: 100%; padding: 12px; margin-bottom: 12px; border-radius: 6px; border: 1px solid #ccc; }
-    button { background: #006b3f; color: white; padding: 10px 16px; border: none; border-radius: 6px; cursor: pointer; }
-    button:hover { background: #004f2e; }
-    .record { background: #f1f1f1; padding: 12px; margin-top: 15px; border-left: 4px solid #006b3f; }
+    body{font-family:"Segoe UI",Arial,sans-serif;background:#f8f9fa;margin:0}
+    header{background:linear-gradient(to right,#ce1126,#fcd116,#006b3f);color:#fff;padding:1.2rem;text-align:center}
+    main{max-width:820px;margin:1.6rem auto;background:#fff;padding:1.6rem;border-radius:10px;box-shadow:0 3px 12px rgba(0,0,0,0.06)}
+    input{width:100%;padding:12px;border-radius:8px;border:1px solid #ddd;margin-bottom:10px}
+    button{background:#006b3f;color:#fff;padding:10px 14px;border:none;border-radius:8px;cursor:pointer}
+    .muted{color:#666;font-size:0.95rem}
+    .record{background:#f7f7f7;padding:12px;border-left:4px solid #006b3f;border-radius:8px;margin-top:12px}
+    .blur { filter: blur(6px); -webkit-filter: blur(6px); pointer-events: none; opacity:0.9 }
+    .pill {display:inline-block;padding:6px 10px;border-radius:8px;background:#006b3f;color:#fff;font-weight:600}
+    .btn-yellow { background:#fcd116; color:#111 }
+    .btn-red { background:#ce1126 }
+    .small { font-size:0.9rem; color:#444 }
+    .panel { background:#fff;padding:12px;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,0.03); margin-top:12px }
+    .center { text-align:center }
+    .row { display:flex; gap:10px }
+    .col { flex:1 }
   </style>
 </head>
 <body>
-  <header><h1>NBVS Ghana — Verify Background Record</h1></header>
+  <header><h1>NBVS Ghana — Verify</h1></header>
 
   <main>
-    <h2>Search Individual Record</h2>
-    <p style="background:#006b3f; color:white; padding:8px; border-radius:6px;">
-  ✅ Free Searches Remaining: <b id="freeCount">3</b>
-</p>
+    <p class="muted">Each verification costs <strong>¢30</strong> if you don't have credits. You have <span id="userPlan">loading…</span>.</p>
 
-    <input id="searchInput" placeholder="Enter Name or NIA ID" />
-    <button id="searchBtn">Search</button>
-    <div id="results"></div>
+    <div class="panel">
+      <label class="small">Search by full name or NIA ID</label>
+      <input id="searchInput" placeholder="e.g. Kofi Mensah or GHA-2039485" />
+      <div class="row" style="margin-bottom:8px">
+        <div class="col"><button id="searchBtn">Search</button></div>
+        <div class="col"><button id="walletPageBtn" class="btn-yellow">Open Wallet</button></div>
+      </div>
+
+      <div id="accessRow" style="margin-top:8px" class="muted">
+        <span class="pill" id="freeCountDisplay">Free: —</span>
+        <span style="margin-left:8px" id="planDisplay">Plan: —</span>
+      </div>
+    </div>
+
+    <div id="resultsArea"></div>
+
+    <!-- Billing / Plans -->
+    <div class="panel" id="plansPanel">
+      <h3>Upgrade / Buy</h3>
+      <p class="small">Choose a plan (payments simulated for beta). Real payment integration (Stripe/MoMo) will be added later.</p>
+
+      <button id="buyBasicBtn" style="width:100%; margin-bottom:8px">Buy BASIC — 10 searches — $3.99</button>
+      <button id="buyProBtn" style="width:100%; margin-bottom:8px" class="btn-red">Buy PRO — Unlimited 30 days — $14.99</button>
+      <button id="useWalletBtn" style="width:100%;" class="btn-yellow">Use Global Wallet for 1 search — ¢30</button>
+    </div>
+
+    <div class="panel center" style="margin-top:12px">
+      <a href="index.html">← Home</a> · <a href="wallet.html">Open Wallet Page</a>
+      <p class="muted" style="margin-top:6px">Searches are logged and auditable.</p>
+    </div>
   </main>
-<!-- ✅ Subscription / Usage Zone -->
-<section id="billingSection" style="margin-top:20px; background:#fff; padding:15px; border-radius:10px; box-shadow:0 2px 6px rgba(0,0,0,0.15);">
-
-  <h2>NBVS Access</h2>
-
-  <p id="freeSearchesDisplay" style="font-size:1.1em; font-weight:600;">
-    Free Searches: Loading...
-  </p>
-
-  <p id="planDisplay" style="font-size:1.1em;">
-    Current Plan: Loading...
-  </p>
-
-  <hr>
-
-  <h3>Upgrade Plans</h3>
-
-  <!-- ✅ BASIC PLAN -->
-  <button id="buyBasicBtn" style="
-    background:#006b3f; 
-    color:white;
-    border:none;
-    padding:10px 16px;
-    border-radius:6px;
-    cursor:pointer;
-    width:100%;
-    margin-bottom:8px;">
-    Buy BASIC Access (10 searches) — $3.99
-  </button>
-
-  <!-- ✅ PRO PLAN -->
-  <button id="buyProBtn" style="
-    background:#ce1126; 
-    color:white;
-    border:none;
-    padding:10px 16px;
-    border-radius:6px;
-    cursor:pointer;
-    width:100%;
-    margin-bottom:8px;">
-    Buy PRO Unlimited (30 days) — $14.99
-  </button>
-
-  <!-- ✅ NBVS WALLET -->
-  <button id="walletBtn" style="
-    background:#fcd116; 
-    color:#222;
-    border:none;
-    padding:10px 16px;
-    border-radius:6px;
-    cursor:pointer;
-    width:100%;
-    font-weight:bold;">
-    NBVS Wallet
-  </button>
-</section>
 
   <script type="module">
+    // ---------------------------
+    // NBVS Verify — Unified Final
+    // ---------------------------
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-app.js";
-import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-firestore.js";
+    import {
+      getFirestore, collection, getDocs, addDoc, doc, getDoc, setDoc, updateDoc, serverTimestamp, increment
+    } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-firestore.js";
 
-// ✅ Firebase config
-const firebaseConfig = {
-  apiKey: "AIzaSyCDh_qL3jiCMHROK0_Soul2Wsv3t3y4wv0",
-  authDomain: "nbvs-ghana.firebaseapp.com",
-  projectId: "nbvs-ghana",
-  storageBucket: "nbvs-ghana.firebasestorage.app",
-  messagingSenderId: "702636577113",
-  appId: "1:702636577113:web:8369b43a2aa43aeb95fc48",
-  measurementId: "G-2FHFSQRMZX"
-};
+    // Firebase config (your project)
+    const firebaseConfig = {
+      apiKey: "AIzaSyCDh_qL3jiCMHROK0_Soul2Wsv3t3y4wv0",
+      authDomain: "nbvs-ghana.firebaseapp.com",
+      projectId: "nbvs-ghana",
+      storageBucket: "nbvs-ghana.firebasestorage.app",
+      messagingSenderId: "702636577113",
+      appId: "1:702636577113:web:8369b43a2aa43aeb95fc48",
+      measurementId: "G-2FHFSQRMZX"
+    };
 
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
 
-// ✅ Current user (anonymous for now)
-const userId = "publicUser";
+    // Constants
+    const PER_SEARCH_COST = 30; // ¢30 per single pay-per-search
+    const WALLET_DOC = doc(db, "stats", "global");          // global wallet + totals
+    const TX_COLL = collection(db, "walletTransactions");  // transactions
+    const SEARCH_LOGS = collection(db, "search_logs");     // logs
+    const RECORDS_COLL = collection(db, "records");        // records
 
-// ✅ Default data for first-time visitors
-async function ensureUserRecord() {
-  const userRef = doc(db, "users", userId);
-  const snap = await getDoc(userRef);
+    // --- userId (anonymous but stored locally)
+    let userId = localStorage.getItem("nbvs_userId");
+    if (!userId) {
+      userId = "u_" + Math.random().toString(36).slice(2,10);
+      localStorage.setItem("nbvs_userId", userId);
+    }
+    const USER_DOC = doc(db, "users", userId);
 
-  if (!snap.exists()) {
-    await setDoc(userRef, {
-      freeSearches: 3,
-      plan: "free",            // free | basic | pro
-      planExpires: null,
-      monthlyRemaining: 0      // only for basic plan
-    });
-  }
-}
+    // DOM
+    const searchInput = document.getElementById("searchInput");
+    const searchBtn = document.getElementById("searchBtn");
+    const resultsArea = document.getElementById("resultsArea");
+    const freeCountDisplay = document.getElementById("freeCountDisplay");
+    const planDisplay = document.getElementById("planDisplay");
+    const userPlanSpan = document.getElementById("userPlan");
+    const buyBasicBtn = document.getElementById("buyBasicBtn");
+    const buyProBtn = document.getElementById("buyProBtn");
+    const useWalletBtn = document.getElementById("useWalletBtn");
+    const walletPageBtn = document.getElementById("walletPageBtn");
 
-await ensureUserRecord();
-
-// ✅ Fetch user subscription data
-async function getUser() {
-  const snap = await getDoc(doc(db, "users", userId));
-  return snap.data();
-}
-
-// ✅ Update user info
-async function updateUser(data) {
-  await setDoc(doc(db, "users", userId), data, { merge: true });
-}
-
-  // ✅ Track free searches in localStorage
-  if (!localStorage.getItem("freeSearches")) {
-    localStorage.setItem("freeSearches", 3); 
-  }
-
-  function updateFreeSearchUI() {
-    let count = localStorage.getItem("freeSearches");
-    document.getElementById("freeCount").innerText = count;
-  }
-
-  updateFreeSearchUI();
-
-  async function searchRecord() {
-    let free = parseInt(localStorage.getItem("freeSearches"));
-
-    // ✅ If no free searches left → show paywall
-    if (free <= 0) {
-      document.getElementById("results").innerHTML = `
-        <div style="padding:20px; text-align:center;">
-          <h2>⚠️ Search Limit Reached</h2>
-          <p>You have used your 3 free searches.</p>
-          <button onclick="buyCredits()" 
-            style="padding:10px 18px; background:#006b3f; color:#fff; border:none; border-radius:6px;">
-            Buy More Searches
-          </button>
-        </div>
-      `;
-      return;
+    // Ensure stats/global exists (create if missing)
+    async function ensureGlobalStats() {
+      const s = await getDoc(WALLET_DOC);
+      if (!s.exists()) {
+        await setDoc(WALLET_DOC, { walletBalance: 0, totalSearches: 0, totalLogins: 0 });
+      }
     }
 
-    // ✅ Normal search
-    const queryValue = document.getElementById("searchInput").value.trim().toLowerCase();
-    const resultsDiv = document.getElementById("results");
-    resultsDiv.innerHTML = "Searching...";
+    // Ensure user doc exists
+    async function ensureUser() {
+      const s = await getDoc(USER_DOC);
+      if (!s.exists()) {
+        await setDoc(USER_DOC, {
+          freeSearches: 3,
+          plan: "FREE",      // FREE | BASIC | PRO
+          planExpiry: null,  // timestamp in ms
+          basicRemaining: 0  // for BASIC the remaining searches
+        });
+      }
+    }
 
-    try {
-      const allDocs = await getDocs(collection(db, "records"));
-      let matches = [];
-      allDocs.forEach(doc => {
-        const r = doc.data();
-        if (r.name?.toLowerCase() === queryValue || r.nia?.toLowerCase() === queryValue) {
-          matches.push(r);
+    // Load user state
+    async function loadUserState() {
+      await ensureUser();
+      const s = await getDoc(USER_DOC);
+      const u = s.data();
+      // If BASIC exists and basicRemaining empty, set to 0
+      if (!("basicRemaining" in u)) {
+        await updateDoc(USER_DOC, { basicRemaining: 0 });
+        u.basicRemaining = 0;
+      }
+      // If PRO expired, revert
+      if (u.plan === "PRO" && u.planExpiry && Date.now() > u.planExpiry) {
+        await updateDoc(USER_DOC, { plan: "FREE", planExpiry: null, basicRemaining: 0 });
+        u.plan = "FREE"; u.planExpiry = null; u.basicRemaining = 0;
+      }
+      updateUIFromUser(u);
+      return u;
+    }
+
+    // Update UI from user doc
+    function updateUIFromUser(u) {
+      const freeLeft = u.freeSearches ?? 0;
+      freeCountDisplay.textContent = `Free: ${freeLeft}`;
+      planDisplay.textContent = `Plan: ${u.plan}${u.plan === "BASIC" ? " ("+ (u.basicRemaining||0)+ " left)" : u.plan === "PRO" ? " (unlimited)" : ""}`;
+      userPlanSpan.textContent = `${u.plan} — Free:${freeLeft}`;
+    }
+
+    // Log search globally + increment totalSearches
+    async function logSearchGlobal(term, found, paid=false, userAction="search") {
+      try {
+        await addDoc(SEARCH_LOGS, { userId, searchTerm: term, found, paid, userAction, timestamp: serverTimestamp() });
+        // increment the global counter
+        await updateDoc(WALLET_DOC, { totalSearches: increment(1) });
+      } catch (e) {
+        console.error("logSearchGlobal error:", e);
+      }
+    }
+
+    // Attempt to charge global wallet PER SEARCH
+    async function chargeGlobalWallet(amount) {
+      const snap = await getDoc(WALLET_DOC);
+      let bal = snap.exists() ? (snap.data().walletBalance || 0) : 0;
+      if (bal < amount) return false;
+      const newBal = bal - amount;
+      await updateDoc(WALLET_DOC, { walletBalance: newBal });
+      await addDoc(TX_COLL, { type: "deduction", amount, note: "pay-per-search", timestamp: serverTimestamp(), userId });
+      return true;
+    }
+
+    // Show blurred result (option 3). We'll blur sensitive fields but still show name+status.
+    function renderBlurredResult(r) {
+      const html = `
+        <div class="record">
+          <h3>${r.name} — <strong>${r.status}</strong></h3>
+          <p><b>NIA:</b> <span class="blur">${r.nia || "N/A"}</span></p>
+          <p><b>DOB:</b> <span class="blur">${r.dob || "N/A"}</span></p>
+          <p><b>Region:</b> <span class="blur">${r.region || "N/A"}</span></p>
+          <p><b>Address:</b> <span class="blur">${r.address || "N/A"}</span></p>
+          <p><b>Credit Score:</b> <span class="blur">${r.credit || "N/A"}</span></p>
+          <p><b>Driving:</b> <span class="blur">${r.driving || "N/A"}</span></p>
+          <p><b>Criminal:</b> <span class="blur">${r.criminal || "N/A"}</span></p>
+
+          <div style="margin-top:10px" class="center">
+            <button id="payPerSearchBtn" style="margin-right:8px">Pay ¢${PER_SEARCH_COST} (Use Global Wallet)</button>
+            <button id="upgradeBtn">Upgrade Plan</button>
+          </div>
+        </div>
+      `;
+      resultsArea.innerHTML = html;
+
+      // attach handler to pay button
+      document.getElementById("payPerSearchBtn").addEventListener("click", async () => {
+        resultsArea.querySelector("#payPerSearchBtn").disabled = true;
+        const ok = await chargeGlobalWallet(PER_SEARCH_COST);
+        if (!ok) {
+          alert("Global wallet has insufficient balance. Top up on the Wallet page.");
+          resultsArea.querySelector("#payPerSearchBtn").disabled = false;
+          return;
+        }
+        // show full result after payment (re-render)
+        renderFullResult(lastFoundRecord);
+        await logSearchGlobal(lastSearchTerm, true, true, "pay-per-search");
+      });
+
+      document.getElementById("upgradeBtn").addEventListener("click", () => {
+        window.scrollTo(0, document.body.scrollHeight);
+        document.getElementById("buyBasicBtn").focus();
+      });
+    }
+
+    // Render full result (clear fields visible)
+    function renderFullResult(r) {
+      resultsArea.innerHTML = `
+        <div class="record">
+          <h3>${r.name} — <strong>${r.status}</strong></h3>
+          <p><b>NIA:</b> ${r.nia || "N/A"}</p>
+          <p><b>DOB:</b> ${r.dob || "N/A"}</p>
+          <p><b>Region:</b> ${r.region || "N/A"}</p>
+          <p><b>Address:</b> ${r.address || "N/A"}</p>
+          <p><b>Credit Score:</b> ${r.credit || "N/A"}</p>
+          <p><b>Driving:</b> ${r.driving || "N/A"}</p>
+          <p><b>Criminal:</b> ${r.criminal || "N/A"}</p>
+        </div>
+      `;
+    }
+
+    // Keep last result for pay flow
+    let lastFoundRecord = null;
+    let lastSearchTerm = null;
+
+    // Main search handler
+    async function handleSearch() {
+      const qRaw = (searchInput.value || "").trim();
+      const q = qRaw.toLowerCase();
+      if (!q) { resultsArea.innerHTML = "<div class='record'>Enter a name or NIA</div>"; return; }
+
+      // ensure global stats & user exist
+      await ensureGlobalStats();
+      const userSnap = await loadUserState(); // updates UI
+
+      // fetch all records (small DB OK for MVP)
+      resultsArea.innerHTML = "<div class='record'>Searching…</div>";
+      const docs = await getDocs(RECORDS_COLL);
+      let found = null;
+      docs.forEach(d => {
+        const r = d.data();
+        if ((r.name && r.name.toLowerCase() === q) || (r.nia && r.nia.toLowerCase() === q)) {
+          found = r;
         }
       });
 
-      // ✅ Deduct a free search ONLY if query is valid
-      free -= 1;
-      localStorage.setItem("freeSearches", free);
-      updateFreeSearchUI();
+      lastFoundRecord = found;
+      lastSearchTerm = qRaw;
 
-      if (matches.length === 0) {
-        resultsDiv.innerHTML = `<p style="color:#c00;">❌ Record not found.</p>`;
+      // decide access:
+      // PRO -> show full
+      if (userSnap.plan === "PRO") {
+        if (found) {
+          renderFullResult(found);
+          await logSearchGlobal(qRaw, true, false, "search-pro");
+        } else {
+          resultsArea.innerHTML = "<div class='record'>❌ No record found.</div>";
+          await logSearchGlobal(qRaw, false, false, "search-pro");
+        }
         return;
       }
 
-      // ✅ Show results
-      resultsDiv.innerHTML = "";
-      matches.forEach(r => {
-        resultsDiv.innerHTML += `
-          <div class="record">
-            <h3>${r.name} — <span class="${r.status}">${r.status}</span></h3>
-            <p><b>NIA ID:</b> ${r.nia}</p>
-            <p><b>Date of Birth:</b> ${r.dob}</p>
-            <p><b>Region:</b> ${r.region}</p>
-            <p><b>Criminal:</b> ${r.criminal}</p>
-            <p><b>Driving:</b> ${r.driving}</p>
-            <p><b>Address:</b> ${r.address}</p>
-            <p><b>Credit:</b> ${r.credit}</p>
-          </div>
-        `;
+      // BASIC -> use basicRemaining first
+      if (userSnap.plan === "BASIC") {
+        if ((userSnap.basicRemaining || 0) > 0) {
+          // decrement basicRemaining
+          await updateDoc(USER_DOC, { basicRemaining: (userSnap.basicRemaining - 1) });
+          await loadUserState(); // refresh
+          if (found) {
+            renderFullResult(found);
+            await logSearchGlobal(qRaw, true, false, "search-basic");
+          } else {
+            resultsArea.innerHTML = "<div class='record'>❌ No record found.</div>";
+            await logSearchGlobal(qRaw, false, false, "search-basic");
+          }
+          return;
+        }
+        // if no basicRemaining, fall through to free / pay
+      }
+
+      // FREE/other: use freeSearches
+      if ((userSnap.freeSearches || 0) > 0) {
+        await updateDoc(USER_DOC, { freeSearches: (userSnap.freeSearches - 1) });
+        await loadUserState();
+        if (found) {
+          renderFullResult(found);
+          await logSearchGlobal(qRaw, true, false, "search-free");
+        } else {
+          resultsArea.innerHTML = "<div class='record'>❌ No record found.</div>";
+          await logSearchGlobal(qRaw, false, false, "search-free");
+        }
+        return;
+      }
+
+      // No credits — show blurred result (option 3)
+      if (found) {
+        renderBlurredResult(found);
+        await logSearchGlobal(qRaw, true, false, "search-blurred");
+      } else {
+        resultsArea.innerHTML = "<div class='record'>❌ No record found.</div>";
+        await logSearchGlobal(qRaw, false, false, "search-blurred");
+      }
+    }
+
+    // ---------- Plan buttons (simulated payments for beta) ----------
+    buyBasicBtn.addEventListener("click", async () => {
+      // simulate payment success
+      if (!confirm("Simulate payment $3.99 for BASIC (10 searches)?")) return;
+      await ensureGlobalStats();
+      // update user doc: BASIC with 10 remaining
+      await updateDoc(USER_DOC, { plan: "BASIC", basicRemaining: 10, planExpiry: null });
+      // add to wallet (store revenue) -- add 3.99 as revenue in walletBalance (optional)
+      await updateDoc(WALLET_DOC, { walletBalance: increment(3.99) }).catch(async () => {
+        // if WALLET_DOC missing, set it
+        await setDoc(WALLET_DOC, { walletBalance: 3.99, totalSearches: 0, totalLogins: 0 }, { merge: true });
       });
+      await addDoc(TX_COLL, { type: "topup", amount: 3.99, note: "BASIC purchase (beta)", timestamp: serverTimestamp(), userId });
+      await loadUserState();
+      alert("BASIC activated (10 searches).");
+    });
 
-    } catch (error) {
-      resultsDiv.innerHTML = "<p>⚠️ Error fetching records.</p>";
-      console.error(error);
-    }
-  }
-/*  
- --------------------------------------------
- ✅ NBVS Ghana – Monetization & Access Control
----------------------------------------------
- Features enabled:
- ✅ 3 free searches
- ✅ BASIC plan – 10 searches ($3.99)
- ✅ PRO plan – Unlimited 30 days ($14.99)
- ✅ NBVS Wallet (global balance)
- ✅ Access lock/unlock
- ✅ Auto UI update
----------------------------------------------
-*/
+    buyProBtn.addEventListener("click", async () => {
+      if (!confirm("Simulate payment $14.99 for PRO (30 days unlimited)?")) return;
+      await ensureGlobalStats();
+      const expiry = Date.now() + 30*24*60*60*1000;
+      await updateDoc(USER_DOC, { plan: "PRO", planExpiry: expiry, basicRemaining: 9999, freeSearches: 9999 });
+      await updateDoc(WALLET_DOC, { walletBalance: increment(14.99) }).catch(async () => {
+        await setDoc(WALLET_DOC, { walletBalance: 14.99, totalSearches: 0, totalLogins: 0 }, { merge: true });
+      });
+      await addDoc(TX_COLL, { type: "topup", amount: 14.99, note: "PRO purchase (beta)", timestamp: serverTimestamp(), userId});
+      await loadUserState();
+      alert("PRO activated (30 days).");
+    });
 
-// ✅ Firebase imports already present (do NOT duplicate them)
-// We assume:
-// const app = initializeApp(firebaseConfig);
-// const db  = getFirestore(app);
+    // Use global wallet for one search (pay-per-search)
+    useWalletBtn.addEventListener("click", async () => {
+      if (!confirm(`Use global wallet to buy 1 search for ¢${PER_SEARCH_COST}?`)) return;
+      await ensureGlobalStats();
+      const ok = await chargeGlobalWallet(PER_SEARCH_COST);
+      if (!ok) { alert("Global wallet insufficient. Top up in Wallet page."); return; }
 
-// ✅ Reference to the stats document
-import { doc, getDoc, setDoc, updateDoc } 
-from "https://www.gstatic.com/firebasejs/10.7.2/firebase-firestore.js";
+      // give the user one freeSearch instantly and consume it when they search next time
+      const s = await getDoc(USER_DOC);
+      const u = s.data();
+      const newFree = (u.freeSearches || 0) + 1;
+      await updateDoc(USER_DOC, { freeSearches: newFree });
+      await addDoc(TX_COLL, { type: "deduction", amount: PER_SEARCH_COST, note: "pay-per-search-buy", timestamp: serverTimestamp(), userId });
+      await loadUserState();
+      alert("Bought 1 search from global wallet — it is added to your free searches.");
+    });
 
-const statsDoc = doc(db, "stats", "global");
+    // Wallet page button
+    walletPageBtn.addEventListener("click", () => {
+      window.open("wallet.html", "_blank");
+    });
 
-// ✅ DOM elements
-const freeSearchesDisplay = document.getElementById("freeSearchesDisplay");
-const planDisplay = document.getElementById("planDisplay");
-const buyBasicBtn = document.getElementById("buyBasicBtn");
-const buyProBtn = document.getElementById("buyProBtn");
-const walletBtn = document.getElementById("walletBtn");
+    // Search click
+    searchBtn.addEventListener("click", handleSearch);
+    searchInput.addEventListener("keypress", (e) => { if (e.key === "Enter") handleSearch(); });
 
+    // Init
+    (async () => {
+      await ensureGlobalStats();
+      await ensureUser();
+      await loadUserState();
+    })();
 
-// ✅ Local storage tracking
-function getUserData() {
-  return {
-    freeSearches: parseInt(localStorage.getItem("freeSearches") || "3"),
-    plan: localStorage.getItem("plan") || "FREE",
-    planExpiry: localStorage.getItem("planExpiry") || null
-  };
-}
-
-function saveUserData(data) {
-  localStorage.setItem("freeSearches", data.freeSearches);
-  localStorage.setItem("plan", data.plan);
-  if (data.planExpiry) localStorage.setItem("planExpiry", data.planExpiry);
-}
-
-
-// ✅ Check if PRO plan expired
-function checkProExpiry() {
-  const now = Date.now();
-  const expiry = parseInt(localStorage.getItem("planExpiry") || "0");
-  if (expiry && now > expiry) {
-    localStorage.setItem("plan", "FREE");
-    alert("⚠️ Your PRO plan expired.");
-  }
-}
-
-
-// ✅ Update UI display
-function updateUI() {
-  checkProExpiry();
-  const data = getUserData();
-
-  freeSearchesDisplay.textContent = `Free Searches: ${data.freeSearches}`;
-  planDisplay.textContent = `Current Plan: ${data.plan}`;
-}
-
-
-// ✅ Deduct search on use
-async function deductSearch() {
-  checkProExpiry();
-  const data = getUserData();
-
-  // ✅ PRO plan – unlimited
-  if (data.plan === "PRO") {
-    return true;
-  }
-
-  // ✅ BASIC plan – has limited searches
-  if (data.plan === "BASIC") {
-    if (data.freeSearches > 0) {
-      data.freeSearches -= 1;
-      saveUserData(data);
-      updateUI();
-      return true;
-    } else {
-      alert("❌ BASIC plan search limit reached.");
-      return false;
-    }
-  }
-
-  // ✅ FREE plan – 3 free searches
-  if (data.plan === "FREE") {
-    if (data.freeSearches > 0) {
-      data.freeSearches -= 1;
-      saveUserData(data);
-      updateUI();
-      return true;
-    } else {
-      alert("❌ Free searches used up. Please upgrade your plan.");
-      return false;
-    }
-  }
-}
-
-
-
-// ✅ MOCK PAYMENT HANDLERS (Replace with Stripe when ready)
-async function addToWallet(amount) {
-  const snap = await getDoc(statsDoc);
-  if (!snap.exists()) {
-    await setDoc(statsDoc, { walletBalance: amount });
-  } else {
-    const newBalance = (snap.data().walletBalance || 0) + amount;
-    await updateDoc(statsDoc, { walletBalance: newBalance });
-  }
-}
-
-
-// ✅ BASIC – $3.99 – 10 searches
-buyBasicBtn.addEventListener("click", async () => {
-  alert("✅ Payment simulated — $3.99 received.");
-
-  await addToWallet(3.99);
-
-  saveUserData({
-    freeSearches: 10,
-    plan: "BASIC",
-    planExpiry: null
-  });
-
-  updateUI();
-  alert("✅ BASIC plan activated with 10 searches.");
-});
-
-
-// ✅ PRO – $14.99 – Unlimited 30 days
-buyProBtn.addEventListener("click", async () => {
-  alert("✅ Payment simulated — $14.99 received.");
-
-  await addToWallet(14.99);
-
-  const expiry = Date.now() + 30 * 24 * 60 * 60 * 1000; // 30 days
-
-  saveUserData({
-    freeSearches: 9999,
-    plan: "PRO",
-    planExpiry: expiry
-  });
-
-  updateUI();
-  alert("✅ PRO Unlimited (30 days) Activated.");
-});
-
-
-// ✅ NBVS Wallet Viewer
-walletBtn.addEventListener("click", async () => {
-  const snap = await getDoc(statsDoc);
-  let bal = snap.exists() ? snap.data().walletBalance : 0;
-
-  alert(`💰 NBVS Global Wallet Balance: $${bal.toFixed(2)}`);
-});
-
-
-// ✅ INIT
-updateUI();
-
-  function buyCredits() {
-    alert("Payment system coming soon! (Stripe + NBVS Wallet)");
-  }
-</script>
-
+  </script>
 </body>
 </html>
 
