@@ -28,7 +28,55 @@
     <div id="results"></div>
   </main>
 
-  <script>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-app.js";
+import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-firestore.js";
+
+// ✅ Firebase config
+const firebaseConfig = {
+  apiKey: "AIzaSyCDh_qL3jiCMHROK0_Soul2Wsv3t3y4wv0",
+  authDomain: "nbvs-ghana.firebaseapp.com",
+  projectId: "nbvs-ghana",
+  storageBucket: "nbvs-ghana.firebasestorage.app",
+  messagingSenderId: "702636577113",
+  appId: "1:702636577113:web:8369b43a2aa43aeb95fc48",
+  measurementId: "G-2FHFSQRMZX"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+// ✅ Current user (anonymous for now)
+const userId = "publicUser";
+
+// ✅ Default data for first-time visitors
+async function ensureUserRecord() {
+  const userRef = doc(db, "users", userId);
+  const snap = await getDoc(userRef);
+
+  if (!snap.exists()) {
+    await setDoc(userRef, {
+      freeSearches: 3,
+      plan: "free",            // free | basic | pro
+      planExpires: null,
+      monthlyRemaining: 0      // only for basic plan
+    });
+  }
+}
+
+await ensureUserRecord();
+
+// ✅ Fetch user subscription data
+async function getUser() {
+  const snap = await getDoc(doc(db, "users", userId));
+  return snap.data();
+}
+
+// ✅ Update user info
+async function updateUser(data) {
+  await setDoc(doc(db, "users", userId), data, { merge: true });
+}
+
   // ✅ Track free searches in localStorage
   if (!localStorage.getItem("freeSearches")) {
     localStorage.setItem("freeSearches", 3); 
