@@ -26,6 +26,7 @@
 <header><h1>NBVS Ghana — Verify</h1></header>
 
 <main>
+
   <p class="muted">Each verification costs <strong>¢30</strong> if you don't have credits. You have <span id="userPlan">loading…</span>.</p>
 
   <div class="panel">
@@ -61,158 +62,10 @@
 </main>
 
 <script type="module">
+
+/* ✅ FIREBASE IMPORTS */
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-app.js";
 import { 
   getFirestore, doc, getDoc, setDoc, updateDoc,
   collection, getDocs 
-} from "https://www.gstatic.com/firebasejs/10.7.2/firebase-firestore.js";
-
-// ✅ Firebase
-const firebaseConfig = {
-  apiKey: "AIzaSyCDh_qL3jiCMHROK0_Soul2Wsv3t3y4wv0",
-  authDomain: "nbvs-ghana.firebaseapp.com",
-  projectId: "nbvs-ghana",
-  storageBucket: "nbvs-ghana.firebasestorage.app",
-  messagingSenderId: "702636577113",
-  appId: "1:702636577113:web:8369b43a2aa43aeb95fc48",
-};
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-
-const userId = "publicUser";
-const userRef = doc(db, "users", userId);
-
-// ✅ Ensure user exists
-async function initUser(){
-  const snap = await getDoc(userRef);
-  if(!snap.exists()){
-    await setDoc(userRef,{
-      freeSearches:3,
-      plan:"free",
-      planExpires:null,
-      monthlyRemaining:0
-    });
-  }
-}
-await initUser();
-
-const freeCountEl = document.getElementById("freeCountDisplay");
-const planDisplay = document.getElementById("planDisplay");
-const resultsDiv = document.getElementById("resultsArea");
-
-async function loadUser(){
-  return (await getDoc(userRef)).data();
-}
-
-function uiUpdate(data){
-  freeCountEl.textContent = "Free: " + data.freeSearches;
-  planDisplay.textContent = "Plan: " + data.plan;
-}
-
-uiUpdate(await loadUser());
-
-// ✅ Deduct search
-async function deductSearch(){
-  const user = await loadUser();
-
-  if(user.plan === "pro") return true;
-
-  if(user.plan === "basic"){
-    if(user.monthlyRemaining > 0){
-      await updateDoc(userRef,{monthlyRemaining:user.monthlyRemaining - 1});
-      return true;
-    }
-    alert("BASIC plan out of searches.");
-    return false;
-  }
-
-  if(user.freeSearches > 0){
-    await updateDoc(userRef,{freeSearches:user.freeSearches - 1});
-    return true;
-  }
-
-  alert("No free searches left.");
-  return false;
-}
-
-// ✅ SEARCH button
-document.getElementById("searchBtn").addEventListener("click", async () => {
-  const text = document.getElementById("searchInput").value.trim().toLowerCase();
-  resultsDiv.innerHTML = "Searching...";
-
-  if(!(await deductSearch())){
-    resultsDiv.innerHTML = "❌ Please upgrade to continue.";
-    return;
-  }
-
-  uiUpdate(await loadUser());
-
-  const docs = await getDocs(collection(db,"records"));
-  let matches = [];
-
-  docs.forEach(d => {
-    let r = d.data();
-    if(r.name?.toLowerCase() === text || r.nia?.toLowerCase() === text){
-      matches.push(r);
-    }
-  });
-
-  // ✅ LOG SEARCH
-  await setDoc(doc(collection(db,"search_logs")),{
-    term:text,
-    timestamp:new Date(),
-    platform:"web"
-  });
-
-  if(matches.length === 0){
-    resultsDiv.innerHTML = "❌ No record found.";
-    return;
-  }
-
-  resultsDiv.innerHTML = "";
-  matches.forEach(r=>{
-    resultsDiv.innerHTML += `
-      <div class="record">
-        <h3>${r.name} — <span>${r.status}</span></h3>
-        <p><b>NIA:</b> ${r.nia}</p>
-        <p><b>DOB:</b> ${r.dob}</p>
-        <p><b>Region:</b> ${r.region}</p>
-        <p><b>Address:</b> ${r.address}</p>
-        <p><b>Criminal:</b> ${r.criminal}</p>
-        <p><b>Driving:</b> ${r.driving}</p>
-        <p><b>Credit:</b> ${r.credit}</p>
-      </div>
-    `;
-  });
-});
-
-// ✅ BUTTONS
-document.getElementById("walletPageBtn").addEventListener("click",()=>{
-  window.location.href = "wallet.html";
-});
-
-document.getElementById("buyBasicBtn").addEventListener("click", async ()=>{
-  await updateDoc(userRef,{
-    plan:"basic",
-    monthlyRemaining:10
-  });
-  alert("✅ BASIC plan activated.");
-  uiUpdate(await loadUser());
-});
-
-document.getElementById("buyProBtn").addEventListener("click", async ()=>{
-  await updateDoc(userRef,{
-    plan:"pro",
-    planExpires: Date.now() + 30*24*60*60*1000
-  });
-  alert("✅ PRO activated (unlimited 30 days)");
-  uiUpdate(await loadUser());
-});
-
-document.getElementById("useWalletBtn").addEventListener("click",()=>{
-  window.location.href = "wallet.html";
-});
-</script>
-</body>
-</html>
-
+} from "https://www.gstatic.co
