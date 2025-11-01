@@ -61,330 +61,132 @@
     </div>
   </main>
 
-  <script type="module">
-    // ---------------------------
-    // NBVS Verify — Unified Final
-    // ---------------------------
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-app.js";
-    import {
-      getFirestore, collection, getDocs, addDoc, doc, getDoc, setDoc, updateDoc, serverTimestamp, increment
-    } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-firestore.js";
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-app.js";
+import { 
+  getFirestore, doc, getDoc, setDoc, updateDoc,
+  collection, getDocs 
+} from "https://www.gstatic.com/firebasejs/10.7.2/firebase-firestore.js";
 
-    // Firebase config (your project)
-    const firebaseConfig = {
-      apiKey: "AIzaSyCDh_qL3jiCMHROK0_Soul2Wsv3t3y4wv0",
-      authDomain: "nbvs-ghana.firebaseapp.com",
-      projectId: "nbvs-ghana",
-      storageBucket: "nbvs-ghana.firebasestorage.app",
-      messagingSenderId: "702636577113",
-      appId: "1:702636577113:web:8369b43a2aa43aeb95fc48",
-      measurementId: "G-2FHFSQRMZX"
-    };
+// ✅ Firebase Init
+const firebaseConfig = {
+  apiKey: "AIzaSyCDh_qL3jiCMHROK0_Soul2Wsv3t3y4wv0",
+  authDomain: "nbvs-ghana.firebaseapp.com",
+  projectId: "nbvs-ghana",
+  storageBucket: "nbvs-ghana.firebasestorage.app",
+  messagingSenderId: "702636577113",
+  appId: "1:702636577113:web:8369b43a2aa43aeb95fc48",
+};
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
 
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
+// ✅ Public user (no login yet)
+const userId = "publicUser";
+const userRef = doc(db, "users", userId);
 
-    // Constants
-    const PER_SEARCH_COST = 30; // ¢30 per single pay-per-search
-    const WALLET_DOC = doc(db, "stats", "global");          // global wallet + totals
-    const TX_COLL = collection(db, "walletTransactions");  // transactions
-    const SEARCH_LOGS = collection(db, "search_logs");     // logs
-    const RECORDS_COLL = collection(db, "records");        // records
+// ✅ Ensure user exists
+async function initUser() {
+  const snap = await getDoc(userRef);
+  if (!snap.exists()) {
+    await setDoc(userRef, {
+      freeSearches: 3,
+      plan: "free",
+      planExpires: null,
+      monthlyRemaining: 0
+    });
+  }
+}
+await initUser();
 
-    // --- userId (anonymous but stored locally)
-    let userId = localStorage.getItem("nbvs_userId");
-    if (!userId) {
-      userId = "u_" + Math.random().toString(36).slice(2,10);
-      localStorage.setItem("nbvs_userId", userId);
-    }
-    const USER_DOC = doc(db, "users", userId);
+// ✅ UI elements
+const freeCountEl = document.getElementById("freeCount");
+const resultsDiv = document.getElementById("results");
 
-    // DOM
-    const searchInput = document.getElementById("searchInput");
-    const searchBtn = document.getElementById("searchBtn");
-    const resultsArea = document.getElementById("resultsArea");
-    const freeCountDisplay = document.getElementById("freeCountDisplay");
-    const planDisplay = document.getElementById("planDisplay");
-    const userPlanSpan = document.getElementById("userPlan");
-    const buyBasicBtn = document.getElementById("buyBasicBtn");
-    const buyProBtn = document.getElementById("buyProBtn");
-    const useWalletBtn = document.getElementById("useWalletBtn");
-    const walletPageBtn = document.getElementById("walletPageBtn");
+async function loadUser() {
+  const snap = await getDoc(userRef);
+  return snap.data();
+}
 
-    // Ensure stats/global exists (create if missing)
-    async function ensureGlobalStats() {
-      const s = await getDoc(WALLET_DOC);
-      if (!s.exists()) {
-        await setDoc(WALLET_DOC, { walletBalance: 0, totalSearches: 0, totalLogins: 0 });
-      }
-    }
+function updateUI(data) {
+  freeCountEl.textContent = data.freeSearches;
+}
 
-    // Ensure user doc exists
-    async function ensureUser() {
-      const s = await getDoc(USER_DOC);
-      if (!s.exists()) {
-        await setDoc(USER_DOC, {
-          freeSearches: 3,
-          plan: "FREE",      // FREE | BASIC | PRO
-          planExpiry: null,  // timestamp in ms
-          basicRemaining: 0  // for BASIC the remaining searches
-        });
-      }
-    }
+// ✅ Deduct search
+async function deductSearch() {
+  const user = await loadUser();
 
-    // Load user state
-    async function loadUserState() {
-      await ensureUser();
-      const s = await getDoc(USER_DOC);
-      const u = s.data();
-      // If BASIC exists and basicRemaining empty, set to 0
-      if (!("basicRemaining" in u)) {
-        await updateDoc(USER_DOC, { basicRemaining: 0 });
-        u.basicRemaining = 0;
-      }
-      // If PRO expired, revert
-      if (u.plan === "PRO" && u.planExpiry && Date.now() > u.planExpiry) {
-        await updateDoc(USER_DOC, { plan: "FREE", planExpiry: null, basicRemaining: 0 });
-        u.plan = "FREE"; u.planExpiry = null; u.basicRemaining = 0;
-      }
-      updateUIFromUser(u);
-      return u;
-    }
+  // ✅ PRO (unlimited)
+  if (user.plan === "pro") return true;
 
-    // Update UI from user doc
-    function updateUIFromUser(u) {
-      const freeLeft = u.freeSearches ?? 0;
-      freeCountDisplay.textContent = `Free: ${freeLeft}`;
-      planDisplay.textContent = `Plan: ${u.plan}${u.plan === "BASIC" ? " ("+ (u.basicRemaining||0)+ " left)" : u.plan === "PRO" ? " (unlimited)" : ""}`;
-      userPlanSpan.textContent = `${u.plan} — Free:${freeLeft}`;
-    }
-
-    // Log search globally + increment totalSearches
-    async function logSearchGlobal(term, found, paid=false, userAction="search") {
-      try {
-        await addDoc(SEARCH_LOGS, { userId, searchTerm: term, found, paid, userAction, timestamp: serverTimestamp() });
-        // increment the global counter
-        await updateDoc(WALLET_DOC, { totalSearches: increment(1) });
-      } catch (e) {
-        console.error("logSearchGlobal error:", e);
-      }
-    }
-
-    // Attempt to charge global wallet PER SEARCH
-    async function chargeGlobalWallet(amount) {
-      const snap = await getDoc(WALLET_DOC);
-      let bal = snap.exists() ? (snap.data().walletBalance || 0) : 0;
-      if (bal < amount) return false;
-      const newBal = bal - amount;
-      await updateDoc(WALLET_DOC, { walletBalance: newBal });
-      await addDoc(TX_COLL, { type: "deduction", amount, note: "pay-per-search", timestamp: serverTimestamp(), userId });
+  // ✅ BASIC (use monthlyRemaining IF you want)
+  if (user.plan === "basic") {
+    if (user.monthlyRemaining > 0) {
+      await updateDoc(userRef, { monthlyRemaining: user.monthlyRemaining - 1 });
       return true;
     }
+    alert("Your BASIC plan is out of searches.");
+    return false;
+  }
 
-    // Show blurred result (option 3). We'll blur sensitive fields but still show name+status.
-    function renderBlurredResult(r) {
-      const html = `
-        <div class="record">
-          <h3>${r.name} — <strong>${r.status}</strong></h3>
-          <p><b>NIA:</b> <span class="blur">${r.nia || "N/A"}</span></p>
-          <p><b>DOB:</b> <span class="blur">${r.dob || "N/A"}</span></p>
-          <p><b>Region:</b> <span class="blur">${r.region || "N/A"}</span></p>
-          <p><b>Address:</b> <span class="blur">${r.address || "N/A"}</span></p>
-          <p><b>Credit Score:</b> <span class="blur">${r.credit || "N/A"}</span></p>
-          <p><b>Driving:</b> <span class="blur">${r.driving || "N/A"}</span></p>
-          <p><b>Criminal:</b> <span class="blur">${r.criminal || "N/A"}</span></p>
+  // ✅ FREE — 3 searches
+  if (user.freeSearches > 0) {
+    await updateDoc(userRef, { freeSearches: user.freeSearches - 1 });
+    return true;
+  }
 
-          <div style="margin-top:10px" class="center">
-            <button id="payPerSearchBtn" style="margin-right:8px">Pay ¢${PER_SEARCH_COST} (Use Global Wallet)</button>
-            <button id="upgradeBtn">Upgrade Plan</button>
-          </div>
-        </div>
-      `;
-      resultsArea.innerHTML = html;
+  alert("❌ You used all 3 free searches.");
+  return false;
+}
 
-      // attach handler to pay button
-      document.getElementById("payPerSearchBtn").addEventListener("click", async () => {
-        resultsArea.querySelector("#payPerSearchBtn").disabled = true;
-        const ok = await chargeGlobalWallet(PER_SEARCH_COST);
-        if (!ok) {
-          alert("Global wallet has insufficient balance. Top up on the Wallet page.");
-          resultsArea.querySelector("#payPerSearchBtn").disabled = false;
-          return;
-        }
-        // show full result after payment (re-render)
-        renderFullResult(lastFoundRecord);
-        await logSearchGlobal(lastSearchTerm, true, true, "pay-per-search");
-      });
+updateUI(await loadUser());
 
-      document.getElementById("upgradeBtn").addEventListener("click", () => {
-        window.scrollTo(0, document.body.scrollHeight);
-        document.getElementById("buyBasicBtn").focus();
-      });
+// ✅ SEARCH FUNCTION
+document.getElementById("searchBtn").addEventListener("click", async () => {
+  const text = document.getElementById("searchInput").value.trim().toLowerCase();
+  resultsDiv.innerHTML = "Searching...";
+
+  if (!(await deductSearch())) {
+    resultsDiv.innerHTML = "❌ Please upgrade to continue searching.";
+    return;
+  }
+
+  updateUI(await loadUser());
+
+  const docs = await getDocs(collection(db, "records"));
+  let found = [];
+
+  docs.forEach(docSnap => {
+    const r = docSnap.data();
+    if (r.name?.toLowerCase() === text || r.nia?.toLowerCase() === text) {
+      found.push(r);
     }
+  });
 
-    // Render full result (clear fields visible)
-    function renderFullResult(r) {
-      resultsArea.innerHTML = `
-        <div class="record">
-          <h3>${r.name} — <strong>${r.status}</strong></h3>
-          <p><b>NIA:</b> ${r.nia || "N/A"}</p>
-          <p><b>DOB:</b> ${r.dob || "N/A"}</p>
-          <p><b>Region:</b> ${r.region || "N/A"}</p>
-          <p><b>Address:</b> ${r.address || "N/A"}</p>
-          <p><b>Credit Score:</b> ${r.credit || "N/A"}</p>
-          <p><b>Driving:</b> ${r.driving || "N/A"}</p>
-          <p><b>Criminal:</b> ${r.criminal || "N/A"}</p>
-        </div>
-      `;
-    }
+  if (found.length === 0) {
+    resultsDiv.innerHTML = "❌ No record found.";
+    return;
+  }
 
-    // Keep last result for pay flow
-    let lastFoundRecord = null;
-    let lastSearchTerm = null;
+  resultsDiv.innerHTML = "";
+  found.forEach(r => {
+    resultsDiv.innerHTML += `
+      <div class="record">
+        <h3>${r.name} — <span>${r.status}</span></h3>
+        <p><b>NIA:</b> ${r.nia}</p>
+        <p><b>DOB:</b> ${r.dob}</p>
+        <p><b>Region:</b> ${r.region}</p>
+        <p><b>Address:</b> ${r.address}</p>
+        <p><b>Criminal:</b> ${r.criminal}</p>
+        <p><b>Driving:</b> ${r.driving}</p>
+        <p><b>Credit:</b> ${r.credit}</p>
+      </div>
+    `;
+  });
+});
+</script>
 
-    // Main search handler
-    async function handleSearch() {
-      const qRaw = (searchInput.value || "").trim();
-      const q = qRaw.toLowerCase();
-      if (!q) { resultsArea.innerHTML = "<div class='record'>Enter a name or NIA</div>"; return; }
-
-      // ensure global stats & user exist
-      await ensureGlobalStats();
-      const userSnap = await loadUserState(); // updates UI
-
-      // fetch all records (small DB OK for MVP)
-      resultsArea.innerHTML = "<div class='record'>Searching…</div>";
-      const docs = await getDocs(RECORDS_COLL);
-      let found = null;
-      docs.forEach(d => {
-        const r = d.data();
-        if ((r.name && r.name.toLowerCase() === q) || (r.nia && r.nia.toLowerCase() === q)) {
-          found = r;
-        }
-      });
-
-      lastFoundRecord = found;
-      lastSearchTerm = qRaw;
-
-      // decide access:
-      // PRO -> show full
-      if (userSnap.plan === "PRO") {
-        if (found) {
-          renderFullResult(found);
-          await logSearchGlobal(qRaw, true, false, "search-pro");
-        } else {
-          resultsArea.innerHTML = "<div class='record'>❌ No record found.</div>";
-          await logSearchGlobal(qRaw, false, false, "search-pro");
-        }
-        return;
-      }
-
-      // BASIC -> use basicRemaining first
-      if (userSnap.plan === "BASIC") {
-        if ((userSnap.basicRemaining || 0) > 0) {
-          // decrement basicRemaining
-          await updateDoc(USER_DOC, { basicRemaining: (userSnap.basicRemaining - 1) });
-          await loadUserState(); // refresh
-          if (found) {
-            renderFullResult(found);
-            await logSearchGlobal(qRaw, true, false, "search-basic");
-          } else {
-            resultsArea.innerHTML = "<div class='record'>❌ No record found.</div>";
-            await logSearchGlobal(qRaw, false, false, "search-basic");
-          }
-          return;
-        }
-        // if no basicRemaining, fall through to free / pay
-      }
-
-      // FREE/other: use freeSearches
-      if ((userSnap.freeSearches || 0) > 0) {
-        await updateDoc(USER_DOC, { freeSearches: (userSnap.freeSearches - 1) });
-        await loadUserState();
-        if (found) {
-          renderFullResult(found);
-          await logSearchGlobal(qRaw, true, false, "search-free");
-        } else {
-          resultsArea.innerHTML = "<div class='record'>❌ No record found.</div>";
-          await logSearchGlobal(qRaw, false, false, "search-free");
-        }
-        return;
-      }
-
-      // No credits — show blurred result (option 3)
-      if (found) {
-        renderBlurredResult(found);
-        await logSearchGlobal(qRaw, true, false, "search-blurred");
-      } else {
-        resultsArea.innerHTML = "<div class='record'>❌ No record found.</div>";
-        await logSearchGlobal(qRaw, false, false, "search-blurred");
-      }
-    }
-
-    // ---------- Plan buttons (simulated payments for beta) ----------
-    buyBasicBtn.addEventListener("click", async () => {
-      // simulate payment success
-      if (!confirm("Simulate payment $3.99 for BASIC (10 searches)?")) return;
-      await ensureGlobalStats();
-      // update user doc: BASIC with 10 remaining
-      await updateDoc(USER_DOC, { plan: "BASIC", basicRemaining: 10, planExpiry: null });
-      // add to wallet (store revenue) -- add 3.99 as revenue in walletBalance (optional)
-      await updateDoc(WALLET_DOC, { walletBalance: increment(3.99) }).catch(async () => {
-        // if WALLET_DOC missing, set it
-        await setDoc(WALLET_DOC, { walletBalance: 3.99, totalSearches: 0, totalLogins: 0 }, { merge: true });
-      });
-      await addDoc(TX_COLL, { type: "topup", amount: 3.99, note: "BASIC purchase (beta)", timestamp: serverTimestamp(), userId });
-      await loadUserState();
-      alert("BASIC activated (10 searches).");
-    });
-
-    buyProBtn.addEventListener("click", async () => {
-      if (!confirm("Simulate payment $14.99 for PRO (30 days unlimited)?")) return;
-      await ensureGlobalStats();
-      const expiry = Date.now() + 30*24*60*60*1000;
-      await updateDoc(USER_DOC, { plan: "PRO", planExpiry: expiry, basicRemaining: 9999, freeSearches: 9999 });
-      await updateDoc(WALLET_DOC, { walletBalance: increment(14.99) }).catch(async () => {
-        await setDoc(WALLET_DOC, { walletBalance: 14.99, totalSearches: 0, totalLogins: 0 }, { merge: true });
-      });
-      await addDoc(TX_COLL, { type: "topup", amount: 14.99, note: "PRO purchase (beta)", timestamp: serverTimestamp(), userId});
-      await loadUserState();
-      alert("PRO activated (30 days).");
-    });
-
-    // Use global wallet for one search (pay-per-search)
-    useWalletBtn.addEventListener("click", async () => {
-      if (!confirm(`Use global wallet to buy 1 search for ¢${PER_SEARCH_COST}?`)) return;
-      await ensureGlobalStats();
-      const ok = await chargeGlobalWallet(PER_SEARCH_COST);
-      if (!ok) { alert("Global wallet insufficient. Top up in Wallet page."); return; }
-
-      // give the user one freeSearch instantly and consume it when they search next time
-      const s = await getDoc(USER_DOC);
-      const u = s.data();
-      const newFree = (u.freeSearches || 0) + 1;
-      await updateDoc(USER_DOC, { freeSearches: newFree });
-      await addDoc(TX_COLL, { type: "deduction", amount: PER_SEARCH_COST, note: "pay-per-search-buy", timestamp: serverTimestamp(), userId });
-      await loadUserState();
-      alert("Bought 1 search from global wallet — it is added to your free searches.");
-    });
-
-    // Wallet page button
-    walletPageBtn.addEventListener("click", () => {
-      window.open("wallet.html", "_blank");
-    });
-
-    // Search click
-    searchBtn.addEventListener("click", handleSearch);
-    searchInput.addEventListener("keypress", (e) => { if (e.key === "Enter") handleSearch(); });
-
-    // Init
-    (async () => {
-      await ensureGlobalStats();
-      await ensureUser();
-      await loadUserState();
-    })();
-
-  </script>
+ 
+ 
 </body>
 </html>
 
