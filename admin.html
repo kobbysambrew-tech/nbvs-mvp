@@ -11,18 +11,31 @@
     .panel{background:#fff;padding:20px;border-radius:10px;box-shadow:0 3px 8px rgba(0,0,0,0.08);max-width:900px;margin:0 auto 20px}
     input,select{width:100%;padding:10px;margin:6px 0;border-radius:6px;border:1px solid #ccc}
     button{padding:10px 16px;border:none;border-radius:7px;cursor:pointer;background:#006b3f;color:#fff;margin-top:10px}
+    .btn-red{background:#ce1126}
+    .btn-yellow{background:#fcd116;color:#111}
     table{width:100%;border-collapse:collapse;margin-top:20px}
     th,td{padding:12px;border-bottom:1px solid #ddd;text-align:left}
     th{background:#006b3f;color:#fff}
-    .btn-red{background:#ce1126}
-    .btn-yellow{background:#fcd116;color:#111}
     .actions button{margin-right:6px}
+
+    .pagination{display:flex;gap:10px;margin-top:15px;justify-content:center}
+    .pagination button{width:140px}
+    #pageInfo{text-align:center;margin-top:10px;color:#333;font-weight:600}
   </style>
 </head>
 
 <body>
 
 <h1>NBVS Admin Dashboard</h1>
+
+<!-- ✅ Bulk Upload Panel -->
+<div class="panel">
+  <h2>Bulk Import (CSV)</h2>
+  <p style="color:#444;font-size:0.9rem">Your CSV must include: <b>name, nia, dob, region, address, criminal, driving, credit, status</b></p>
+  <input type="file" id="csvFile" accept=".csv" />
+  <button id="importBtn">Import CSV</button>
+  <p id="importStatus" style="margin-top:10px;color:#006b3f;font-weight:600"></p>
+</div>
 
 <!-- ✅ Add Record Panel -->
 <div class="panel">
@@ -48,6 +61,7 @@
 <!-- ✅ Table of Records -->
 <div class="panel">
   <h2>All Records</h2>
+
   <table>
     <thead>
       <tr>
@@ -59,13 +73,22 @@
     </thead>
     <tbody id="recordsTable"></tbody>
   </table>
+
+  <div class="pagination">
+    <button id="prevPageBtn">← Previous</button>
+    <button id="nextPageBtn">Next →</button>
+  </div>
+
+  <div id="pageInfo">Page 1</div>
 </div>
 
 <!-- ✅ Firebase Scripts -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-app.js";
 import { 
-  getFirestore, collection, addDoc, getDocs, doc, deleteDoc, updateDoc 
+  getFirestore, collection, addDoc, getDocs,
+  doc, deleteDoc, updateDoc, query, orderBy, limit,
+  startAfter, startAt
 } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-firestore.js";
 
 /* ✅ Firebase Init */
@@ -83,28 +106,43 @@ const db = getFirestore(app);
 
 const recordsRef = collection(db, "records");
 
-/* ✅ Add New Record */
-document.getElementById("addBtn").addEventListener("click", async () => {
-  let record = {
-    name: document.getElementById("nameInput").value,
-    nia: document.getElementById("niaInput").value,
-    dob: document.getElementById("dobInput").value,
-    region: document.getElementById("regionInput").value,
-    address: document.getElementById("addressInput").value,
-    criminal: document.getElementById("criminalInput").value,
-    driving: document.getElementById("drivingInput").value,
-    credit: document.getElementById("creditInput").value,
-    status: document.getElementById("statusInput").value
-  };
+/* ✅ PAGINATION VARIABLES */
+const PAGE_SIZE = 10;
+let lastVisible = null;
+let firstVisible = null;
+let currentPage = 1;
 
-  await addDoc(recordsRef, record);
-  alert("✅ Record Added");
-  loadRecords();
-});
+/* ✅ LOAD PAGE */
+async function loadPage(direction = "first") {
 
-/* ✅ Load Records into Table */
-async function loadRecords() {
-  const snapshot = await getDocs(recordsRef);
+  let q;
+
+  if (direction === "next" && lastVisible) {
+    q = query(recordsRef, orderBy("name"), startAfter(lastVisible), limit(PAGE_SIZE));
+    currentPage++;
+  }
+  else if (direction === "prev" && firstVisible && currentPage > 1) {
+    q = query(recordsRef, orderBy("name"), startAt(firstVisible), limit(PAGE_SIZE));
+    currentPage--;
+  }
+  else {
+    q = query(recordsRef, orderBy("name"), limit(PAGE_SIZE));
+    currentPage = 1;
+  }
+
+  const snapshot = await getDocs(q);
+
+  if (!snapshot.empty) {
+    firstVisible = snapshot.docs[0];
+    lastVisible = snapshot.docs[snapshot.docs.length - 1];
+  }
+
+  renderTable(snapshot);
+  document.getElementById("pageInfo").textContent = "Page " + currentPage;
+}
+
+/* ✅ RENDER TABLE */
+function renderTable(snapshot) {
   const table = document.getElementById("recordsTable");
   table.innerHTML = "";
 
@@ -125,29 +163,101 @@ async function loadRecords() {
   });
 }
 
-loadRecords();
+/* ✅ BUTTON: Next Page */
+document.getElementById("nextPageBtn").addEventListener("click", () => {
+  loadPage("next");
+});
 
-/* ✅ DELETE Record */
+/* ✅ BUTTON: Previous Page */
+document.getElementById("prevPageBtn").addEventListener("click", () => {
+  loadPage("prev");
+});
+
+/* ✅ ADD NEW RECORD */
+document.getElementById("addBtn").addEventListener("click", async () => {
+  let record = {
+    name: nameInput.value,
+    nia: niaInput.value,
+    dob: dobInput.value,
+    region: regionInput.value,
+    address: addressInput.value,
+    criminal: criminalInput.value,
+    driving: drivingInput.value,
+    credit: creditInput.value,
+    status: statusInput.value
+  };
+
+  await addDoc(recordsRef, record);
+  alert("✅ Record added");
+  loadPage("first");
+});
+
+/* ✅ DELETE RECORD */
 window.deleteRecord = async function(id) {
   if (!confirm("Delete this record?")) return;
   await deleteDoc(doc(db, "records", id));
-  alert("✅ Record Deleted");
-  loadRecords();
+  alert("✅ Record deleted");
+  loadPage("first");
 };
 
-/* ✅ EDIT Record */
+/* ✅ EDIT RECORD (only status for now) */
 window.editRecord = async function(id) {
   const newStatus = prompt("Enter new status (Verified / Flagged / Warning):");
-
   if (!newStatus) return;
 
-  await updateDoc(doc(db, "records", id), {
-    status: newStatus
-  });
-
-  alert("✅ Record Updated");
-  loadRecords();
+  await updateDoc(doc(db, "records", id), { status: newStatus });
+  alert("✅ Record updated");
+  loadPage("first");
 };
+
+/* ✅ BULK IMPORT CSV */
+document.getElementById("importBtn").addEventListener("click", () => {
+  const file = document.getElementById("csvFile").files[0];
+
+  if (!file) {
+    alert("Please select a CSV file first.");
+    return;
+  }
+
+  const reader = new FileReader();
+  reader.onload = async function(e) {
+    const text = e.target.result;
+    const lines = text.split("\n").map(l => l.trim()).filter(l => l);
+
+    let importedCount = 0;
+
+    for (let i = 1; i < lines.length; i++) {
+      const cols = lines[i].split(",");
+
+      if (cols.length < 9) continue;
+
+      const record = {
+        name: cols[0],
+        nia: cols[1],
+        dob: cols[2],
+        region: cols[3],
+        address: cols[4],
+        criminal: cols[5],
+        driving: cols[6],
+        credit: cols[7],
+        status: cols[8]
+      };
+
+      await addDoc(recordsRef, record);
+      importedCount++;
+    }
+
+    document.getElementById("importStatus").textContent =
+      "✅ Successfully imported " + importedCount + " records";
+
+    loadPage("first");
+  };
+
+  reader.readAsText(file);
+});
+
+/* ✅ INITIAL LOAD */
+loadPage("first");
 
 </script>
 
