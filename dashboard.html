@@ -1,370 +1,83 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>NBVS Ghana - Admin Dashboard</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>NBVS Ghana — Admin Login</title>
+
   <style>
-    body {
-      font-family: "Segoe UI", Arial, sans-serif;
-      background: #f8f9fa;
-      margin: 0;
-      padding: 0;
-      color: #222;
+    body{
+      background:#f6f7f9;
+      font-family:"Segoe UI",Arial,sans-serif;
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      height:100vh;
+      margin:0;
     }
-
-    header {
-      background: linear-gradient(to right, #ce1126, #fcd116, #006b3f);
-      color: white;
-      text-align: center;
-      padding: 1.5em;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    .card{
+      background:white;
+      width:330px;
+      padding:22px;
+      border-radius:12px;
+      box-shadow:0 8px 26px rgba(0,0,0,0.08);
+      text-align:center;
     }
-
-    h1 {
-      margin: 0;
-      font-size: 1.8em;
+    h2{
+      margin-bottom:14px;
+      color:#006b3f;
     }
-
-    main {
-      max-width: 850px;
-      margin: 2em auto;
-      background: #fff;
-      padding: 2em;
-      border-radius: 12px;
-      box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+    input{
+      width:100%;
+      padding:12px;
+      margin-bottom:14px;
+      border-radius:10px;
+      border:1px solid #ccc;
     }
-
-    input, select {
-      width: 100%;
-      padding: 10px;
-      margin-bottom: 10px;
-      border: 1px solid #ccc;
-      border-radius: 6px;
+    button{
+      width:100%;
+      padding:12px;
+      background:#006b3f;
+      color:white;
+      border:none;
+      border-radius:10px;
+      font-weight:700;
+      cursor:pointer;
     }
-
-    button {
-      background-color: #006b3f;
-      color: white;
-      padding: 10px 16px;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      margin-top: 6px;
+    button:hover{
+      background:#004f2e;
     }
-
-    button.warn {
-      background-color: #ce1126;
+    .muted{
+      margin-top:10px;
+      font-size:.9rem;
+      color:#666;
     }
-
-    button:hover {
-      background-color: #004f2e;
-    }
-
-    .hidden { display: none; }
-
-    .record {
-      background: #f9f9f9;
-      border-left: 4px solid #006b3f;
-      padding: 12px;
-      border-radius: 8px;
-      margin-top: 12px;
-    }
-
-    footer {
-      text-align: center;
-      background-color: #eee;
-      padding: 1em;
-      margin-top: 3em;
-      color: #333;
-    }
-
   </style>
 </head>
+
 <body>
 
-<header>
-  <h1>NBVS Ghana — Admin Dashboard</h1>
-</header>
-
-<main>
-
-  <!-- 🔐 LOGIN PANEL -->
-  <section id="loginPanel">
+  <div class="card">
     <h2>Admin Login</h2>
-    <input type="password" id="adminPass" placeholder="Enter admin password" />
-    <button id="loginBtn">Login</button>
-    <p id="loginMsg" style="color:#c00;"></p>
-  </section>
 
-  <!-- ✅ ADMIN PANEL -->
-  <section id="adminPanel" class="hidden">
+    <input id="password" type="password" placeholder="Admin Password" />
+    <button onclick="login()">Login</button>
 
-    <button id="logoutBtn" class="warn" style="float:right;">Logout</button>
+    <p class="muted">NBVS Ghana Secure Admin Portal</p>
+  </div>
 
-    <h2>Add New Record</h2>
-    <input id="name" placeholder="Full Name" />
-    <input id="nia" placeholder="NIA ID" />
-    <input id="dob" placeholder="Date of Birth" />
-    <input id="region" placeholder="Region" />
-    <input id="criminal" placeholder="Criminal Record" />
-    <input id="driving" placeholder="Driving License" />
-    <input id="address" placeholder="Address" />
-    <input id="credit" placeholder="Credit Score" />
-    <select id="status">
-      <option value="Verified">Verified</option>
-      <option value="Pending">Pending</option>
-    </select>
-    <button id="addRecordBtn">Add Record</button>
+  <script>
+    const ADMIN_PASSWORD = "VictoryNBVS2025"; // change anytime
 
-    <hr />
-
-    <h2>Search / Manage Records</h2>
-    <input id="searchInput" placeholder="Search Name or NIA" />
-    <button id="searchBtn">Search</button>
-    <button id="showAllBtn">Show All Records</button>
-    <button id="analyticsBtn">View Analytics</button>
-
-    <div id="results"></div>
-
-    <hr />
-
-    <!-- ✅ GLOBAL WALLET ADMIN -->
-    <h2>Global Wallet (Admin)</h2>
-    <p>Balance: <strong id="globalBalance">Loading…</strong></p>
-
-    <input id="adjAmount" placeholder="Positive = add, Negative = subtract" />
-    <button id="adjBtn">Apply Adjustment</button>
-
-    <button id="resetWalletBtn" class="warn">Reset Wallet to ¢0</button>
-    <button id="goWalletPage">Open Wallet Page</button>
-
-    <p id="walletMsg" style="color:#c00;"></p>
-
-  </section>
-
-</main>
-
-<footer>
-  © 2025 NBVS Ghana — National Background Verification System
-</footer>
-
-<script type="module">
-
-  /* ✅ Firebase Imports */
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-app.js";
-
-  import { 
-    getFirestore,
-    collection,
-    addDoc,
-    getDocs,
-    doc,
-    getDoc,
-    updateDoc,
-    setDoc
-  } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-firestore.js";
-
-  import {
-    getAuth,
-    signInWithEmailAndPassword,
-    signOut
-  } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-auth.js";
-
-
-  /* ✅ Firebase Config */
-  const firebaseConfig = {
-    apiKey: "AIzaSyCDh_qL3jiCMHROK0_Soul2Wsv3t3y4wv0",
-    authDomain: "nbvs-ghana.firebaseapp.com",
-    projectId: "nbvs-ghana",
-    storageBucket: "nbvs-ghana.firebasestorage.app",
-    messagingSenderId: "702636577113",
-    appId: "1:702636577113:web:8369b43a2aa43aeb95fc48",
-    measurementId: "G-2FHFSQRMZX"
-  };
-
-  const app = initializeApp(firebaseConfig);
-  const db = getFirestore(app);
-  const auth = getAuth(app);
-
-
-  /* ✅ Elements */
-  const loginPanel = document.getElementById("loginPanel");
-  const adminPanel = document.getElementById("adminPanel");
-  const loginMsg = document.getElementById("loginMsg");
-
-
-  /* ✅ Admin Login */
-  document.getElementById("loginBtn").addEventListener("click", async () => {
-    const email = "admin@nbvsghana.com";
-    const password = document.getElementById("adminPass").value.trim();
-
-    try {
-      await signInWithEmailAndPassword(auth, email, password);
-      loginPanel.classList.add("hidden");
-      adminPanel.classList.remove("hidden");
-      alert("✅ Admin access granted");
-    } catch {
-      loginMsg.textContent = "❌ Wrong password!";
-    }
-  });
-
-
-  /* ✅ Persistent Login */
-  auth.onAuthStateChanged((user) => {
-    if (user) {
-      loginPanel.classList.add("hidden");
-      adminPanel.classList.remove("hidden");
-      refreshGlobalBalance();
-    }
-  });
-
-
-  /* ✅ Logout */
-  document.getElementById("logoutBtn").addEventListener("click", async () => {
-    await signOut(auth);
-    location.reload();
-  });
-
-
-  /* ✅ Add Records */
-  document.getElementById("addRecordBtn").addEventListener("click", async () => {
-
-    const name = document.getElementById("name").value;
-    const nia = document.getElementById("nia").value;
-
-    if (!name || !nia) {
-      alert("⚠️ Name & NIA required.");
-      return;
-    }
-
-    await addDoc(collection(db, "records"), {
-      name,
-      nia,
-      dob: document.getElementById("dob").value,
-      region: document.getElementById("region").value,
-      criminal: document.getElementById("criminal").value,
-      driving: document.getElementById("driving").value,
-      address: document.getElementById("address").value,
-      credit: document.getElementById("credit").value,
-      status: document.getElementById("status").value
-    });
-
-    alert("✅ Record Saved!");
-  });
-
-
-  /* ✅ Search Records */
-  document.getElementById("searchBtn").addEventListener("click", async () => {
-    const q = document.getElementById("searchInput").value.toLowerCase().trim();
-    const resultsDiv = document.getElementById("results");
-
-    resultsDiv.innerHTML = "Searching...";
-
-    const docsSnap = await getDocs(collection(db, "records"));
-    let matches = [];
-
-    docsSnap.forEach(docu => {
-      const r = docu.data();
-      if (r.name?.toLowerCase() === q || r.nia?.toLowerCase() === q) {
-        matches.push(r);
+    function login(){
+      const pw = document.getElementById("password").value;
+      if (pw === ADMIN_PASSWORD){
+        window.location.href = "admin.html";
+      } else {
+        alert("Incorrect password.");
       }
-    });
-
-    if (!matches.length) {
-      resultsDiv.innerHTML = "<div class='record'>❌ No record found.</div>";
-      return;
     }
-
-    resultsDiv.innerHTML = "";
-    matches.forEach(r => {
-      resultsDiv.innerHTML += `
-        <div class="record">
-          <h3>${r.name} — ${r.status}</h3>
-          <p>NIA: ${r.nia}</p>
-          <p>Region: ${r.region}</p>
-        </div>
-      `;
-    });
-  });
-
-
-  /* ✅ Show All Records */
-  document.getElementById("showAllBtn").addEventListener("click", async () => {
-    const resultsDiv = document.getElementById("results");
-    resultsDiv.innerHTML = "Loading...";
-
-    const docsSnap = await getDocs(collection(db, "records"));
-    resultsDiv.innerHTML = "";
-
-    docsSnap.forEach(d => {
-      const r = d.data();
-      resultsDiv.innerHTML += `
-        <div class="record">
-          <h3>${r.name} — ${r.status}</h3>
-          <p>NIA: ${r.nia}</p>
-          <p>Region: ${r.region}</p>
-        </div>
-      `;
-    });
-  });
-
-
-  /* ✅ Analytics Button */
-  document.getElementById("analyticsBtn").addEventListener("click", () => {
-    window.open("analytics.html", "_blank");
-  });
-
-
-  /* ✅ GLOBAL WALLET ADMIN CONTROLS */
-  const W_DOC = doc(db, "wallet", "global");
-  const TX = collection(db, "walletTransactions");
-
-
-  async function refreshGlobalBalance() {
-    const snap = await getDoc(W_DOC);
-    const bal = snap.exists() ? (snap.data().balance || 0) : 0;
-    document.getElementById("globalBalance").textContent = `¢${bal}`;
-  }
-
-
-  document.getElementById("goWalletPage").addEventListener("click", () => {
-    window.open("wallet.html", "_blank");
-  });
-
-
-  document.getElementById("adjBtn").addEventListener("click", async () => {
-    const amt = Number(document.getElementById("adjAmount").value);
-
-    if (!amt) {
-      document.getElementById("walletMsg").textContent = "Enter a valid number.";
-      return;
-    }
-
-    const snap = await getDoc(W_DOC);
-    const current = snap.exists() ? (snap.data().balance || 0) : 0;
-    const newBal = current + amt;
-
-    await updateDoc(W_DOC, { balance: newBal });
-    await addDoc(TX, { type: "admin-adjust", amount: amt, timestamp: new Date() });
-
-    document.getElementById("walletMsg").textContent = `Updated! New Balance ¢${newBal}`;
-    refreshGlobalBalance();
-  });
-
-
-  document.getElementById("resetWalletBtn").addEventListener("click", async () => {
-    if (!confirm("Reset wallet to ¢0?")) return;
-
-    await updateDoc(W_DOC, { balance: 0 });
-    await addDoc(TX, { type: "reset", amount: 0, timestamp: new Date() });
-
-    document.getElementById("walletMsg").textContent = "Wallet reset to ¢0.";
-    refreshGlobalBalance();
-  });
-
-</script>
+  </script>
 
 </body>
 </html>
-
