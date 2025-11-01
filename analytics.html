@@ -1,72 +1,74 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>NBVS Analytics</title>
+  <title>NBVS Analytics Dashboard</title>
   <style>
-    body { font-family: Arial; padding: 20px; background:#f8f9fa; }
-    h1 { color:#006b3f; }
-    table { width:100%; border-collapse: collapse; margin-top:20px; }
-    th, td { border:1px solid #ccc; padding:8px; }
-    th { background:#006b3f; color:white; }
+    body{font-family:Arial;background:#f8f9fa;padding:20px}
+    h1{color:#006b3f}
+    table{width:100%;border-collapse:collapse;margin-top:20px}
+    th,td{border:1px solid #ccc;padding:10px}
+    th{background:#006b3f;color:#fff}
   </style>
 </head>
+
 <body>
-  <h1>NBVS Analytics Dashboard</h1>
-  <p><b>Total Searches:</b> <span id="total"></span></p>
+<h1>NBVS Analytics Dashboard</h1>
+<p><b>Total Searches:</b> <span id="total">0</span></p>
 
-  <table>
-    <thead>
-      <tr>
-        <th>Search Term</th>
-        <th>Timestamp</th>
-        <th>Platform</th>
-      </tr>
-    </thead>
-    <tbody id="logs"></tbody>
-  </table>
+<table>
+<thead>
+  <tr>
+    <th>Search Term</th>
+    <th>Timestamp</th>
+    <th>Platform</th>
+  </tr>
+</thead>
+<tbody id="logs"></tbody>
+</table>
 
-  <script type="module">
+<script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-app.js";
-import { 
-  getFirestore, collection, getDocs 
-} from "https://www.gstatic.com/firebasejs/10.7.2/firebase-firestore.js";
+import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-firestore.js";
 
-// Firebase
-const firebaseConfig = { ... SAME CONFIG ... };
+const firebaseConfig = {
+  apiKey: "AIzaSyCDh_qL3jiCMHROK0_Soul2Wsv3t3y4wv0",
+  authDomain: "nbvs-ghana.firebaseapp.com",
+  projectId: "nbvs-ghana",
+  storageBucket: "nbvs-ghana.firebasestorage.app",
+  messagingSenderId: "702636577113",
+  appId: "1:702636577113:web:8369b43a2aa43aeb95fc48",
+};
+
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-// Table elements
-const totalLabel = document.getElementById("total");
-const tableBody = document.getElementById("logs");
+const totalEl = document.getElementById("total");
+const logsEl = document.getElementById("logs");
 
+async function loadLogs(){
+  const data = await getDocs(collection(db,"search_logs"));
 
-// Load logs
-async function loadLogs() {
-  const logs = await getDocs(collection(db, "search_logs"));
-
+  logsEl.innerHTML = "";
   let count = 0;
-  tableBody.innerHTML = "";
 
-  logs.forEach(log => {
-    const data = log.data();
+  data.forEach(docSnap=>{
+    const d = docSnap.data();
     count++;
 
-    tableBody.innerHTML += `
+    logsEl.innerHTML += `
       <tr>
-        <td>${data.term}</td>
-        <td>${new Date(data.timestamp?.toMillis()).toLocaleString()}</td>
-        <td>${data.platform}</td>
-      </tr>`;
+        <td>${d.term}</td>
+        <td>${new Date(d.timestamp.toMillis()).toLocaleString()}</td>
+        <td>${d.platform}</td>
+      </tr>
+    `;
   });
 
-  totalLabel.textContent = count;
+  totalEl.textContent = count;
 }
 
 loadLogs();
 </script>
-
-   
 
 </body>
 </html>
