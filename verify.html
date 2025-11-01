@@ -30,7 +30,7 @@
   <p class="muted">Each verification costs <strong>¢30</strong> if you don't have credits. You have <span id="userPlan">loading…</span>.</p>
 
   <div class="panel">
-    <label class="small">Search by full name or NIA ID</label>
+    <label>Search by full name or NIA ID</label>
     <input id="searchInput" placeholder="e.g. Kofi Mensah or GHA-2039485" />
 
     <div class="row">
@@ -63,9 +63,175 @@
 
 <script type="module">
 
-/* ✅ FIREBASE IMPORTS */
+/* ✅ IMPORTS */
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-app.js";
 import { 
   getFirestore, doc, getDoc, setDoc, updateDoc,
   collection, getDocs 
-} from "https://www.gstatic.co
+} from "https://www.gstatic.com/firebasejs/10.7.2/firebase-firestore.js";
+
+/* ✅ FIREBASE CONFIG */
+const firebaseConfig = {
+  apiKey: "AIzaSyCDh_qL3jiCMHROK0_Soul2Wsv3t3y4wv0",
+  authDomain: "nbvs-ghana.firebaseapp.com",
+  projectId: "nbvs-ghana",
+  storageBucket: "nbvs-ghana.firebasestorage.app",
+  messagingSenderId: "702636577113",
+  appId: "1:702636577113:web:8369b43a2aa43aeb95fc48",
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+/* ✅ REFERENCES */
+const userRef = doc(db, "users", "publicUser");
+const walletRef = doc(db, "wallet", "publicUser");
+
+/* ✅ AUTO-CREATE USER */
+async function ensureUser() {
+  const snap = await getDoc(userRef);
+  if (!snap.exists()) {
+    await setDoc(userRef, {
+      freeSearches: 3,
+      plan: "free",
+      planExpires: null,
+      monthlyRemaining: 0
+    });
+  }
+}
+await ensureUser();
+
+/* ✅ AUTO-CREATE WALLET */
+async function ensureWallet() {
+  const snap = await getDoc(walletRef);
+  if (!snap.exists()) {
+    await setDoc(walletRef, {
+      balance: 0,
+      createdAt: new Date()
+    });
+  }
+}
+await ensureWallet();
+
+/* ✅ UI ELEMENTS */
+const freeCountEl = document.getElementById("freeCountDisplay");
+const planDisplay = document.getElementById("planDisplay");
+const resultsDiv = document.getElementById("resultsArea");
+
+async function loadUser() {
+  return (await getDoc(userRef)).data();
+}
+
+function updateUI(u) {
+  freeCountEl.textContent = "Free: " + u.freeSearches;
+  planDisplay.textContent = "Plan: " + u.plan;
+}
+
+updateUI(await loadUser());
+
+/* ✅ DEDUCT SEARCH */
+async function deductSearch() {
+  const u = await loadUser();
+
+  if (u.plan === "pro") return true;
+
+  if (u.plan === "basic") {
+    if (u.monthlyRemaining > 0) {
+      await updateDoc(userRef, { monthlyRemaining: u.monthlyRemaining - 1 });
+      return true;
+    }
+    alert("BASIC plan out of searches.");
+    return false;
+  }
+
+  if (u.freeSearches > 0) {
+    await updateDoc(userRef, { freeSearches: u.freeSearches - 1 });
+    return true;
+  }
+
+  alert("No free searches left.");
+  return false;
+}
+
+/* ✅ SEARCH BUTTON */
+document.getElementById("searchBtn").addEventListener("click", async () => {
+
+  const term = document.getElementById("searchInput").value.trim().toLowerCase();
+  resultsDiv.textContent = "Searching...";
+
+  if (!(await deductSearch())) {
+    resultsDiv.textContent = "❌ Please upgrade.";
+    return;
+  }
+
+  updateUI(await loadUser());
+
+  const docs = await getDocs(collection(db, "records"));
+  let matches = [];
+
+  docs.forEach(d => {
+    const r = d.data();
+    if (r.name?.toLowerCase() === term || r.nia?.toLowerCase() === term) {
+      matches.push(r);
+    }
+  });
+
+  /* ✅ LOG SEARCH */
+  await setDoc(doc(collection(db, "search_logs")), {
+    term: term,
+    timestamp: new Date(),
+    platform: "web"
+  });
+
+  if (matches.length === 0) {
+    resultsDiv.textContent = "❌ No record found.";
+    return;
+  }
+
+  resultsDiv.innerHTML = "";
+  matches.forEach(r => {
+    resultsDiv.innerHTML += `
+      <div class="record">
+        <h3>${r.name} — <span>${r.status}</span></h3>
+        <p><b>NIA:</b> ${r.nia}</p>
+        <p><b>DOB:</b> ${r.dob}</p>
+        <p><b>Region:</b> ${r.region}</p>
+        <p><b>Address:</b> ${r.address}</p>
+        <p><b>Criminal:</b> ${r.criminal}</p>
+        <p><b>Driving:</b> ${r.driving}</p>
+        <p><b>Credit:</b> ${r.credit}</p>
+      </div>
+    `;
+  });
+});
+
+/* ✅ BUTTONS */
+document.getElementById("walletPageBtn").addEventListener("click", () => {
+  window.location.href = "wallet.html";
+});
+
+document.getElementById("buyBasicBtn").addEventListener("click", async () => {
+  await updateDoc(userRef, {
+    plan: "basic",
+    monthlyRemaining: 10
+  });
+  alert("✅ BASIC activated");
+  updateUI(await loadUser());
+});
+
+document.getElementById("buyProBtn").addEventListener("click", async () => {
+  await updateDoc(userRef, {
+    plan: "pro",
+    planExpires: Date.now() + 30 * 24 * 60 * 60 * 1000
+  });
+  alert("✅ PRO activated");
+  updateUI(await loadUser());
+});
+
+document.getElementById("useWalletBtn").addEventListener("click", () => {
+  window.location.href = "wallet.html";
+});
+
+</script>
+</body>
+</html>
