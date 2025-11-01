@@ -9,7 +9,7 @@
     table{width:100%;margin-top:15px;border-collapse:collapse}
     th,td{border:1px solid #ccc;padding:10px}
     th{background:#006b3f;color:#fff}
-    button{background:#006b3f;color:#fff;padding:10px 15px;border:none;border-radius:6px;cursor:pointer}
+    button{background:#006b3f;color:#fff;padding:10px 15px;border:none;border-radius:6px;cursor:pointer;width:100%}
   </style>
 </head>
 
@@ -24,15 +24,21 @@
 <div class="panel">
   <h3>Transactions</h3>
   <table>
-    <thead><tr><th>Amount</th><th>Type</th><th>Time</th></tr></thead>
+    <thead>
+      <tr><th>Amount</th><th>Type</th><th>Time</th></tr>
+    </thead>
     <tbody id="walletLogs"></tbody>
   </table>
 </div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-app.js";
-import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-firestore.js";
+import { 
+  getFirestore, doc, getDoc, setDoc, updateDoc,
+  collection, addDoc, getDocs 
+} from "https://www.gstatic.com/firebasejs/10.7.2/firebase-firestore.js";
 
+/* ✅ FIREBASE CONFIG */
 const firebaseConfig = {
   apiKey:"AIzaSyCDh_qL3jiCMHROK0_Soul2Wsv3t3y4wv0",
   authDomain:"nbvs-ghana.firebaseapp.com",
@@ -45,10 +51,11 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
+/* ✅ REFERENCES */
 const walletRef = doc(db,"wallet","publicUser");
 const logsRef = collection(db,"wallet_transactions");
 
-/* ✅ AUTO-CREATE WALLET DOCUMENT */
+/* ✅ AUTO-CREATE WALLET */
 async function ensureWalletExists() {
   const snap = await getDoc(walletRef);
   if (!snap.exists()) {
@@ -60,7 +67,53 @@ async function ensureWalletExists() {
 }
 await ensureWalletExists();
 
-/* ✅ LOAD WALLET BALANCE */
+/* ✅ LOAD BALANCE */
 async function loadWallet() {
   const snap = await getDoc(walletRef);
-  document.getElementById("balance").textCon
+  document.getElementById("balance").textContent = snap.data().balance;
+}
+
+/* ✅ LOAD TRANSACTIONS */
+async function loadLogs() {
+  const snap = await getDocs(logsRef);
+  const table = document.getElementById("walletLogs");
+  table.innerHTML = "";
+
+  snap.forEach(docSnap => {
+    const d = docSnap.data();
+    table.innerHTML += `
+      <tr>
+        <td>${d.amount}</td>
+        <td>${d.type}</td>
+        <td>${new Date(d.time.toMillis()).toLocaleString()}</td>
+      </tr>
+    `;
+  });
+}
+
+/* ✅ ADD CREDIT BUTTON */
+document.getElementById("addCreditBtn").addEventListener("click", async () => {
+  const snap = await getDoc(walletRef);
+  const newBalance = snap.data().balance + 30;
+
+  await updateDoc(walletRef, { balance: newBalance });
+
+  await addDoc(logsRef, {
+    amount: "+30",
+    type: "credit",
+    time: new Date()
+  });
+
+  loadWallet();
+  loadLogs();
+  alert("✅ ¢30 added to your wallet.");
+});
+
+/* ✅ INITIAL LOAD */
+loadWallet();
+loadLogs();
+
+</script>
+
+</body>
+</html>
