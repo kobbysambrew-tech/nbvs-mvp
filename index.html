@@ -157,19 +157,6 @@
       color:#333;
       background:#f0f0f0;
     }
-<a href="admin.html" 
-   style="
-     display:inline-block;
-     background:#006b3f;
-     color:#fff;
-     padding:10px 16px;
-     border-radius:8px;
-     text-decoration:none;
-     font-weight:600;
-     margin-top:12px;
-   ">
-  ⚙️ Admin Panel
-</a>
 
     /* responsive */
     @media (max-width:720px){
@@ -205,8 +192,27 @@
 
       <div class="btns" role="navigation" aria-label="Main actions">
         <a class="btn btn-primary" href="verify.html">🔍 Check Background</a>
-        <a class="btn btn-ghost" href="dashboard.html">🔐 Admin Login</a>
+
+        <!-- ✅ FIXED LINE: updated from dashboard.html → admin.html -->
+        <a class="btn btn-ghost" href="admin.html">🔐 Admin Login</a>
       </div>
+
+      <!-- ✅ FIXED: Admin Panel button moved OUT of <style> -->
+      <a href="admin.html" 
+         style="
+           display:inline-block;
+           background:#006b3f;
+           color:#fff;
+           padding:10px 16px;
+           border-radius:8px;
+           text-decoration:none;
+           font-weight:600;
+           margin-top:12px;
+           box-shadow:0 4px 14px rgba(0,0,0,0.1);
+         ">
+        ⚙️ Admin Panel
+      </a>
+
     </div>
 
     <div class="grid">
@@ -237,4 +243,3 @@
   </footer>
 </body>
 </html>
-
