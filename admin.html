@@ -8,6 +8,16 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>NBVS Admin Dashboard</title>
+<script>
+  // ✅ SIMPLE PASSWORD PROTECTION
+  const ADMIN_PASSWORD = "VictoryNBVS2025"; // <- CHANGE THIS
+
+  const input = prompt("Enter admin password:");
+  if (input !== ADMIN_PASSWORD) {
+    alert("Incorrect password.");
+    window.location.href = "index.html";
+  }
+</script>
 
   <style>
     :root{
