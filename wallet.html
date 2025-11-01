@@ -81,4 +81,49 @@
   <div id="txList">Loading…</div>
 
   <p><a href="verify.html">← Back to Verify</a></p>
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-app.js";
+  import {
+    getFirestore, doc, getDoc, setDoc, updateDoc,
+    collection, addDoc, getDocs, query, orderBy, limit
+  } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-firestore.js";
+
+  // ✅ Firebase configuration
+  const firebaseConfig = {
+    apiKey: "AIzaSyCDh_qL3jiCMHROK0_Soul2Wsv3t3y4wv0",
+    authDomain: "nbvs-ghana.firebaseapp.com",
+    projectId: "nbvs-ghana",
+    storageBucket: "nbvs-ghana.firebasestorage.app",
+    messagingSenderId: "702636577113",
+    appId: "1:702636577113:web:8369b43a2aa43aeb95fc48",
+    measurementId: "G-2FHFSQRMZX"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  // ✅ Wallet references
+  const WALLET_DOC = doc(db, "wallet", "global");
+  const TX_COLL = collection(db, "walletTransactions");
+
+  const balanceEl = document.getElementById("balance");
+  const txListEl = document.getElementById("txList");
+
+  // ✅ Make sure wallet exists
+  async function ensureWalletExists() {
+    const snap = await getDoc(WALLET_DOC);
+    if (!snap.exists()) {
+      await setDoc(WALLET_DOC, { balance: 0 });
+      return 0;
+    }
+    return snap.data().balance || 0;
+  }
+
+  // ✅ Load wallet balance
+  async function refreshBalance() {
+    const snap = await getDoc(WALLET_DOC);
+    const bal = snap.exists() ? snap.data().balance : 0;
+    balanceEl.textContent = `GHC ${bal}`;
+    return bal;
+  }
 
