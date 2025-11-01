@@ -31,7 +31,7 @@
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-app.js";
-import { getFirestore, doc, getDoc, updateDoc, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-firestore.js";
+import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey:"AIzaSyCDh_qL3jiCMHROK0_Soul2Wsv3t3y4wv0",
@@ -48,36 +48,19 @@ const db = getFirestore(app);
 const walletRef = doc(db,"wallet","publicUser");
 const logsRef = collection(db,"wallet_transactions");
 
-async function initWallet(){
+/* ✅ AUTO-CREATE WALLET DOCUMENT */
+async function ensureWalletExists() {
   const snap = await getDoc(walletRef);
-  if(!snap.exists()){
-    await updateDoc(walletRef,{balance:0});
+  if (!snap.exists()) {
+    await setDoc(walletRef, {
+      balance: 0,
+      createdAt: new Date()
+    });
   }
 }
+await ensureWalletExists();
 
-async function loadWallet(){
-  const user = await getDoc(walletRef);
-  document.getElementById("balance").textContent = user.data().balance;
-}
-
-document.getElementById("addCreditBtn").addEventListener("click",async()=>{
+/* ✅ LOAD WALLET BALANCE */
+async function loadWallet() {
   const snap = await getDoc(walletRef);
-  let bal = snap.data().balance + 30;
-
-  await updateDoc(walletRef,{balance:bal});
-  await addDoc(logsRef,{
-    amount:"+30",
-    type:"credit",
-    time:new Date()
-  });
-
-  loadWallet();
-  alert("✅ Added ¢30 to wallet.");
-});
-
-initWallet();
-loadWallet();
-</script>
-
-</body>
-</html>
+  document.getElementById("balance").textCon
