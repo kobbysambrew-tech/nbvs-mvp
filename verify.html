@@ -99,8 +99,9 @@ async function initUser() {
 await initUser();
 
 // ✅ UI elements
-const freeCountEl = document.getElementById("freeCount");
-const resultsDiv = document.getElementById("results");
+const freeCountEl = document.getElementById("freeCountDisplay");
+const resultsDiv = document.getElementById("resultsArea");
+
 
 async function loadUser() {
   const snap = await getDoc(userRef);
