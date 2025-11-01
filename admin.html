@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NBVS Admin Dashboard</title>
+
+  <style>
+    body{font-family:"Segoe UI",Arial,sans-serif;background:#f8f9fa;margin:0;padding:20px}
+    h1{color:#006b3f;text-align:center;margin-bottom:20px}
+    .panel{background:#fff;padding:20px;border-radius:10px;box-shadow:0 3px 8px rgba(0,0,0,0.08);max-width:900px;margin:0 auto 20px}
+    input,select{width:100%;padding:10px;margin:6px 0;border-radius:6px;border:1px solid #ccc}
+    button{padding:10px 16px;border:none;border-radius:7px;cursor:pointer;background:#006b3f;color:#fff;margin-top:10px}
+    table{width:100%;border-collapse:collapse;margin-top:20px}
+    th,td{padding:12px;border-bottom:1px solid #ddd;text-align:left}
+    th{background:#006b3f;color:#fff}
+    .btn-red{background:#ce1126}
+    .btn-yellow{background:#fcd116;color:#111}
+    .actions button{margin-right:6px}
+  </style>
+</head>
+
+<body>
+
+<h1>NBVS Admin Dashboard</h1>
+
+<!-- ✅ Add Record Panel -->
+<div class="panel">
+  <h2>Add New Record</h2>
+
+  <input id="nameInput" placeholder="Full Name" />
+  <input id="niaInput" placeholder="NIA ID (GHA-xxxxxxx)" />
+  <input id="dobInput" placeholder="Date of Birth" />
+  <input id="regionInput" placeholder="Region" />
+  <input id="addressInput" placeholder="Address" />
+  <input id="criminalInput" placeholder="Criminal Record" />
+  <input id="drivingInput" placeholder="Driving Record" />
+  <input id="creditInput" placeholder="Credit Score / Notes" />
+  <select id="statusInput">
+    <option value="Verified">Verified</option>
+    <option value="Flagged">Flagged</option>
+    <option value="Warning">Warning</option>
+  </select>
+
+  <button id="addBtn">Add Record</button>
+</div>
+
+<!-- ✅ Table of Records -->
+<div class="panel">
+  <h2>All Records</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>NIA</th>
+        <th>Status</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody id="recordsTable"></tbody>
+  </table>
+</div>
+
+<!-- ✅ Firebase Scripts -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-app.js";
+import { 
+  getFirestore, collection, addDoc, getDocs, doc, deleteDoc, updateDoc 
+} from "https://www.gstatic.com/firebasejs/10.7.2/firebase-firestore.js";
+
+/* ✅ Firebase Init */
+const firebaseConfig = {
+  apiKey:"AIzaSyCDh_qL3jiCMHROK0_Soul2Wsv3t3y4wv0",
+  authDomain:"nbvs-ghana.firebaseapp.com",
+  projectId:"nbvs-ghana",
+  storageBucket:"nbvs-ghana.firebasestorage.app",
+  messagingSenderId:"702636577113",
+  appId:"1:702636577113:web:8369b43a2aa43aeb95fc48"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+const recordsRef = collection(db, "records");
+
+/* ✅ Add New Record */
+document.getElementById("addBtn").addEventListener("click", async () => {
+  let record = {
+    name: document.getElementById("nameInput").value,
+    nia: document.getElementById("niaInput").value,
+    dob: document.getElementById("dobInput").value,
+    region: document.getElementById("regionInput").value,
+    address: document.getElementById("addressInput").value,
+    criminal: document.getElementById("criminalInput").value,
+    driving: document.getElementById("drivingInput").value,
+    credit: document.getElementById("creditInput").value,
+    status: document.getElementById("statusInput").value
+  };
+
+  await addDoc(recordsRef, record);
+  alert("✅ Record Added");
+  loadRecords();
+});
+
+/* ✅ Load Records into Table */
+async function loadRecords() {
+  const snapshot = await getDocs(recordsRef);
+  const table = document.getElementById("recordsTable");
+  table.innerHTML = "";
+
+  snapshot.forEach(docSnap => {
+    const d = docSnap.data();
+
+    table.innerHTML += `
+      <tr>
+        <td>${d.name}</td>
+        <td>${d.nia}</td>
+        <td>${d.status}</td>
+        <td class="actions">
+          <button class="btn-yellow" onclick="editRecord('${docSnap.id}')">Edit</button>
+          <button class="btn-red" onclick="deleteRecord('${docSnap.id}')">Delete</button>
+        </td>
+      </tr>
+    `;
+  });
+}
+
+loadRecords();
+
+/* ✅ DELETE Record */
+window.deleteRecord = async function(id) {
+  if (!confirm("Delete this record?")) return;
+  await deleteDoc(doc(db, "records", id));
+  alert("✅ Record Deleted");
+  loadRecords();
+};
+
+/* ✅ EDIT Record */
+window.editRecord = async function(id) {
+  const newStatus = prompt("Enter new status (Verified / Flagged / Warning):");
+
+  if (!newStatus) return;
+
+  await updateDoc(doc(db, "records", id), {
+    status: newStatus
+  });
+
+  alert("✅ Record Updated");
+  loadRecords();
+};
+
+</script>
+
+</body>
+</html>
