@@ -126,4 +126,89 @@
     balanceEl.textContent = `GHC ${bal}`;
     return bal;
   }
+  // ✅ Load last 20 transactions
+  async function loadTransactions() {
+    txListEl.innerHTML = "Loading…";
+
+    const q = query(TX_COLL, orderBy("timestamp", "desc"), limit(20));
+    const snaps = await getDocs(q);
+
+    txListEl.innerHTML = "";
+
+    if (snaps.empty) {
+      txListEl.innerHTML = "<p class='small'>No transactions yet.</p>";
+      return;
+    }
+
+    snaps.forEach(docSnap => {
+      const t = docSnap.data();
+      const entry = document.createElement("div");
+      entry.className = "tx";
+
+      entry.innerHTML = `
+        <strong>${t.type.toUpperCase()}</strong> — GHC ${t.amount}<br>
+        <span class="small">${new Date(t.timestamp.toMillis()).toLocaleString()}</span><br>
+        <span class="small">${t.note || ""}</span>
+      `;
+
+      txListEl.appendChild(entry);
+    });
+  }
+
+  // ✅ Process fake top-up (for beta)
+  async function processTopUp(amount) {
+    const snap = await getDoc(WALLET_DOC);
+    let current = snap.exists() ? snap.data().balance : 0;
+
+    const newBalance = current + Number(amount);
+
+    // update global wallet
+    await updateDoc(WALLET_DOC, { balance: newBalance });
+
+    // add transaction
+    await addDoc(TX_COLL, {
+      type: "topup",
+      amount: Number(amount),
+      timestamp: new Date(),
+      note: "Beta test top-up"
+    });
+
+    await refreshBalance();
+    await loadTransactions();
+
+    alert(`✅ Top-up successful! New balance: GHC ${newBalance}`);
+  }
+
+  // ✅ Wire top-up buttons
+  document.querySelectorAll(".topup").forEach(btn => {
+    btn.addEventListener("click", async () => {
+      const amt = Number(btn.dataset.amount);
+      if (!amt) return;
+
+      if (!confirm(`Confirm top-up of GHC ${amt}?`)) return;
+
+      try {
+        await ensureWalletExists();
+        await processTopUp(amt);
+      } catch (err) {
+        console.error(err);
+        alert("❌ Error during top-up. Check console.");
+      }
+    });
+  });
+
+  // ✅ Initialize page
+  (async () => {
+    try {
+      await ensureWalletExists();
+      await refreshBalance();
+      await loadTransactions();
+    } catch (err) {
+      console.error(err);
+      balanceEl.textContent = "Error";
+      txListEl.textContent = "Error loading transactions.";
+    }
+  })();
+
+</script>
 
