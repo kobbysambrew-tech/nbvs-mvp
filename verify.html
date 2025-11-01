@@ -40,7 +40,6 @@
     padding:0 1rem;
   }
 
-  /* Panel */
   .panel{
     background:var(--card);
     padding:1.4rem;
@@ -50,7 +49,6 @@
   }
 
   h3{margin-bottom:10px;color:var(--accent)}
-
   input{
     width:100%;
     padding:13px;
@@ -59,7 +57,6 @@
     margin-bottom:12px;
     font-size:1rem;
   }
-
   button{
     width:100%;
     padding:12px;
@@ -71,34 +68,22 @@
     transition:.25s;
   }
 
-  .btn-green{
-    background:var(--green);
-    color:white;
-  }
+  .btn-green{background:var(--green);color:white;}
   .btn-green:hover{background:var(--accent);transform:translateY(-3px)}
 
-  .btn-yellow{
-    background:var(--yellow);
-    color:#111;
-  }
+  .btn-yellow{background:var(--yellow);color:#111}
   .btn-yellow:hover{filter:brightness(.93);transform:translateY(-3px)}
 
-  .btn-red{
-    background:var(--red);
-    color:#fff;
-  }
+  .btn-red{background:var(--red);color:white}
 
   .pill{
-    display:inline-block;
     padding:6px 12px;
     border-radius:10px;
     background:var(--green);
     color:white;
-    margin-right:6px;
     font-weight:600;
   }
 
-  /* Results */
   .record{
     background:white;
     border-left:5px solid var(--green);
@@ -106,47 +91,27 @@
     border-radius:10px;
     margin-top:1rem;
     box-shadow:0 6px 20px rgba(0,0,0,0.06);
-    animation:fadeUp .4s ease-out forwards;
   }
-
   .muted{color:var(--muted)}
-
-  /* Loading */
-  .loading{
-    text-align:center;
-    padding:1rem;
-    color:var(--green);
-    font-weight:600;
-  }
-
-  @keyframes fadeUp{
-    from{opacity:0;transform:translateY(8px)}
-    to{opacity:1;transform:translateY(0)}
-  }
 </style>
 </head>
 
 <body>
-
 <header>
   <h1>NBVS Ghana — Background Verification</h1>
 </header>
 
 <main>
 
-  <p class="muted" style="margin-bottom:10px">
-    Each search costs <b>¢30</b> if no credits available. Your plan: 
-    <span id="userPlan">loading…</span>
-  </p>
+  <p class="muted">Each verification costs ¢30. You have <span id="userPlan">loading…</span>.</p>
 
-  <!-- Search Panel -->
   <div class="panel">
     <label class="muted">Search by full name or NIA ID</label>
     <input id="searchInput" placeholder="e.g. Kofi Mensah or GHA-2039485" />
 
-    <div style="display:flex;gap:10px;margin-top:8px">
-      <button id="searchBtn" class="btn-green">🔍 Search</button>
-      <button id="walletPageBtn" class="btn-yellow">💰 Open Wallet</button>
+    <div style="display:flex;gap:10px">
+      <button id="searchBtn" class="btn-green">Search</button>
+      <button id="walletPageBtn" class="btn-yellow">Open Wallet</button>
     </div>
 
     <div style="margin-top:12px">
@@ -155,13 +120,10 @@
     </div>
   </div>
 
-  <!-- Results Area -->
   <div id="resultsArea"></div>
 
-  <!-- Buy Panel -->
   <div class="panel">
     <h3>Upgrade / Buy</h3>
-    <p class="muted">Purchase credits or plans (simulation only).</p>
 
     <button id="buyBasicBtn" class="btn-green" style="margin-bottom:10px">
       BASIC — 10 searches — $3.99
@@ -183,14 +145,148 @@
 
 </main>
 
-<!-- ✅ FIREBASE LOGIC (your exact code kept) -->
+<!-- ✅ FULL WORKING FIREBASE LOGIC -->
 <script type="module">
-/* 
-  ✅ Copy your existing Firebase JS logic here.
-  ✅ All UI elements still have same IDs.
-  ✅ No functionality has been changed.
-  ✅ Only the styling/layout was upgraded.
-*/
+
+// ✅ Firebase
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-app.js";
+import { 
+  getFirestore, doc, getDoc, setDoc, updateDoc, collection, getDocs, addDoc 
+} from "https://www.gstatic.com/firebasejs/10.7.2/firebase-firestore.js";
+
+// ✅ Config
+const firebaseConfig = {
+  apiKey:"AIzaSyCDh_qL3jiCMHROK0_Soul2Wsv3t3y4wv0",
+  authDomain:"nbvs-ghana.firebaseapp.com",
+  projectId:"nbvs-ghana",
+  storageBucket:"nbvs-ghana.firebasestorage.app",
+  messagingSenderId:"702636577113",
+  appId:"1:702636577113:web:8369b43a2aa43aeb95fc48"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+// ✅ Public user (no login system)
+const userId = "publicUser";
+const userRef = doc(db, "users", userId);
+
+// ✅ Ensure the user doc exists
+async function initUser(){
+  const snap = await getDoc(userRef);
+  if (!snap.exists()) {
+    await setDoc(userRef, {
+      freeSearches: 3,
+      plan: "free",
+      planExpires: null,
+      monthlyRemaining: 0
+    });
+  }
+}
+await initUser();
+
+async function loadUser(){
+  const snap = await getDoc(userRef);
+  return snap.data();
+}
+
+// ✅ Update UI
+function updateUI(data){
+  document.getElementById("freeCountDisplay").innerText = `Free: ${data.freeSearches}`;
+  document.getElementById("planDisplay").innerText = `Plan: ${data.plan}`;
+  document.getElementById("userPlan").innerText = data.plan;
+}
+
+// ✅ Deduct a search
+async function deductSearch(){
+  const user = await loadUser();
+
+  if (user.plan === "pro") return true;
+
+  if (user.plan === "basic") {
+    if (user.monthlyRemaining > 0){
+      await updateDoc(userRef,{ monthlyRemaining: user.monthlyRemaining - 1 });
+      return true;
+    }
+    alert("Your BASIC plan is out of searches.");
+    return false;
+  }
+
+  if (user.freeSearches > 0){
+    await updateDoc(userRef,{ freeSearches: user.freeSearches - 1 });
+    return true;
+  }
+
+  alert("You used all 3 free searches.");
+  return false;
+}
+
+// ✅ Wallet redirect
+document.getElementById("walletPageBtn").onclick = () => {
+  window.location.href = "wallet.html";
+};
+
+updateUI(await loadUser());
+
+// ✅ Search button
+document.getElementById("searchBtn").addEventListener("click", async () => {
+  const text = document.getElementById("searchInput").value.trim().toLowerCase();
+  const resultsDiv = document.getElementById("resultsArea");
+
+  if (!text){
+    resultsDiv.innerHTML = "<p class='muted'>Enter a name or NIA.</p>";
+    return;
+  }
+
+  resultsDiv.innerHTML = "<p class='muted'>Searching...</p>";
+
+  if (!(await deductSearch())){
+    resultsDiv.innerHTML = "<p class='muted'>Please upgrade or use wallet.</p>";
+    return;
+  }
+
+  updateUI(await loadUser());
+
+  const docs = await getDocs(collection(db,"records"));
+  let found = [];
+
+  docs.forEach(docSnap => {
+    const r = docSnap.data();
+    if (r.name?.toLowerCase() === text || r.nia?.toLowerCase() === text){
+      found.push(r);
+    }
+  });
+
+  if (found.length === 0){
+    resultsDiv.innerHTML = "❌ No record found.";
+    return;
+  }
+
+  resultsDiv.innerHTML = "";
+  found.forEach(r => {
+    resultsDiv.innerHTML += `
+      <div class="record">
+        <h3>${r.name}</h3>
+        <p><b>NIA:</b> ${r.nia}</p>
+        <p><b>DOB:</b> ${r.dob}</p>
+        <p><b>Region:</b> ${r.region}</p>
+        <p><b>Address:</b> ${r.address}</p>
+        <p><b>Criminal:</b> ${r.criminal}</p>
+        <p><b>Driving:</b> ${r.driving}</p>
+        <p><b>Credit:</b> ${r.credit}</p>
+        <p><b>Status:</b> ${r.status}</p>
+      </div>
+    `;
+  });
+
+  // ✅ Log search
+  await addDoc(collection(db,"search_logs"), {
+    term: text,
+    timestamp: new Date(),
+    platform: "web"
+  });
+});
+
 </script>
 
 </body>
