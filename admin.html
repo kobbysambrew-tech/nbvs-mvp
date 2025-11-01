@@ -721,6 +721,122 @@ loadPage("first");
 
 </script>
 
+<!-- ============================
+     ANALYTICS SECTION (Insert at bottom)
+     ============================ -->
+
+<div class="panel" style="margin-top:25px">
+  <h3>Search Analytics</h3>
+  <p class="muted small-muted">Search history from the Verify page.</p>
+
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px">
+    <div>
+      <b>Total Searches:</b> <span id="analyticsTotal">0</span>
+    </div>
+
+    <div class="flex" style="gap:10px">
+      <button id="analyticsPrev" class="secondary">← Prev</button>
+      <button id="analyticsNext" class="secondary">Next →</button>
+    </div>
+  </div>
+
+  <table style="margin-top:14px">
+    <thead>
+      <tr>
+        <th>Search Term</th>
+        <th>Timestamp</th>
+        <th>Platform</th>
+      </tr>
+    </thead>
+    <tbody id="analyticsTable"></tbody>
+  </table>
+</div>
+
+<script type="module">
+import {
+  collection, getDocs, query, orderBy, limit, startAfter
+} from "https://www.gstatic.com/firebasejs/10.7.2/firebase-firestore.js";
+
+/* ============================
+   ANALYTICS LOGIC
+   ============================ */
+
+const logsRef = collection(db, "search_logs");
+const ANALYTICS_PAGE_SIZE = 10;
+
+let analyticsLastVisible = null;
+let analyticsData = [];
+
+/* ============================
+   Load analytics (first page)
+   ============================ */
+async function loadAnalytics(first = true) {
+  let q = query(logsRef, orderBy("timestamp","desc"), limit(ANALYTICS_PAGE_SIZE));
+
+  if (!first && analyticsLastVisible) {
+    q = query(logsRef, orderBy("timestamp","desc"), startAfter(analyticsLastVisible), limit(ANALYTICS_PAGE_SIZE));
+  }
+
+  const snap = await getDocs(q);
+
+  if (!snap.empty) {
+    analyticsLastVisible = snap.docs[snap.docs.length - 1];
+  }
+
+  analyticsData = snap.docs.map(doc => doc.data());
+
+  renderAnalytics();
+}
+
+/* ============================
+   Render analytics table
+   ============================ */
+function renderAnalytics() {
+  const table = document.getElementById("analyticsTable");
+  const totalEl = document.getElementById("analyticsTotal");
+
+  table.innerHTML = "";
+
+  analyticsData.forEach(row => {
+    const ts = row.timestamp?.toDate
+      ? row.timestamp.toDate().toLocaleString()
+      : new Date(row.timestamp).toLocaleString();
+
+    table.innerHTML += `
+      <tr>
+        <td>${row.term}</td>
+        <td>${ts}</td>
+        <td>${row.platform}</td>
+      </tr>
+    `;
+  });
+
+  // ✅ Count total logs
+  totalEl.textContent = Number(totalEl.textContent) + analyticsData.length;
+}
+
+/* ============================
+   Prev/Next buttons
+   ============================ */
+document.getElementById("analyticsNext").addEventListener("click", () => {
+  loadAnalytics(false);
+});
+
+document.getElementById("analyticsPrev").addEventListener("click", async () => {
+  // reload from beginning
+  analyticsLastVisible = null;
+  document.getElementById("analyticsTotal").textContent = 0;
+  loadAnalytics(true);
+});
+
+/* ============================
+   INITIAL LOAD
+   ============================ */
+loadAnalytics(true);
+
+</script>
+
 </body>
 </html>
+
 
