@@ -82,135 +82,160 @@
 
   <p><a href="verify.html">← Back to Verify</a></p>
 <script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-app.js";
-  import {
-    getFirestore, doc, getDoc, setDoc, updateDoc,
-    collection, addDoc, getDocs, query, orderBy, limit
-  } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-firestore.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-app.js";
+import { 
+  getFirestore, doc, getDoc, setDoc, updateDoc, 
+  collection, getDocs, addDoc 
+} from "https://www.gstatic.com/firebasejs/10.7.2/firebase-firestore.js";
 
-  // ✅ Firebase configuration
-  const firebaseConfig = {
-    apiKey: "AIzaSyCDh_qL3jiCMHROK0_Soul2Wsv3t3y4wv0",
-    authDomain: "nbvs-ghana.firebaseapp.com",
-    projectId: "nbvs-ghana",
-    storageBucket: "nbvs-ghana.firebasestorage.app",
-    messagingSenderId: "702636577113",
-    appId: "1:702636577113:web:8369b43a2aa43aeb95fc48",
-    measurementId: "G-2FHFSQRMZX"
+// ✅ Firebase config
+const firebaseConfig = {
+  apiKey: "AIzaSyCDh_qL3jiCMHROK0_Soul2Wsv3t3y4wv0",
+  authDomain: "nbvs-ghana.firebaseapp.com",
+  projectId: "nbvs-ghana",
+  storageBucket: "nbvs-ghana.firebasestorage.app",
+  messagingSenderId: "702636577113",
+  appId: "1:702636577113:web:8369b43a2aa43aeb95fc48",
+  measurementId: "G-2FHFSQRMZX"
+};
+
+// ✅ Init
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+// ✅ Users
+const userId = "publicUser";
+
+// ✅ Stats docs
+const statsDoc = doc(db, "stats", "global");
+const searchLogs = collection(db, "search_logs");
+
+// ✅ Wallet
+const WALLET_DOC = doc(db, "wallet", "global");
+
+// ✅ UI elements
+const searchBtn = document.getElementById("searchBtn");
+const searchInput = document.getElementById("searchInput");
+const resultsDiv = document.getElementById("results");
+
+// ✅ Subscription Elements
+const freeDisplay = document.querySelector("#freeCount");
+const planDisplay = document.querySelector("#planDisplay");
+
+// ✅ Local user storage
+function getUser() {
+  return {
+    freeSearches: parseInt(localStorage.getItem("freeSearches") || "3"),
+    plan: localStorage.getItem("plan") || "FREE",
+    planExpires: localStorage.getItem("planExpires") || null
   };
+}
 
-  const app = initializeApp(firebaseConfig);
-  const db = getFirestore(app);
+function saveUser(data) {
+  localStorage.setItem("freeSearches", data.freeSearches);
+  localStorage.setItem("plan", data.plan);
+  if (data.planExpires) localStorage.setItem("planExpires", data.planExpires);
+}
 
-  // ✅ Wallet references
-  const WALLET_DOC = doc(db, "wallet", "global");
-  const TX_COLL = collection(db, "walletTransactions");
+function updateUI() {
+  const u = getUser();
+  freeDisplay.textContent = u.freeSearches;
+  planDisplay.textContent = u.plan;
+}
 
-  const balanceEl = document.getElementById("balance");
-  const txListEl = document.getElementById("txList");
+updateUI();
 
-  // ✅ Make sure wallet exists
-  async function ensureWalletExists() {
-    const snap = await getDoc(WALLET_DOC);
-    if (!snap.exists()) {
-      await setDoc(WALLET_DOC, { balance: 0 });
-      return 0;
-    }
-    return snap.data().balance || 0;
+// ✅ Wallet top-up (used later)
+async function deductWallet(amount) {
+  const snap = await getDoc(WALLET_DOC);
+  let bal = snap.exists() ? snap.data().balance : 0;
+  if (bal < amount) return false;
+
+  await updateDoc(WALLET_DOC, { balance: bal - amount });
+  return true;
+}
+
+// ✅ MAIN SEARCH FUNCTION
+async function runSearch() {
+  const query = searchInput.value.trim().toLowerCase();
+  if (!query) {
+    resultsDiv.innerHTML = `<p style="color:#c00;">Enter a valid name or NIA ID.</p>`;
+    return;
   }
 
-  // ✅ Load wallet balance
-  async function refreshBalance() {
-    const snap = await getDoc(WALLET_DOC);
-    const bal = snap.exists() ? snap.data().balance : 0;
-    balanceEl.textContent = `GHC ${bal}`;
-    return bal;
-  }
-  // ✅ Load last 20 transactions
-  async function loadTransactions() {
-    txListEl.innerHTML = "Loading…";
+  const user = getUser();
 
-    const q = query(TX_COLL, orderBy("timestamp", "desc"), limit(20));
-    const snaps = await getDocs(q);
-
-    txListEl.innerHTML = "";
-
-    if (snaps.empty) {
-      txListEl.innerHTML = "<p class='small'>No transactions yet.</p>";
+  // ✅ PRO = unlimited
+  if (user.plan !== "PRO") {
+    if (user.freeSearches <= 0) {
+      resultsDiv.innerHTML = `
+        <div style="text-align:center;padding:20px;">
+          <h3>⚠️ You have no searches left</h3>
+          <p>Upgrade or use wallet credits.</p>
+        </div>`;
       return;
     }
 
-    snaps.forEach(docSnap => {
-      const t = docSnap.data();
-      const entry = document.createElement("div");
-      entry.className = "tx";
-
-      entry.innerHTML = `
-        <strong>${t.type.toUpperCase()}</strong> — GHC ${t.amount}<br>
-        <span class="small">${new Date(t.timestamp).toLocaleString()
-}</span><br>
-        <span class="small">${t.note || ""}</span>
-      `;
-
-      txListEl.appendChild(entry);
-    });
+    user.freeSearches -= 1;
+    saveUser(user);
+    updateUI();
   }
 
-  // ✅ Process fake top-up (for beta)
-  async function processTopUp(amount) {
-    const snap = await getDoc(WALLET_DOC);
-    let current = snap.exists() ? snap.data().balance : 0;
+  resultsDiv.innerHTML = "Searching…";
 
-    const newBalance = current + Number(amount);
+  // ✅ FIRESTORE QUERY
+  const docs = await getDocs(collection(db, "records"));
+  let matches = [];
 
-    // update global wallet
-    await updateDoc(WALLET_DOC, { balance: newBalance });
-
-    // add transaction
-    await addDoc(TX_COLL, {
-      type: "topup",
-      amount: Number(amount),
-      timestamp: new Date(),
-      note: "Beta test top-up"
-    });
-
-    await refreshBalance();
-    await loadTransactions();
-
-    alert(`✅ Top-up successful! New balance: GHC ${newBalance}`);
-  }
-
-  // ✅ Wire top-up buttons
-  document.querySelectorAll(".topup").forEach(btn => {
-    btn.addEventListener("click", async () => {
-      const amt = Number(btn.dataset.amount);
-      if (!amt) return;
-
-      if (!confirm(`Confirm top-up of GHC ${amt}?`)) return;
-
-      try {
-        await ensureWalletExists();
-        await processTopUp(amt);
-      } catch (err) {
-        console.error(err);
-        alert("❌ Error during top-up. Check console.");
-      }
-    });
+  docs.forEach(doc => {
+    const r = doc.data();
+    if (r.name?.toLowerCase() === query || r.nia?.toLowerCase() === query) {
+      matches.push(r);
+    }
   });
 
-  // ✅ Initialize page
-  (async () => {
-    try {
-      await ensureWalletExists();
-      await refreshBalance();
-      await loadTransactions();
-    } catch (err) {
-      console.error(err);
-      balanceEl.textContent = "Error";
-      txListEl.textContent = "Error loading transactions.";
-    }
-  })();
+  // ✅ Log search
+  await addDoc(searchLogs, {
+    term: query,
+    timestamp: new Date(),
+    platform: "verify"
+  });
 
+  // ✅ Update global search count
+  await updateDoc(statsDoc, {
+    totalSearches: (await getDoc(statsDoc)).data().totalSearches + 1
+  });
+
+  if (matches.length === 0) {
+    resultsDiv.innerHTML = `<p style="color:#c00;">❌ No record found.</p>`;
+    return;
+  }
+
+  resultsDiv.innerHTML = "";
+  matches.forEach(r => {
+    resultsDiv.innerHTML += `
+      <div class="record">
+        <h3>${r.name} — <span>${r.status}</span></h3>
+        <p><b>NIA:</b> ${r.nia}</p>
+        <p><b>DoB:</b> ${r.dob}</p>
+        <p><b>Region:</b> ${r.region}</p>
+        <p><b>Criminal:</b> ${r.criminal}</p>
+        <p><b>Driving:</b> ${r.driving}</p>
+        <p><b>Address:</b> ${r.address}</p>
+        <p><b>Credit:</b> ${r.credit}</p>
+      </div>`;
+  });
+}
+
+// ✅ Connect button
+searchBtn.addEventListener("click", runSearch);
+
+// ✅ Open wallet
+document.getElementById("openWallet").addEventListener("click", () => {
+  window.location.href = "wallet.html";
+});
 </script>
+
+  
 </body>
 </html>
