@@ -1,3 +1,7 @@
+<!-- ============================
+  admin.html — SECTION 1 of 3
+  Paste sections 1, 2, 3 in order into a single admin.html
+  ============================ -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -6,92 +10,218 @@
   <title>NBVS Admin Dashboard</title>
 
   <style>
-    body{font-family:"Segoe UI",Arial,sans-serif;background:#f8f9fa;margin:0;padding:20px}
-    h1{color:#006b3f;text-align:center;margin-bottom:20px}
-    .panel{background:#fff;padding:20px;border-radius:10px;box-shadow:0 3px 8px rgba(0,0,0,0.08);max-width:900px;margin:0 auto 20px}
-    input,select{width:100%;padding:10px;margin:6px 0;border-radius:6px;border:1px solid #ccc}
-    button{padding:10px 16px;border:none;border-radius:7px;cursor:pointer;background:#006b3f;color:#fff;margin-top:10px}
-    .btn-red{background:#ce1126}
-    .btn-yellow{background:#fcd116;color:#111}
-    table{width:100%;border-collapse:collapse;margin-top:20px}
-    th,td{padding:12px;border-bottom:1px solid #ddd;text-align:left}
-    th{background:#006b3f;color:#fff}
+    :root{
+      --green:#006b3f;
+      --yellow:#fcd116;
+      --red:#ce1126;
+      --bg:#f8f9fa;
+      --card:#ffffff;
+      --muted:#666;
+      --maxw:1100px;
+    }
+    body{font-family:"Segoe UI",Arial,sans-serif;background:var(--bg);margin:0;padding:20px;display:flex;justify-content:center}
+    .container{max-width:var(--maxw);width:100%}
+    h1{color:var(--green);text-align:center;margin-bottom:18px}
+    .row{display:flex;gap:16px;flex-wrap:wrap}
+    .panel{background:var(--card);padding:18px;border-radius:10px;box-shadow:0 3px 8px rgba(0,0,0,0.06);margin-bottom:16px}
+    .panel.small{padding:12px}
+    input,select,textarea{width:100%;padding:10px;border-radius:6px;border:1px solid #ddd;margin-top:8px;box-sizing:border-box}
+    label{font-weight:600;margin-top:6px;display:block}
+    button{padding:10px 14px;border:none;border-radius:8px;background:var(--green);color:#fff;cursor:pointer}
+    button.secondary{background:#f4f4f4;color:#111;border:1px solid #ddd}
+    .btn-red{background:var(--red)}
+    .btn-yellow{background:var(--yellow);color:#111}
+    table{width:100%;border-collapse:collapse;margin-top:12px}
+    th,td{padding:10px;border-bottom:1px solid #eee;text-align:left}
+    th{background:var(--green);color:#fff;position:sticky;top:0}
     .actions button{margin-right:6px}
-
-    .pagination{display:flex;gap:10px;margin-top:15px;justify-content:center}
-    .pagination button{width:140px}
-    #pageInfo{text-align:center;margin-top:10px;color:#333;font-weight:600}
+    .controls{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+    .controls > *{min-width:130px}
+    .muted{color:var(--muted);font-size:0.95rem}
+    .pagination{display:flex;gap:8px;justify-content:center;margin-top:12px}
+    .modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,0.45);display:none;align-items:center;justify-content:center}
+    .modal{background:#fff;padding:18px;border-radius:10px;max-width:720px;width:100%;box-shadow:0 10px 30px rgba(0,0,0,0.2)}
+    .flex{display:flex;gap:12px;align-items:center}
+    .checkbox-col{width:40px;text-align:center}
+    .small-muted{font-size:0.9rem;color:#666}
+    .topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+    .search-input{width:350px;max-width:100%}
+    .download-btn{background:#0b66c3}
+    .multi-actions{display:flex;gap:8px}
+    /* responsive */
+    @media (max-width:880px){
+      .row{flex-direction:column}
+      .controls{flex-direction:column;align-items:stretch}
+    }
   </style>
 </head>
 
 <body>
+  <div class="container">
+    <h1>NBVS Admin Dashboard</h1>
 
-<h1>NBVS Admin Dashboard</h1>
+    <!-- BULK IMPORT -->
+    <div class="panel">
+      <h3 style="margin:0 0 8px 0">Bulk Import (CSV)</h3>
+      <p class="muted small-muted" style="margin:0 0 8px 0">
+        CSV columns (in this exact order): <code>name,nia,dob,region,address,criminal,driving,credit,status</code>
+      </p>
+      <div class="row">
+        <input type="file" id="csvFile" accept=".csv" />
+        <div style="min-width:200px">
+          <button id="importBtn">Import CSV</button>
+          <button id="clearImportBtn" class="secondary" style="margin-left:8px">Clear file</button>
+        </div>
+      </div>
+      <p id="importStatus" class="small-muted" style="margin-top:8px"></p>
+    </div>
 
-<!-- ✅ Bulk Upload Panel -->
-<div class="panel">
-  <h2>Bulk Import (CSV)</h2>
-  <p style="color:#444;font-size:0.9rem">Your CSV must include: <b>name, nia, dob, region, address, criminal, driving, credit, status</b></p>
-  <input type="file" id="csvFile" accept=".csv" />
-  <button id="importBtn">Import CSV</button>
-  <p id="importStatus" style="margin-top:10px;color:#006b3f;font-weight:600"></p>
-</div>
+    <!-- ADD RECORD + FILTERS -->
+    <div class="panel">
+      <div class="topbar">
+        <div style="flex:1">
+          <h3 style="margin:0 0 8px 0">Add New Record</h3>
+          <p class="muted small-muted" style="margin:0">Add single record — instantly available to Verify page</p>
+        </div>
 
-<!-- ✅ Add Record Panel -->
-<div class="panel">
-  <h2>Add New Record</h2>
+        <div style="display:flex;gap:8px;align-items:center">
+          <input id="globalSearch" class="search-input" placeholder="Search name or NIA..." />
+          <select id="filterSelect">
+            <option value="ALL">All</option>
+            <option value="Verified">Verified</option>
+            <option value="Flagged">Flagged</option>
+            <option value="Warning">Warning</option>
+          </select>
+          <button id="downloadCsvBtn" class="download-btn">Download CSV</button>
+        </div>
+      </div>
 
-  <input id="nameInput" placeholder="Full Name" />
-  <input id="niaInput" placeholder="NIA ID (GHA-xxxxxxx)" />
-  <input id="dobInput" placeholder="Date of Birth" />
-  <input id="regionInput" placeholder="Region" />
-  <input id="addressInput" placeholder="Address" />
-  <input id="criminalInput" placeholder="Criminal Record" />
-  <input id="drivingInput" placeholder="Driving Record" />
-  <input id="creditInput" placeholder="Credit Score / Notes" />
-  <select id="statusInput">
-    <option value="Verified">Verified</option>
-    <option value="Flagged">Flagged</option>
-    <option value="Warning">Warning</option>
-  </select>
+      <div class="row">
+        <div style="flex:1;min-width:260px">
+          <label for="nameInput">Full name</label>
+          <input id="nameInput" placeholder="Full Name" />
+          <label for="niaInput">NIA ID</label>
+          <input id="niaInput" placeholder="GHA-12345" />
+          <label for="dobInput">DOB</label>
+          <input id="dobInput" placeholder="YYYY-MM-DD" />
+          <label for="regionInput">Region</label>
+          <input id="regionInput" placeholder="Region" />
+        </div>
 
-  <button id="addBtn">Add Record</button>
-</div>
+        <div style="flex:1;min-width:260px">
+          <label for="addressInput">Address</label>
+          <input id="addressInput" placeholder="Address" />
+          <label for="criminalInput">Criminal record</label>
+          <input id="criminalInput" placeholder="e.g. None / Minor details" />
+          <label for="drivingInput">Driving record</label>
+          <input id="drivingInput" placeholder="e.g. Clean / Suspended" />
+          <label for="creditInput">Credit / Notes</label>
+          <input id="creditInput" placeholder="Credit notes" />
+          <label for="statusInput">Status</label>
+          <select id="statusInput">
+            <option value="Verified">Verified</option>
+            <option value="Flagged">Flagged</option>
+            <option value="Warning">Warning</option>
+          </select>
+          <div style="margin-top:10px">
+            <button id="addBtn">Add Record</button>
+          </div>
+        </div>
+      </div>
+    </div>
 
-<!-- ✅ Table of Records -->
-<div class="panel">
-  <h2>All Records</h2>
+    <!-- TABLE + CONTROLS -->
+    <div class="panel">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div class="controls">
+          <div class="flex">
+            <input type="checkbox" id="selectAll" />
+            <label for="selectAll" style="margin-left:6px">Select all on page</label>
+          </div>
+          <div class="multi-actions">
+            <button id="multiDeleteBtn" class="btn-red">Delete Selected</button>
+            <button id="exportSelectedBtn" class="btn-yellow">Export Selected</button>
+          </div>
+        </div>
 
-  <table>
-    <thead>
-      <tr>
-        <th>Name</th>
-        <th>NIA</th>
-        <th>Status</th>
-        <th>Actions</th>
-      </tr>
-    </thead>
-    <tbody id="recordsTable"></tbody>
-  </table>
+        <div class="muted small-muted" id="pageInfo">Page 1</div>
+      </div>
 
-  <div class="pagination">
-    <button id="prevPageBtn">← Previous</button>
-    <button id="nextPageBtn">Next →</button>
-  </div>
+      <table>
+        <thead>
+          <tr>
+            <th class="checkbox-col"></th>
+            <th>Name</th>
+            <th>NIA</th>
+            <th>Region</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="recordsTable"></tbody>
+      </table>
 
-  <div id="pageInfo">Page 1</div>
-</div>
+      <div class="pagination">
+        <button id="prevPageBtn" class="secondary">← Previous</button>
+        <button id="nextPageBtn" class="secondary">Next →</button>
+      </div>
+    </div>
 
-<!-- ✅ Firebase Scripts -->
+    <!-- FULL-EDIT MODAL (hidden by default) -->
+    <div id="modalBackdrop" class="modal-backdrop">
+      <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+        <h3 id="modalTitle">Edit Record</h3>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <div>
+            <label>Full name</label>
+            <input id="modal_name" />
+            <label>NIA</label>
+            <input id="modal_nia" />
+            <label>DOB</label>
+            <input id="modal_dob" />
+            <label>Region</label>
+            <input id="modal_region" />
+          </div>
+          <div>
+            <label>Address</label>
+            <input id="modal_address" />
+            <label>Criminal</label>
+            <input id="modal_criminal" />
+            <label>Driving</label>
+            <input id="modal_driving" />
+            <label>Credit</label>
+            <input id="modal_credit" />
+            <label>Status</label>
+            <select id="modal_status">
+              <option value="Verified">Verified</option>
+              <option value="Flagged">Flagged</option>
+              <option value="Warning">Warning</option>
+            </select>
+          </div>
+        </div>
+
+        <div style="margin-top:12px;display:flex;justify-content:flex-end;gap:8px">
+          <button id="modalCancel" class="secondary">Cancel</button>
+          <button id="modalSave">Save changes</button>
+        </div>
+      </div>
+    </div>
+
+  <!-- ============================
+      SCRIPT START (SECTION 1 of 3)
+      — imports, firebase init, core refs & helpers
+      ============================ -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-app.js";
-import { 
-  getFirestore, collection, addDoc, getDocs,
-  doc, deleteDoc, updateDoc, query, orderBy, limit,
-  startAfter, startAt
+import {
+  getFirestore, collection, doc, addDoc, getDocs, getDoc,
+  updateDoc, deleteDoc, query, orderBy, limit, startAfter, startAt, where
 } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-firestore.js";
 
-/* ✅ Firebase Init */
+/* ============================
+   FIREBASE CONFIG — keep your project's keys
+   (This matches your other pages)
+   ============================ */
 const firebaseConfig = {
   apiKey:"AIzaSyCDh_qL3jiCMHROK0_Soul2Wsv3t3y4wv0",
   authDomain:"nbvs-ghana.firebaseapp.com",
@@ -104,95 +234,404 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
+/* ============================
+   REFERENCES & STATE
+   ============================ */
 const recordsRef = collection(db, "records");
-
-/* ✅ PAGINATION VARIABLES */
 const PAGE_SIZE = 10;
 let lastVisible = null;
 let firstVisible = null;
 let currentPage = 1;
+let currentSnapshot = []; // will hold current page's docs (docSnapshots)
+let selectedIds = new Set();
+let activeFilter = "ALL";
+let activeSearch = "";
 
-/* ✅ LOAD PAGE */
-async function loadPage(direction = "first") {
+/* ============================
+   DOM SHORTCUTS
+   ============================ */
+const recordsTable = document.getElementById("recordsTable");
+const prevPageBtn = document.getElementById("prevPageBtn");
+const nextPageBtn = document.getElementById("nextPageBtn");
+const pageInfo = document.getElementById("pageInfo");
+const filterSelect = document.getElementById("filterSelect");
+const globalSearch = document.getElementById("globalSearch");
+const selectAllCheckbox = document.getElementById("selectAll");
+const importStatus = document.getElementById("importStatus");
+const csvFileInput = document.getElementById("csvFile");
+const downloadCsvBtn = document.getElementById("downloadCsvBtn");
+const multiDeleteBtn = document.getElementById("multiDeleteBtn");
+const exportSelectedBtn = document.getElementById("exportSelectedBtn");
 
-  let q;
+/* ============================
+   SMALL UTIL HELPERS
+   ============================ */
+function toCSVRow(arr){
+  return arr.map(v => `"${String(v ?? "").replace(/"/g,'""')}"`).join(",");
+}
+function downloadFilename(name){
+  const d = new Date().toISOString().replace(/[:.]/g,"-");
+  return `${name}-${d}.csv`;
+}
 
+/* ============================
+   CSV PARSING (simple, robust enough for our CSV format)
+   - returns array of arrays (rows)
+   - assumes first row = headers
+   ============================ */
+function parseCSV(text){
+  const lines = text.split(/\r?\n/).map(l => l.trim()).filter(l => l.length);
+  const rows = lines.map(line => {
+    // split on commas but allow quoted values
+    const regex = /,(?=(?:[^"]*"[^"]*")*[^"]*$)/;
+    const parts = line.split(regex).map(p => p.replace(/^"|"$/g,"").trim());
+    return parts;
+  });
+  return rows;
+}
+
+/* ============================
+   Render helpers will be completed in SECTION 2
+   (keeps this section safe from broken cuts)
+   ============================ */
+
+</script>
+<!-- END OF SECTION 1 --><!-- ============================
+  admin.html — SECTION 2 of 3
+  Paste this immediately after Section 1
+  ============================ -->
+
+<script type="module">
+
+/* ============================
+   BUILD QUERY BASED ON FILTER + SEARCH
+   ============================ */
+function buildQuery(direction="first") {
+  let q = query(recordsRef, orderBy("name"), limit(PAGE_SIZE));
+
+  // ✅ FILTER
+  if (activeFilter !== "ALL") {
+    q = query(recordsRef,
+      where("status", "==", activeFilter),
+      orderBy("name"),
+      limit(PAGE_SIZE)
+    );
+  }
+
+  // ✅ SEARCH
+  if (activeSearch.trim() !== "") {
+    // Search is done client-side after query (Firestore doesn't support OR queries well)
+    // We will filter results after fetch.
+  }
+
+  // ✅ PAGINATION
   if (direction === "next" && lastVisible) {
     q = query(recordsRef, orderBy("name"), startAfter(lastVisible), limit(PAGE_SIZE));
-    currentPage++;
   }
-  else if (direction === "prev" && firstVisible && currentPage > 1) {
+  if (direction === "prev" && firstVisible && currentPage > 1) {
     q = query(recordsRef, orderBy("name"), startAt(firstVisible), limit(PAGE_SIZE));
-    currentPage--;
-  }
-  else {
-    q = query(recordsRef, orderBy("name"), limit(PAGE_SIZE));
-    currentPage = 1;
   }
 
+  return q;
+}
+
+/* ============================
+   LOAD PAGE
+   ============================ */
+async function loadPage(direction="first") {
+  const q = buildQuery(direction);
   const snapshot = await getDocs(q);
+
+  // save snapshot for selection/editing
+  currentSnapshot = snapshot.docs;
 
   if (!snapshot.empty) {
     firstVisible = snapshot.docs[0];
     lastVisible = snapshot.docs[snapshot.docs.length - 1];
   }
 
-  renderTable(snapshot);
-  document.getElementById("pageInfo").textContent = "Page " + currentPage;
+  // client-side search filter
+  let docsToRender = currentSnapshot;
+
+  if (activeSearch.trim() !== "") {
+    const s = activeSearch.toLowerCase();
+    docsToRender = currentSnapshot.filter(docSnap => {
+      const d = docSnap.data();
+      return (
+        d.name?.toLowerCase().includes(s) ||
+        d.nia?.toLowerCase().includes(s)
+      );
+    });
+  }
+
+  renderTable(docsToRender);
+
+  pageInfo.textContent = `Page ${currentPage}`;
 }
 
-/* ✅ RENDER TABLE */
-function renderTable(snapshot) {
-  const table = document.getElementById("recordsTable");
-  table.innerHTML = "";
+/* ============================
+   RENDER TABLE
+   ============================ */
+function renderTable(docs) {
+  recordsTable.innerHTML = "";
+  selectAllCheckbox.checked = false;
+  selectedIds.clear();
 
-  snapshot.forEach(docSnap => {
+  docs.forEach(docSnap => {
     const d = docSnap.data();
+    const id = docSnap.id;
 
-    table.innerHTML += `
+    recordsTable.innerHTML += `
       <tr>
+        <td class="checkbox-col">
+          <input type="checkbox" class="rowCheckbox" data-id="${id}">
+        </td>
         <td>${d.name}</td>
         <td>${d.nia}</td>
+        <td>${d.region}</td>
         <td>${d.status}</td>
         <td class="actions">
-          <button class="btn-yellow" onclick="editRecord('${docSnap.id}')">Edit</button>
-          <button class="btn-red" onclick="deleteRecord('${docSnap.id}')">Delete</button>
+          <button class="btn-yellow" onclick="openEditModal('${id}')">Edit</button>
+          <button class="btn-red" onclick="deleteRecord('${id}')">Delete</button>
         </td>
       </tr>
     `;
   });
+
+  // ✅ row checkbox listeners
+  document.querySelectorAll(".rowCheckbox").forEach(cb => {
+    cb.addEventListener("change", e => {
+      const id = e.target.dataset.id;
+      if (e.target.checked) selectedIds.add(id);
+      else selectedIds.delete(id);
+    });
+  });
 }
 
-/* ✅ BUTTON: Next Page */
-document.getElementById("nextPageBtn").addEventListener("click", () => {
+/* ============================
+   NEXT / PREVIOUS PAGE
+   ============================ */
+nextPageBtn.addEventListener("click", () => {
+  currentPage++;
   loadPage("next");
 });
 
-/* ✅ BUTTON: Previous Page */
-document.getElementById("prevPageBtn").addEventListener("click", () => {
-  loadPage("prev");
+prevPageBtn.addEventListener("click", () => {
+  if (currentPage > 1) {
+    currentPage--;
+    loadPage("prev");
+  }
 });
 
-/* ✅ ADD NEW RECORD */
-document.getElementById("addBtn").addEventListener("click", async () => {
-  let record = {
-    name: nameInput.value,
-    nia: niaInput.value,
-    dob: dobInput.value,
-    region: regionInput.value,
-    address: addressInput.value,
-    criminal: criminalInput.value,
-    driving: drivingInput.value,
-    credit: creditInput.value,
-    status: statusInput.value
-  };
+/* ============================
+   SELECT ALL CHECKBOX
+   ============================ */
+selectAllCheckbox.addEventListener("change", () => {
+  const checkboxes = document.querySelectorAll(".rowCheckbox");
+  selectedIds.clear();
 
-  await addDoc(recordsRef, record);
-  alert("✅ Record added");
+  checkboxes.forEach(cb => {
+    cb.checked = selectAllCheckbox.checked;
+    if (cb.checked) selectedIds.add(cb.dataset.id);
+  });
+});
+
+/* ============================
+   FILTERS
+   ============================ */
+filterSelect.addEventListener("change", () => {
+  activeFilter = filterSelect.value;
+  currentPage = 1;
   loadPage("first");
 });
 
-/* ✅ DELETE RECORD */
+/* ============================
+   SEARCH
+   ============================ */
+globalSearch.addEventListener("input", () => {
+  activeSearch = globalSearch.value;
+  loadPage("first");
+});
+
+/* ============================
+   DOWNLOAD ALL RECORDS AS CSV
+   ============================ */
+downloadCsvBtn.addEventListener("click", async () => {
+  const all = await getDocs(recordsRef);
+  let out = [];
+
+  // header
+  out.push(toCSVRow(["name","nia","dob","region","address","criminal","driving","credit","status"]));
+
+  all.forEach(docSnap => {
+    const d = docSnap.data();
+    out.push(toCSVRow([
+      d.name,d.nia,d.dob,d.region,d.address,d.criminal,d.driving,d.credit,d.status
+    ]));
+  });
+
+  const blob = new Blob([out.join("\n")], { type:"text/csv" });
+  const url = URL.createObjectURL(blob);
+
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = downloadFilename("nbvs-records");
+  a.click();
+});
+
+/* ============================
+   EXPORT SELECTED ONLY
+   ============================ */
+exportSelectedBtn.addEventListener("click", async () => {
+  if (selectedIds.size === 0) {
+    alert("No rows selected.");
+    return;
+  }
+
+  let out = [];
+  out.push(toCSVRow(["name","nia","dob","region","address","criminal","driving","credit","status"]));
+
+  for (const id of selectedIds) {
+    const snap = await getDoc(doc(db,"records",id));
+    if (snap.exists()) {
+      const d = snap.data();
+      out.push(toCSVRow([
+        d.name,d.nia,d.dob,d.region,d.address,d.criminal,d.driving,d.credit,d.status
+      ]));
+    }
+  }
+
+  const blob = new Blob([out.join("\n")], { type:"text/csv" });
+  const url = URL.createObjectURL(blob);
+
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = downloadFilename("nbvs-selected");
+  a.click();
+});
+
+/* ============================
+   DELETE MULTIPLE
+   ============================ */
+multiDeleteBtn.addEventListener("click", async () => {
+  if (selectedIds.size === 0) {
+    alert("No rows selected.");
+    return;
+  }
+  if (!confirm(`Delete ${selectedIds.size} selected records?`)) return;
+
+  for (const id of selectedIds) {
+    await deleteDoc(doc(db,"records",id));
+  }
+
+  alert("✅ Deleted selected records");
+  loadPage("first");
+});
+
+</script>
+<!-- END OF SECTION 2 -->
+<!-- ============================
+  admin.html — SECTION 3 of 3
+  Paste this immediately after Section 2.
+  ============================ -->
+
+<script type="module">
+
+/* ============================
+   BULK IMPORT IMPLEMENTATION
+   ============================ */
+document.getElementById("importBtn").addEventListener("click", () => {
+  const file = csvFileInput.files[0];
+  if (!file) {
+    alert("Please select a CSV file first.");
+    return;
+  }
+
+  const reader = new FileReader();
+  reader.onload = async (e) => {
+    try {
+      importStatus.textContent = "Parsing CSV…";
+      const rows = parseCSV(e.target.result);
+
+      if (rows.length < 2) {
+        importStatus.textContent = "No rows to import.";
+        return;
+      }
+
+      // assume first row is headers — start at 1
+      let imported = 0;
+      for (let i = 1; i < rows.length; i++) {
+        const cols = rows[i];
+        // ignore short rows
+        if (cols.length < 9) continue;
+
+        const record = {
+          name: cols[0] || "",
+          nia: cols[1] || "",
+          dob: cols[2] || "",
+          region: cols[3] || "",
+          address: cols[4] || "",
+          criminal: cols[5] || "",
+          driving: cols[6] || "",
+          credit: cols[7] || "",
+          status: cols[8] || "Verified"
+        };
+
+        await addDoc(recordsRef, record);
+        imported++;
+        importStatus.textContent = `Imported ${imported} rows...`;
+      }
+
+      importStatus.textContent = `✅ Imported ${imported} records.`;
+      loadPage("first");
+    } catch (err) {
+      console.error(err);
+      importStatus.textContent = "Import failed. Check console for errors.";
+    }
+  };
+
+  reader.readAsText(file);
+});
+
+document.getElementById("clearImportBtn").addEventListener("click", () => {
+  csvFileInput.value = "";
+  importStatus.textContent = "";
+});
+
+/* ============================
+   ADD NEW RECORD BUTTON
+   ============================ */
+document.getElementById("addBtn").addEventListener("click", async () => {
+  const rec = {
+    name: document.getElementById("nameInput").value.trim(),
+    nia: document.getElementById("niaInput").value.trim(),
+    dob: document.getElementById("dobInput").value.trim(),
+    region: document.getElementById("regionInput").value.trim(),
+    address: document.getElementById("addressInput").value.trim(),
+    criminal: document.getElementById("criminalInput").value.trim(),
+    driving: document.getElementById("drivingInput").value.trim(),
+    credit: document.getElementById("creditInput").value.trim(),
+    status: document.getElementById("statusInput").value
+  };
+
+  if (!rec.name || !rec.nia) {
+    alert("Please provide at least Name and NIA.");
+    return;
+  }
+
+  await addDoc(recordsRef, rec);
+  alert("✅ Record added.");
+  // clear inputs
+  ["nameInput","niaInput","dobInput","regionInput","addressInput","criminalInput","drivingInput","creditInput"].forEach(id => {
+    document.getElementById(id).value = "";
+  });
+
+  loadPage("first");
+});
+
+/* ============================
+   SINGLE DELETE
+   ============================ */
 window.deleteRecord = async function(id) {
   if (!confirm("Delete this record?")) return;
   await deleteDoc(doc(db, "records", id));
@@ -200,66 +639,78 @@ window.deleteRecord = async function(id) {
   loadPage("first");
 };
 
-/* ✅ EDIT RECORD (only status for now) */
-window.editRecord = async function(id) {
-  const newStatus = prompt("Enter new status (Verified / Flagged / Warning):");
-  if (!newStatus) return;
+/* ============================
+   FULL-EDIT MODAL (open/save/close)
+   ============================ */
+const modalBackdrop = document.getElementById("modalBackdrop");
+const modal_name = document.getElementById("modal_name");
+const modal_nia = document.getElementById("modal_nia");
+const modal_dob = document.getElementById("modal_dob");
+const modal_region = document.getElementById("modal_region");
+const modal_address = document.getElementById("modal_address");
+const modal_criminal = document.getElementById("modal_criminal");
+const modal_driving = document.getElementById("modal_driving");
+const modal_credit = document.getElementById("modal_credit");
+const modal_status = document.getElementById("modal_status");
+const modalSave = document.getElementById("modalSave");
+const modalCancel = document.getElementById("modalCancel");
 
-  await updateDoc(doc(db, "records", id), { status: newStatus });
-  alert("✅ Record updated");
-  loadPage("first");
-};
+let editingId = null;
 
-/* ✅ BULK IMPORT CSV */
-document.getElementById("importBtn").addEventListener("click", () => {
-  const file = document.getElementById("csvFile").files[0];
-
-  if (!file) {
-    alert("Please select a CSV file first.");
+window.openEditModal = async function(id) {
+  editingId = id;
+  const snap = await getDoc(doc(db, "records", id));
+  if (!snap.exists()) {
+    alert("Record not found.");
     return;
   }
+  const d = snap.data();
+  modal_name.value = d.name || "";
+  modal_nia.value = d.nia || "";
+  modal_dob.value = d.dob || "";
+  modal_region.value = d.region || "";
+  modal_address.value = d.address || "";
+  modal_criminal.value = d.criminal || "";
+  modal_driving.value = d.driving || "";
+  modal_credit.value = d.credit || "";
+  modal_status.value = d.status || "Verified";
 
-  const reader = new FileReader();
-  reader.onload = async function(e) {
-    const text = e.target.result;
-    const lines = text.split("\n").map(l => l.trim()).filter(l => l);
+  modalBackdrop.style.display = "flex";
+};
 
-    let importedCount = 0;
-
-    for (let i = 1; i < lines.length; i++) {
-      const cols = lines[i].split(",");
-
-      if (cols.length < 9) continue;
-
-      const record = {
-        name: cols[0],
-        nia: cols[1],
-        dob: cols[2],
-        region: cols[3],
-        address: cols[4],
-        criminal: cols[5],
-        driving: cols[6],
-        credit: cols[7],
-        status: cols[8]
-      };
-
-      await addDoc(recordsRef, record);
-      importedCount++;
-    }
-
-    document.getElementById("importStatus").textContent =
-      "✅ Successfully imported " + importedCount + " records";
-
-    loadPage("first");
-  };
-
-  reader.readAsText(file);
+modalCancel.addEventListener("click", () => {
+  editingId = null;
+  modalBackdrop.style.display = "none";
 });
 
-/* ✅ INITIAL LOAD */
+modalSave.addEventListener("click", async () => {
+  if (!editingId) return;
+  const updates = {
+    name: modal_name.value.trim(),
+    nia: modal_nia.value.trim(),
+    dob: modal_dob.value.trim(),
+    region: modal_region.value.trim(),
+    address: modal_address.value.trim(),
+    criminal: modal_criminal.value.trim(),
+    driving: modal_driving.value.trim(),
+    credit: modal_credit.value.trim(),
+    status: modal_status.value
+  };
+
+  await updateDoc(doc(db, "records", editingId), updates);
+  alert("✅ Record updated.");
+  modalBackdrop.style.display = "none";
+  editingId = null;
+  loadPage("first");
+});
+
+/* ============================
+   INITIAL LOAD
+   ============================ */
 loadPage("first");
 
 </script>
 
 </body>
 </html>
+
