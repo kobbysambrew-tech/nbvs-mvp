@@ -147,7 +147,8 @@
 
       entry.innerHTML = `
         <strong>${t.type.toUpperCase()}</strong> — GHC ${t.amount}<br>
-        <span class="small">${new Date(t.timestamp.toMillis()).toLocaleString()}</span><br>
+        <span class="small">${new Date(t.timestamp).toLocaleString()
+}</span><br>
         <span class="small">${t.note || ""}</span>
       `;
 
