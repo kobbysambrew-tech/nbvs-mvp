@@ -25,9 +25,6 @@
       overflow-x:hidden;
     }
 
-    /* =========================
-       HEADER
-    ========================== */
     header{
       background:linear-gradient(90deg,var(--red),var(--yellow),var(--green));
       padding:2.4rem 1rem 1.6rem;
@@ -64,9 +61,6 @@
     .flag-yellow{background:var(--yellow)}
     .flag-green{background:var(--green)}
 
-    /* =========================
-       HERO
-    ========================== */
     .hero{
       max-width:960px;
       margin:1.8rem auto 0;
@@ -95,7 +89,6 @@
       line-height:1.55;
     }
 
-    /* Buttons */
     .btns{
       margin-top:1.4rem;
       display:flex;
@@ -122,9 +115,6 @@
     }
     .btn-outlined:hover{filter:brightness(.93);transform:translateY(-3px)}
 
-    /* =========================
-       INFO GRID
-    ========================== */
     .grid{
       max-width:960px;
       margin:2rem auto;
@@ -148,9 +138,6 @@
     }
     .muted{color:var(--muted)}
 
-    /* =========================
-       FOOTER
-    ========================== */
     footer{
       margin-top:2rem;
       padding:1.3rem;
@@ -160,9 +147,6 @@
       color:#333;
     }
 
-    /* =========================
-       Admin Panel Button
-    ========================== */
     .admin-btn{
       display:inline-block;
       background:var(--green);
@@ -176,17 +160,6 @@
       box-shadow:0 4px 14px rgba(0,0,0,0.15);
     }
     .admin-btn:hover{background:var(--accent);transform:translateY(-3px)}
-
-    /* Animations */
-    @keyframes fadeIn{from{opacity:0}to{opacity:1}}
-    @keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
-    @keyframes slideInUp{from{transform:translateY(14px);opacity:0}to{transform:translateY(0);opacity:1}}
-    @keyframes zoomIn{from{opacity:0;transform:scale(.95)}to{opacity:1;transform:scale(1)}}
-
-    @media(max-width:720px){
-      .hero-title{font-size:1.3rem}
-      .btn{width:100%;text-align:center}
-    }
   </style>
 </head>
 
@@ -213,11 +186,10 @@
 
         <div class="btns">
           <a class="btn btn-primary" href="verify.html">🔍 Start Verification</a>
-          <a class="btn btn-outlined" href="admin.html">🔐 Admin Login</a>
-        </div>
 
-        <!-- Admin Panel Button -->
-       <a class="btn btn-outlined" href="dashboard.html">🔐 Admin Login</a>
+          <!-- ✅ FIXED BUTTON -->
+          <a class="btn btn-outlined" href="dashboard.html">🔐 Admin Login</a>
+        </div>
 
       </div>
     </section>
@@ -238,7 +210,6 @@
         <p class="muted">Businesses and government offices rely on NBVS for fast, accurate checks.</p>
       </div>
 
-      <!-- ✅ Restored Contact Section -->
       <div class="card">
         <h3>Contact</h3>
         <p class="muted">
