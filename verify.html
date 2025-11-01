@@ -4,62 +4,61 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>NBVS Ghana — Verify</title>
+
   <style>
     body{font-family:"Segoe UI",Arial,sans-serif;background:#f8f9fa;margin:0}
     header{background:linear-gradient(to right,#ce1126,#fcd116,#006b3f);color:#fff;padding:1.2rem;text-align:center}
     main{max-width:820px;margin:1.6rem auto;background:#fff;padding:1.6rem;border-radius:10px;box-shadow:0 3px 12px rgba(0,0,0,0.06)}
     input{width:100%;padding:12px;border-radius:8px;border:1px solid #ddd;margin-bottom:10px}
-    button{background:#006b3f;color:#fff;padding:10px 14px;border:none;border-radius:8px;cursor:pointer}
-    .muted{color:#666;font-size:0.95rem}
-    .record{background:#f7f7f7;padding:12px;border-left:4px solid #006b3f;border-radius:8px;margin-top:12px}
-    .blur { filter: blur(6px); -webkit-filter: blur(6px); pointer-events: none; opacity:0.9 }
-    .pill {display:inline-block;padding:6px 10px;border-radius:8px;background:#006b3f;color:#fff;font-weight:600}
-    .btn-yellow { background:#fcd116; color:#111 }
-    .btn-red { background:#ce1126 }
-    .small { font-size:0.9rem; color:#444 }
-    .panel { background:#fff;padding:12px;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,0.03); margin-top:12px }
-    .center { text-align:center }
-    .row { display:flex; gap:10px }
-    .col { flex:1 }
+    button{background:#006b3f;color:#fff;padding:10px 14px;border:none;border-radius:8px;cursor:pointer;width:100%}
+    .btn-yellow{background:#fcd116;color:#111}
+    .btn-red{background:#ce1126}
+    .panel{background:#fff;padding:12px;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,0.03);margin-top:12px}
+    .row{display:flex;gap:12px}
+    .col{flex:1}
+    .muted{color:#666;font-size:0.9rem}
+    .pill{display:inline-block;padding:6px 10px;border-radius:8px;background:#006b3f;color:#fff;font-weight:600}
+    .record{background:#f7f7f7;padding:14px;border-left:4px solid #006b3f;border-radius:8px;margin-top:12px}
   </style>
 </head>
+
 <body>
-  <header><h1>NBVS Ghana — Verify</h1></header>
+<header><h1>NBVS Ghana — Verify</h1></header>
 
-  <main>
-    <p class="muted">Each verification costs <strong>¢30</strong> if you don't have credits. You have <span id="userPlan">loading…</span>.</p>
+<main>
+  <p class="muted">Each verification costs <strong>¢30</strong> if you don't have credits. You have <span id="userPlan">loading…</span>.</p>
 
-    <div class="panel">
-      <label class="small">Search by full name or NIA ID</label>
-      <input id="searchInput" placeholder="e.g. Kofi Mensah or GHA-2039485" />
-      <div class="row" style="margin-bottom:8px">
-        <div class="col"><button id="searchBtn">Search</button></div>
-        <div class="col"><button id="walletPageBtn" class="btn-yellow">Open Wallet</button></div>
-      </div>
+  <div class="panel">
+    <label class="small">Search by full name or NIA ID</label>
+    <input id="searchInput" placeholder="e.g. Kofi Mensah or GHA-2039485" />
 
-      <div id="accessRow" style="margin-top:8px" class="muted">
-        <span class="pill" id="freeCountDisplay">Free: —</span>
-        <span style="margin-left:8px" id="planDisplay">Plan: —</span>
-      </div>
+    <div class="row">
+      <div class="col"><button id="searchBtn">Search</button></div>
+      <div class="col"><button id="walletPageBtn" class="btn-yellow">Open Wallet</button></div>
     </div>
 
-    <div id="resultsArea"></div>
-
-    <!-- Billing / Plans -->
-    <div class="panel" id="plansPanel">
-      <h3>Upgrade / Buy</h3>
-      <p class="small">Choose a plan (payments simulated for beta). Real payment integration (Stripe/MoMo) will be added later.</p>
-
-      <button id="buyBasicBtn" style="width:100%; margin-bottom:8px">Buy BASIC — 10 searches — $3.99</button>
-      <button id="buyProBtn" style="width:100%; margin-bottom:8px" class="btn-red">Buy PRO — Unlimited 30 days — $14.99</button>
-      <button id="useWalletBtn" style="width:100%;" class="btn-yellow">Use Global Wallet for 1 search — ¢30</button>
+    <div id="accessRow" class="muted" style="margin-top:10px">
+      <span class="pill" id="freeCountDisplay">Free: —</span>
+      <span style="margin-left:8px" id="planDisplay">Plan: —</span>
     </div>
+  </div>
 
-    <div class="panel center" style="margin-top:12px">
-      <a href="index.html">← Home</a> · <a href="wallet.html">Open Wallet Page</a>
-      <p class="muted" style="margin-top:6px">Searches are logged and auditable.</p>
-    </div>
-  </main>
+  <div id="resultsArea"></div>
+
+  <div class="panel">
+    <h3>Upgrade / Buy</h3>
+    <p class="muted">Payments simulated for beta.</p>
+
+    <button id="buyBasicBtn" style="margin-bottom:8px">Buy BASIC — 10 searches — $3.99</button>
+    <button id="buyProBtn" class="btn-red" style="margin-bottom:8px">Buy PRO — Unlimited 30 days — $14.99</button>
+    <button id="useWalletBtn" class="btn-yellow">Use Global Wallet — ¢30</button>
+  </div>
+
+  <div class="panel" style="text-align:center;margin-top:10px">
+    <a href="index.html">← Home</a> · <a href="wallet.html">Open Wallet Page</a>
+  </div>
+
+</main>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-app.js";
@@ -68,7 +67,7 @@ import {
   collection, getDocs 
 } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-firestore.js";
 
-// ✅ Firebase Init
+// ✅ Firebase
 const firebaseConfig = {
   apiKey: "AIzaSyCDh_qL3jiCMHROK0_Soul2Wsv3t3y4wv0",
   authDomain: "nbvs-ghana.firebaseapp.com",
@@ -80,96 +79,98 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-// ✅ Public user (no login yet)
 const userId = "publicUser";
 const userRef = doc(db, "users", userId);
 
 // ✅ Ensure user exists
-async function initUser() {
+async function initUser(){
   const snap = await getDoc(userRef);
-  if (!snap.exists()) {
-    await setDoc(userRef, {
-      freeSearches: 3,
-      plan: "free",
-      planExpires: null,
-      monthlyRemaining: 0
+  if(!snap.exists()){
+    await setDoc(userRef,{
+      freeSearches:3,
+      plan:"free",
+      planExpires:null,
+      monthlyRemaining:0
     });
   }
 }
 await initUser();
 
-// ✅ UI elements
 const freeCountEl = document.getElementById("freeCountDisplay");
+const planDisplay = document.getElementById("planDisplay");
 const resultsDiv = document.getElementById("resultsArea");
 
-
-async function loadUser() {
-  const snap = await getDoc(userRef);
-  return snap.data();
+async function loadUser(){
+  return (await getDoc(userRef)).data();
 }
 
-function updateUI(data) {
-  freeCountEl.textContent = data.freeSearches;
+function uiUpdate(data){
+  freeCountEl.textContent = "Free: " + data.freeSearches;
+  planDisplay.textContent = "Plan: " + data.plan;
 }
+
+uiUpdate(await loadUser());
 
 // ✅ Deduct search
-async function deductSearch() {
+async function deductSearch(){
   const user = await loadUser();
 
-  // ✅ PRO (unlimited)
-  if (user.plan === "pro") return true;
+  if(user.plan === "pro") return true;
 
-  // ✅ BASIC (use monthlyRemaining IF you want)
-  if (user.plan === "basic") {
-    if (user.monthlyRemaining > 0) {
-      await updateDoc(userRef, { monthlyRemaining: user.monthlyRemaining - 1 });
+  if(user.plan === "basic"){
+    if(user.monthlyRemaining > 0){
+      await updateDoc(userRef,{monthlyRemaining:user.monthlyRemaining - 1});
       return true;
     }
-    alert("Your BASIC plan is out of searches.");
+    alert("BASIC plan out of searches.");
     return false;
   }
 
-  // ✅ FREE — 3 searches
-  if (user.freeSearches > 0) {
-    await updateDoc(userRef, { freeSearches: user.freeSearches - 1 });
+  if(user.freeSearches > 0){
+    await updateDoc(userRef,{freeSearches:user.freeSearches - 1});
     return true;
   }
 
-  alert("❌ You used all 3 free searches.");
+  alert("No free searches left.");
   return false;
 }
 
-updateUI(await loadUser());
-
-// ✅ SEARCH FUNCTION
+// ✅ SEARCH button
 document.getElementById("searchBtn").addEventListener("click", async () => {
   const text = document.getElementById("searchInput").value.trim().toLowerCase();
   resultsDiv.innerHTML = "Searching...";
 
-  if (!(await deductSearch())) {
-    resultsDiv.innerHTML = "❌ Please upgrade to continue searching.";
+  if(!(await deductSearch())){
+    resultsDiv.innerHTML = "❌ Please upgrade to continue.";
     return;
   }
 
-  updateUI(await loadUser());
+  uiUpdate(await loadUser());
 
-  const docs = await getDocs(collection(db, "records"));
-  let found = [];
+  const docs = await getDocs(collection(db,"records"));
+  let matches = [];
 
-  docs.forEach(docSnap => {
-    const r = docSnap.data();
-    if (r.name?.toLowerCase() === text || r.nia?.toLowerCase() === text) {
-      found.push(r);
+  docs.forEach(d => {
+    let r = d.data();
+    if(r.name?.toLowerCase() === text || r.nia?.toLowerCase() === text){
+      matches.push(r);
     }
   });
 
-  if (found.length === 0) {
+  // ✅ LOG SEARCH
+  await setDoc(doc(collection(db,"search_logs")),{
+    term:text,
+    timestamp:new Date(),
+    platform:"web"
+  });
+
+  if(matches.length === 0){
     resultsDiv.innerHTML = "❌ No record found.";
     return;
   }
 
   resultsDiv.innerHTML = "";
-  found.forEach(r => {
+  matches.forEach(r=>{
     resultsDiv.innerHTML += `
       <div class="record">
         <h3>${r.name} — <span>${r.status}</span></h3>
@@ -184,10 +185,34 @@ document.getElementById("searchBtn").addEventListener("click", async () => {
     `;
   });
 });
-</script>
 
- 
- 
+// ✅ BUTTONS
+document.getElementById("walletPageBtn").addEventListener("click",()=>{
+  window.location.href = "wallet.html";
+});
+
+document.getElementById("buyBasicBtn").addEventListener("click", async ()=>{
+  await updateDoc(userRef,{
+    plan:"basic",
+    monthlyRemaining:10
+  });
+  alert("✅ BASIC plan activated.");
+  uiUpdate(await loadUser());
+});
+
+document.getElementById("buyProBtn").addEventListener("click", async ()=>{
+  await updateDoc(userRef,{
+    plan:"pro",
+    planExpires: Date.now() + 30*24*60*60*1000
+  });
+  alert("✅ PRO activated (unlimited 30 days)");
+  uiUpdate(await loadUser());
+});
+
+document.getElementById("useWalletBtn").addEventListener("click",()=>{
+  window.location.href = "wallet.html";
+});
+</script>
 </body>
 </html>
 
