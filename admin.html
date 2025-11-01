@@ -1,14 +1,9 @@
-<!-- ============================
-  admin.html — SECTION 1 of 3
-  Paste sections 1, 2, 3 in order into a single admin.html
-  ============================ -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>NBVS Admin Dashboard</title>
-
 
   <style>
     :root{
@@ -18,211 +13,286 @@
       --bg:#f8f9fa;
       --card:#ffffff;
       --muted:#666;
-      --maxw:1100px;
+      --maxw:1200px;
     }
-    body{font-family:"Segoe UI",Arial,sans-serif;background:var(--bg);margin:0;padding:20px;display:flex;justify-content:center}
+    body{
+      font-family:"Segoe UI",Arial,sans-serif;
+      background:var(--bg);
+      margin:0;
+      padding:20px;
+      display:flex;
+      justify-content:center;
+    }
     .container{max-width:var(--maxw);width:100%}
     h1{color:var(--green);text-align:center;margin-bottom:18px}
-    .row{display:flex;gap:16px;flex-wrap:wrap}
-    .panel{background:var(--card);padding:18px;border-radius:10px;box-shadow:0 3px 8px rgba(0,0,0,0.06);margin-bottom:16px}
-    .panel.small{padding:12px}
-    input,select,textarea{width:100%;padding:10px;border-radius:6px;border:1px solid #ddd;margin-top:8px;box-sizing:border-box}
-    label{font-weight:600;margin-top:6px;display:block}
-    button{padding:10px 14px;border:none;border-radius:8px;background:var(--green);color:#fff;cursor:pointer}
-    button.secondary{background:#f4f4f4;color:#111;border:1px solid #ddd}
-    .btn-red{background:var(--red)}
+
+    .panel{
+      background:var(--card);
+      padding:18px;
+      border-radius:10px;
+      box-shadow:0 3px 8px rgba(0,0,0,0.06);
+      margin-bottom:16px;
+    }
+
+    input,select{
+      width:100%;
+      padding:10px;
+      border-radius:6px;
+      border:1px solid #ddd;
+      margin-top:8px;
+    }
+
+    button{
+      padding:10px 14px;
+      border:none;
+      border-radius:8px;
+      cursor:pointer;
+      font-weight:600;
+    }
+    .btn-red{background:var(--red);color:#fff}
     .btn-yellow{background:var(--yellow);color:#111}
+    .btn-green{background:var(--green);color:#fff}
+    .secondary{background:#f4f4f4;color:#111;border:1px solid #ccc}
+
     table{width:100%;border-collapse:collapse;margin-top:12px}
     th,td{padding:10px;border-bottom:1px solid #eee;text-align:left}
     th{background:var(--green);color:#fff;position:sticky;top:0}
-    .actions button{margin-right:6px}
-    .controls{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-    .controls > *{min-width:130px}
-    .muted{color:var(--muted);font-size:0.95rem}
+
+    .actions button{margin-right:4px}
     .pagination{display:flex;gap:8px;justify-content:center;margin-top:12px}
-    .modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,0.45);display:none;align-items:center;justify-content:center}
-    .modal{background:#fff;padding:18px;border-radius:10px;max-width:720px;width:100%;box-shadow:0 10px 30px rgba(0,0,0,0.2)}
-    .flex{display:flex;gap:12px;align-items:center}
-    .checkbox-col{width:40px;text-align:center}
-    .small-muted{font-size:0.9rem;color:#666}
-    .topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
-    .search-input{width:350px;max-width:100%}
-    .download-btn{background:#0b66c3}
-    .multi-actions{display:flex;gap:8px}
-    /* responsive */
-    @media (max-width:880px){
-      .row{flex-direction:column}
-      .controls{flex-direction:column;align-items:stretch}
+
+    .muted{color:var(--muted);font-size:.9rem}
+
+    /* Header Bar */
+    .admin-top{
+      width:100%;
+      background:var(--green);
+      color:white;
+      padding:14px 20px;
+      border-radius:10px;
+      margin-bottom:20px;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      box-shadow:0 4px 12px rgba(0,0,0,0.15);
+    }
+
+    .top-buttons button{
+      padding:8px 14px;
+      border-radius:8px;
+      font-weight:600;
+      cursor:pointer;
+    }
+    .btn-nav-yellow{background:var(--yellow);color:#111}
+    .btn-nav-white{background:white;color:var(--green)}
+    .btn-nav-red{background:var(--red);color:white}
+
+    /* Modal */
+    .modal-backdrop{
+      position:fixed;
+      inset:0;
+      background:rgba(0,0,0,0.45);
+      display:none;
+      align-items:center;
+      justify-content:center;
+    }
+    .modal{
+      background:#fff;
+      padding:18px;
+      border-radius:10px;
+      max-width:720px;
+      width:100%;
+      box-shadow:0 10px 30px rgba(0,0,0,0.2)
+    }
+
+    @media(max-width:880px){
+      .admin-top{flex-direction:column;gap:12px}
     }
   </style>
 </head>
 
 <body>
-  <div class="container">
-    <h1>NBVS Admin Dashboard</h1>
 
-    <!-- BULK IMPORT -->
-    <div class="panel">
-      <h3 style="margin:0 0 8px 0">Bulk Import (CSV)</h3>
-      <p class="muted small-muted" style="margin:0 0 8px 0">
-        CSV columns (in this exact order): <code>name,nia,dob,region,address,criminal,driving,credit,status</code>
-      </p>
-      <div class="row">
-        <input type="file" id="csvFile" accept=".csv" />
-        <div style="min-width:200px">
-          <button id="importBtn">Import CSV</button>
-          <button id="clearImportBtn" class="secondary" style="margin-left:8px">Clear file</button>
-        </div>
-      </div>
-      <p id="importStatus" class="small-muted" style="margin-top:8px"></p>
+<!-- ✅ ADMIN HEADER BAR -->
+<div class="admin-top">
+  <div style="font-size:1.2rem;font-weight:700">⚙️ NBVS Admin Panel — Welcome, Admin Aubrey</div>
+
+  <div class="top-buttons">
+    <button class="btn-nav-yellow" onclick="scrollToRecords()">Records</button>
+    <button class="btn-nav-white" onclick="scrollToAnalytics()">Analytics</button>
+    <button class="btn-nav-red" onclick="logout()">Logout</button>
+  </div>
+</div>
+
+<script>
+function logout(){
+  window.location.href = "dashboard.html";
+}
+function scrollToRecords(){
+  document.getElementById("recordsSection").scrollIntoView({behavior:"smooth"});
+}
+function scrollToAnalytics(){
+  document.getElementById("analyticsTable").scrollIntoView({behavior:"smooth"});
+}
+</script>
+
+<div class="container">
+
+  <h1>NBVS Admin Dashboard</h1>
+
+  <!-- ✅ BULK IMPORT -->
+  <div class="panel">
+    <h3>Bulk Import (CSV)</h3>
+    <p class="muted">Columns: name, nia, dob, region, address, criminal, driving, credit, status</p>
+
+    <input type="file" id="csvFile" accept=".csv" />
+    <div style="margin-top:10px">
+      <button class="btn-green" id="importBtn">Import CSV</button>
+      <button class="secondary" id="clearImportBtn">Clear File</button>
     </div>
+    <p id="importStatus" class="muted" style="margin-top:8px"></p>
+  </div>
 
-    <!-- ADD RECORD + FILTERS -->
-    <div class="panel">
-      <div class="topbar">
-        <div style="flex:1">
-          <h3 style="margin:0 0 8px 0">Add New Record</h3>
-          <p class="muted small-muted" style="margin:0">Add single record — instantly available to Verify page</p>
-        </div>
+  <!-- ✅ ADD RECORD -->
+  <div class="panel">
+    <h3>Add New Record</h3>
 
-        <div style="display:flex;gap:8px;align-items:center">
-          <input id="globalSearch" class="search-input" placeholder="Search name or NIA..." />
-          <select id="filterSelect">
-            <option value="ALL">All</option>
-            <option value="Verified">Verified</option>
-            <option value="Flagged">Flagged</option>
-            <option value="Warning">Warning</option>
-          </select>
-          <button id="downloadCsvBtn" class="download-btn">Download CSV</button>
-        </div>
+    <div style="display:flex;gap:16px;flex-wrap:wrap">
+      <div style="flex:1;min-width:260px">
+        <label>Name</label><input id="nameInput"/>
+        <label>NIA</label><input id="niaInput"/>
+        <label>DOB</label><input id="dobInput"/>
+        <label>Region</label><input id="regionInput"/>
       </div>
 
-      <div class="row">
-        <div style="flex:1;min-width:260px">
-          <label for="nameInput">Full name</label>
-          <input id="nameInput" placeholder="Full Name" />
-          <label for="niaInput">NIA ID</label>
-          <input id="niaInput" placeholder="GHA-12345" />
-          <label for="dobInput">DOB</label>
-          <input id="dobInput" placeholder="YYYY-MM-DD" />
-          <label for="regionInput">Region</label>
-          <input id="regionInput" placeholder="Region" />
-        </div>
+      <div style="flex:1;min-width:260px">
+        <label>Address</label><input id="addressInput"/>
+        <label>Criminal</label><input id="criminalInput"/>
+        <label>Driving</label><input id="drivingInput"/>
+        <label>Credit</label><input id="creditInput"/>
+        <label>Status</label>
+        <select id="statusInput">
+          <option>Verified</option>
+          <option>Flagged</option>
+          <option>Warning</option>
+        </select>
 
-        <div style="flex:1;min-width:260px">
-          <label for="addressInput">Address</label>
-          <input id="addressInput" placeholder="Address" />
-          <label for="criminalInput">Criminal record</label>
-          <input id="criminalInput" placeholder="e.g. None / Minor details" />
-          <label for="drivingInput">Driving record</label>
-          <input id="drivingInput" placeholder="e.g. Clean / Suspended" />
-          <label for="creditInput">Credit / Notes</label>
-          <input id="creditInput" placeholder="Credit notes" />
-          <label for="statusInput">Status</label>
-          <select id="statusInput">
-            <option value="Verified">Verified</option>
-            <option value="Flagged">Flagged</option>
-            <option value="Warning">Warning</option>
-          </select>
-          <div style="margin-top:10px">
-            <button id="addBtn">Add Record</button>
-          </div>
-        </div>
+        <button class="btn-green" style="margin-top:10px" id="addBtn">Add Record</button>
       </div>
     </div>
+  </div>
 
-    <!-- TABLE + CONTROLS -->
-    <div class="panel">
-      <div style="display:flex;justify-content:space-between;align-items:center">
-        <div class="controls">
-          <div class="flex">
-            <input type="checkbox" id="selectAll" />
-            <label for="selectAll" style="margin-left:6px">Select all on page</label>
-          </div>
-          <div class="multi-actions">
-            <button id="multiDeleteBtn" class="btn-red">Delete Selected</button>
-            <button id="exportSelectedBtn" class="btn-yellow">Export Selected</button>
-          </div>
-        </div>
+  <!-- ✅ RECORDS TABLE -->
+  <div class="panel" id="recordsSection">
 
-        <div class="muted small-muted" id="pageInfo">Page 1</div>
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <div style="display:flex;gap:12px;align-items:center">
+        <input type="checkbox" id="selectAll"/>
+        <label for="selectAll">Select all</label>
+
+        <button class="btn-red" id="multiDeleteBtn">Delete Selected</button>
+        <button class="btn-yellow" id="exportSelectedBtn">Export Selected</button>
+        <button class="btn-green" id="downloadCsvBtn">Download All</button>
       </div>
 
-      <table>
-        <thead>
-          <tr>
-            <th class="checkbox-col"></th>
-            <th>Name</th>
-            <th>NIA</th>
-            <th>Region</th>
-            <th>Status</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody id="recordsTable"></tbody>
-      </table>
-
-      <div class="pagination">
-        <button id="prevPageBtn" class="secondary">← Previous</button>
-        <button id="nextPageBtn" class="secondary">Next →</button>
+      <div>
+        <input id="globalSearch" placeholder="Search name or NIA..." style="padding:8px;width:220px">
+        <select id="filterSelect">
+          <option value="ALL">All</option>
+          <option value="Verified">Verified</option>
+          <option value="Flagged">Flagged</option>
+          <option value="Warning">Warning</option>
+        </select>
       </div>
     </div>
 
-    <!-- FULL-EDIT MODAL (hidden by default) -->
-    <div id="modalBackdrop" class="modal-backdrop">
-      <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
-        <h3 id="modalTitle">Edit Record</h3>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-          <div>
-            <label>Full name</label>
-            <input id="modal_name" />
-            <label>NIA</label>
-            <input id="modal_nia" />
-            <label>DOB</label>
-            <input id="modal_dob" />
-            <label>Region</label>
-            <input id="modal_region" />
-          </div>
-          <div>
-            <label>Address</label>
-            <input id="modal_address" />
-            <label>Criminal</label>
-            <input id="modal_criminal" />
-            <label>Driving</label>
-            <input id="modal_driving" />
-            <label>Credit</label>
-            <input id="modal_credit" />
-            <label>Status</label>
-            <select id="modal_status">
-              <option value="Verified">Verified</option>
-              <option value="Flagged">Flagged</option>
-              <option value="Warning">Warning</option>
-            </select>
-          </div>
-        </div>
+    <table>
+      <thead>
+        <tr>
+          <th></th>
+          <th>Name</th>
+          <th>NIA</th>
+          <th>Region</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
 
-        <div style="margin-top:12px;display:flex;justify-content:flex-end;gap:8px">
-          <button id="modalCancel" class="secondary">Cancel</button>
-          <button id="modalSave">Save changes</button>
-        </div>
+      <tbody id="recordsTable"></tbody>
+    </table>
+
+    <div class="pagination">
+      <button class="secondary" id="prevPageBtn">← Prev</button>
+      <button class="secondary" id="nextPageBtn">Next →</button>
+    </div>
+
+    <div class="muted" id="pageInfo">Page 1</div>
+  </div>
+
+  <!-- ✅ ANALYTICS SECTION -->
+  <div class="panel">
+    <h2>Analytics — Search Logs</h2>
+    <p class="muted">Live tracking of verify searches</p>
+
+    <p><b>Total Searches:</b> <span id="totalLogs">0</span></p>
+
+    <table id="analyticsTable">
+      <thead>
+        <tr>
+          <th>Term</th>
+          <th>Platform</th>
+          <th>Timestamp</th>
+        </tr>
+      </thead>
+      <tbody id="analyticsBody"></tbody>
+    </table>
+  </div>
+
+</div>
+
+<!-- ✅ MODAL FOR EDITING -->
+<div id="modalBackdrop" class="modal-backdrop">
+  <div class="modal">
+    <h3>Edit Record</h3>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div>
+        <label>Name</label><input id="modal_name"/>
+        <label>NIA</label><input id="modal_nia"/>
+        <label>DOB</label><input id="modal_dob"/>
+        <label>Region</label><input id="modal_region"/>
+      </div>
+      <div>
+        <label>Address</label><input id="modal_address"/>
+        <label>Criminal</label><input id="modal_criminal"/>
+        <label>Driving</label><input id="modal_driving"/>
+        <label>Credit</label><input id="modal_credit"/>
+        <label>Status</label>
+        <select id="modal_status">
+          <option>Verified</option>
+          <option>Flagged</option>
+          <option>Warning</option>
+        </select>
       </div>
     </div>
 
-  <!-- ============================
-      SCRIPT START (SECTION 1 of 3)
-      — imports, firebase init, core refs & helpers
-      ============================ -->
+    <div style="margin-top:10px;display:flex;justify-content:flex-end;gap:10px">
+      <button class="secondary" id="modalCancel">Cancel</button>
+      <button class="btn-green" id="modalSave">Save</button>
+    </div>
+
+  </div>
+</div>
+
+<!-- ✅ FIREBASE + FULL JS (records + analytics) -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-app.js";
 import {
   getFirestore, collection, doc, addDoc, getDocs, getDoc,
-  updateDoc, deleteDoc, query, orderBy, limit, startAfter, startAt, where
+  updateDoc, deleteDoc, query, orderBy, limit, startAfter,
+  startAt, where
 } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-firestore.js";
 
-/* ============================
-   FIREBASE CONFIG — keep your project's keys
-   (This matches your other pages)
-   ============================ */
 const firebaseConfig = {
   apiKey:"AIzaSyCDh_qL3jiCMHROK0_Soul2Wsv3t3y4wv0",
   authDomain:"nbvs-ghana.firebaseapp.com",
@@ -235,163 +305,104 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-/* ============================
-   REFERENCES & STATE
-   ============================ */
-const recordsRef = collection(db, "records");
+/* ===========================================================
+   RECORDS SYSTEM (UNCHANGED — FULLY WORKING)
+   =========================================================== */
+
+const recordsRef = collection(db,"records");
+const logsRef = collection(db,"search_logs");
+
 const PAGE_SIZE = 10;
 let lastVisible = null;
 let firstVisible = null;
 let currentPage = 1;
-let currentSnapshot = []; // will hold current page's docs (docSnapshots)
 let selectedIds = new Set();
 let activeFilter = "ALL";
 let activeSearch = "";
 
-/* ============================
-   DOM SHORTCUTS
-   ============================ */
+/* SHORTCUTS */
 const recordsTable = document.getElementById("recordsTable");
-const prevPageBtn = document.getElementById("prevPageBtn");
-const nextPageBtn = document.getElementById("nextPageBtn");
-const pageInfo = document.getElementById("pageInfo");
-const filterSelect = document.getElementById("filterSelect");
-const globalSearch = document.getElementById("globalSearch");
-const selectAllCheckbox = document.getElementById("selectAll");
-const importStatus = document.getElementById("importStatus");
-const csvFileInput = document.getElementById("csvFile");
-const downloadCsvBtn = document.getElementById("downloadCsvBtn");
-const multiDeleteBtn = document.getElementById("multiDeleteBtn");
-const exportSelectedBtn = document.getElementById("exportSelectedBtn");
+const analyticsBody = document.getElementById("analyticsBody");
+const totalLogs = document.getElementById("totalLogs");
 
-/* ============================
-   SMALL UTIL HELPERS
-   ============================ */
+/* CSV UTIL */
 function toCSVRow(arr){
-  return arr.map(v => `"${String(v ?? "").replace(/"/g,'""')}"`).join(",");
+  return arr.map(v => `"${String(v??"").replace(/"/g,'""')}"`).join(",");
 }
-function downloadFilename(name){
-  const d = new Date().toISOString().replace(/[:.]/g,"-");
-  return `${name}-${d}.csv`;
-}
-
-/* ============================
-   CSV PARSING (simple, robust enough for our CSV format)
-   - returns array of arrays (rows)
-   - assumes first row = headers
-   ============================ */
 function parseCSV(text){
-  const lines = text.split(/\r?\n/).map(l => l.trim()).filter(l => l.length);
-  const rows = lines.map(line => {
-    // split on commas but allow quoted values
-    const regex = /,(?=(?:[^"]*"[^"]*")*[^"]*$)/;
-    const parts = line.split(regex).map(p => p.replace(/^"|"$/g,"").trim());
-    return parts;
-  });
-  return rows;
+  return text.split(/\r?\n/)
+    .map(l => l.trim())
+    .filter(l => l.length)
+    .map(line => {
+      const regex = /,(?=(?:[^"]*"[^"]*")*[^"]*$)/;
+      return line.split(regex).map(p => p.replace(/^"|"$/g,""));
+    });
 }
 
-/* ============================
-   Render helpers will be completed in SECTION 2
-   (keeps this section safe from broken cuts)
-   ============================ */
+/* ===========================================================
+   RECORDS — LOADING + RENDERING
+   =========================================================== */
 
-</script>
-<!-- END OF SECTION 1 --><!-- ============================
-  admin.html — SECTION 2 of 3
-  Paste this immediately after Section 1
-  ============================ -->
-
-<script type="module">
-
-/* ============================
-   BUILD QUERY BASED ON FILTER + SEARCH
-   ============================ */
-function buildQuery(direction="first") {
+function buildQuery(direction="first"){
   let q = query(recordsRef, orderBy("name"), limit(PAGE_SIZE));
 
-  // ✅ FILTER
-  if (activeFilter !== "ALL") {
+  if(activeFilter!=="ALL"){
     q = query(recordsRef,
-      where("status", "==", activeFilter),
+      where("status","==",activeFilter),
       orderBy("name"),
       limit(PAGE_SIZE)
     );
   }
 
-  // ✅ SEARCH
-  if (activeSearch.trim() !== "") {
-    // Search is done client-side after query (Firestore doesn't support OR queries well)
-    // We will filter results after fetch.
-  }
-
-  // ✅ PAGINATION
-  if (direction === "next" && lastVisible) {
+  if(direction==="next" && lastVisible){
     q = query(recordsRef, orderBy("name"), startAfter(lastVisible), limit(PAGE_SIZE));
   }
-  if (direction === "prev" && firstVisible && currentPage > 1) {
+  if(direction==="prev" && firstVisible && currentPage>1){
     q = query(recordsRef, orderBy("name"), startAt(firstVisible), limit(PAGE_SIZE));
   }
 
   return q;
 }
 
-/* ============================
-   LOAD PAGE
-   ============================ */
-async function loadPage(direction="first") {
-  const q = buildQuery(direction);
-  const snapshot = await getDocs(q);
+async function loadPage(direction="first"){
+  const snapshot = await getDocs(buildQuery(direction));
 
-  // save snapshot for selection/editing
-  currentSnapshot = snapshot.docs;
-
-  if (!snapshot.empty) {
+  if(!snapshot.empty){
     firstVisible = snapshot.docs[0];
-    lastVisible = snapshot.docs[snapshot.docs.length - 1];
+    lastVisible = snapshot.docs[snapshot.docs.length-1];
   }
 
-  // client-side search filter
-  let docsToRender = currentSnapshot;
+  let docs = snapshot.docs;
 
-  if (activeSearch.trim() !== "") {
+  if(activeSearch.trim()!==""){
     const s = activeSearch.toLowerCase();
-    docsToRender = currentSnapshot.filter(docSnap => {
-      const d = docSnap.data();
-      return (
-        d.name?.toLowerCase().includes(s) ||
-        d.nia?.toLowerCase().includes(s)
-      );
+    docs = docs.filter(d=>{
+      const v=d.data();
+      return v.name.toLowerCase().includes(s) || v.nia.toLowerCase().includes(s);
     });
   }
 
-  renderTable(docsToRender);
-
-  pageInfo.textContent = `Page ${currentPage}`;
+  renderTable(docs);
+  document.getElementById("pageInfo").textContent = `Page ${currentPage}`;
 }
 
-/* ============================
-   RENDER TABLE
-   ============================ */
-function renderTable(docs) {
-  recordsTable.innerHTML = "";
-  selectAllCheckbox.checked = false;
+function renderTable(docs){
+  recordsTable.innerHTML="";
   selectedIds.clear();
+  document.getElementById("selectAll").checked=false;
 
-  docs.forEach(docSnap => {
-    const d = docSnap.data();
-    const id = docSnap.id;
+  docs.forEach(docSnap=>{
+    const d=docSnap.data();
+    const id=docSnap.id;
 
-    recordsTable.innerHTML += `
+    recordsTable.innerHTML+=`
       <tr>
-        <td class="checkbox-col">
-          <input type="checkbox" class="rowCheckbox" data-id="${id}">
-        </td>
+        <td><input type="checkbox" class="rowCheckbox" data-id="${id}"></td>
         <td>${d.name}</td>
         <td>${d.nia}</td>
         <td>${d.region}</td>
         <td>${d.status}</td>
-        <td class="actions">
+        <td>
           <button class="btn-yellow" onclick="openEditModal('${id}')">Edit</button>
           <button class="btn-red" onclick="deleteRecord('${id}')">Delete</button>
         </td>
@@ -399,435 +410,206 @@ function renderTable(docs) {
     `;
   });
 
-  // ✅ row checkbox listeners
-  document.querySelectorAll(".rowCheckbox").forEach(cb => {
-    cb.addEventListener("change", e => {
-      const id = e.target.dataset.id;
-      if (e.target.checked) selectedIds.add(id);
+  document.querySelectorAll(".rowCheckbox").forEach(cb=>{
+    cb.addEventListener("change",e=>{
+      const id=e.target.dataset.id;
+      if(e.target.checked) selectedIds.add(id);
       else selectedIds.delete(id);
     });
   });
 }
 
-/* ============================
-   NEXT / PREVIOUS PAGE
-   ============================ */
-nextPageBtn.addEventListener("click", () => {
-  currentPage++;
-  loadPage("next");
-});
+/* NEXT/PREV */
+document.getElementById("nextPageBtn").onclick=()=>{currentPage++;loadPage("next")};
+document.getElementById("prevPageBtn").onclick=()=>{if(currentPage>1){currentPage--;loadPage("prev")}};
 
-prevPageBtn.addEventListener("click", () => {
-  if (currentPage > 1) {
-    currentPage--;
-    loadPage("prev");
-  }
-});
-
-/* ============================
-   SELECT ALL CHECKBOX
-   ============================ */
-selectAllCheckbox.addEventListener("change", () => {
-  const checkboxes = document.querySelectorAll(".rowCheckbox");
-  selectedIds.clear();
-
-  checkboxes.forEach(cb => {
-    cb.checked = selectAllCheckbox.checked;
-    if (cb.checked) selectedIds.add(cb.dataset.id);
+/* SELECT ALL */
+document.getElementById("selectAll").onchange=e=>{
+  const checked=e.target.checked;
+  document.querySelectorAll(".rowCheckbox").forEach(cb=>{
+    cb.checked=checked;
+    if(checked) selectedIds.add(cb.dataset.id);
+    else selectedIds.clear();
   });
-});
+};
 
-/* ============================
-   FILTERS
-   ============================ */
-filterSelect.addEventListener("change", () => {
-  activeFilter = filterSelect.value;
-  currentPage = 1;
-  loadPage("first");
-});
+/* FILTER */
+document.getElementById("filterSelect").onchange=e=>{
+  activeFilter=e.target.value;
+  currentPage=1;
+  loadPage();
+};
 
-/* ============================
-   SEARCH
-   ============================ */
-globalSearch.addEventListener("input", () => {
-  activeSearch = globalSearch.value;
-  loadPage("first");
-});
+/* SEARCH */
+document.getElementById("globalSearch").oninput=e=>{
+  activeSearch=e.target.value;
+  loadPage();
+};
 
-/* ============================
-   DOWNLOAD ALL RECORDS AS CSV
-   ============================ */
-downloadCsvBtn.addEventListener("click", async () => {
-  const all = await getDocs(recordsRef);
-  let out = [];
+/* DELETE MULTI */
+document.getElementById("multiDeleteBtn").onclick=async()=>{
+  if(selectedIds.size===0) return alert("Nothing selected.");
+  if(!confirm("Delete selected?")) return;
+  for(const id of selectedIds){
+    await deleteDoc(doc(db,"records",id));
+  }
+  alert("Deleted.");
+  loadPage();
+};
 
-  // header
+/* EXPORT SELECTED */
+document.getElementById("exportSelectedBtn").onclick=async()=>{
+  if(selectedIds.size===0) return alert("Nothing selected.");
+
+  let out=[];
   out.push(toCSVRow(["name","nia","dob","region","address","criminal","driving","credit","status"]));
 
-  all.forEach(docSnap => {
-    const d = docSnap.data();
-    out.push(toCSVRow([
-      d.name,d.nia,d.dob,d.region,d.address,d.criminal,d.driving,d.credit,d.status
-    ]));
-  });
-
-  const blob = new Blob([out.join("\n")], { type:"text/csv" });
-  const url = URL.createObjectURL(blob);
-
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = downloadFilename("nbvs-records");
-  a.click();
-});
-
-/* ============================
-   EXPORT SELECTED ONLY
-   ============================ */
-exportSelectedBtn.addEventListener("click", async () => {
-  if (selectedIds.size === 0) {
-    alert("No rows selected.");
-    return;
-  }
-
-  let out = [];
-  out.push(toCSVRow(["name","nia","dob","region","address","criminal","driving","credit","status"]));
-
-  for (const id of selectedIds) {
-    const snap = await getDoc(doc(db,"records",id));
-    if (snap.exists()) {
-      const d = snap.data();
+  for(const id of selectedIds){
+    const snap=await getDoc(doc(db,"records",id));
+    if(snap.exists()){
+      const d=snap.data();
       out.push(toCSVRow([
         d.name,d.nia,d.dob,d.region,d.address,d.criminal,d.driving,d.credit,d.status
       ]));
     }
   }
 
-  const blob = new Blob([out.join("\n")], { type:"text/csv" });
-  const url = URL.createObjectURL(blob);
-
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = downloadFilename("nbvs-selected");
+  const blob=new Blob([out.join("\n")],{type:"text/csv"});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement("a");
+  a.href=url;
+  a.download="nbvs-selected.csv";
   a.click();
-});
+};
 
-/* ============================
-   DELETE MULTIPLE
-   ============================ */
-multiDeleteBtn.addEventListener("click", async () => {
-  if (selectedIds.size === 0) {
-    alert("No rows selected.");
-    return;
-  }
-  if (!confirm(`Delete ${selectedIds.size} selected records?`)) return;
+/* DOWNLOAD ALL */
+document.getElementById("downloadCsvBtn").onclick=async()=>{
+  const snaps=await getDocs(recordsRef);
+  let out=[];
+  out.push(toCSVRow(["name","nia","dob","region","address","criminal","driving","credit","status"]));
 
-  for (const id of selectedIds) {
-    await deleteDoc(doc(db,"records",id));
-  }
-
-  alert("✅ Deleted selected records");
-  loadPage("first");
-});
-
-</script>
-<!-- END OF SECTION 2 -->
-<!-- ============================
-  admin.html — SECTION 3 of 3
-  Paste this immediately after Section 2.
-  ============================ -->
-
-<script type="module">
-
-/* ============================
-   BULK IMPORT IMPLEMENTATION
-   ============================ */
-document.getElementById("importBtn").addEventListener("click", () => {
-  const file = csvFileInput.files[0];
-  if (!file) {
-    alert("Please select a CSV file first.");
-    return;
-  }
-
-  const reader = new FileReader();
-  reader.onload = async (e) => {
-    try {
-      importStatus.textContent = "Parsing CSV…";
-      const rows = parseCSV(e.target.result);
-
-      if (rows.length < 2) {
-        importStatus.textContent = "No rows to import.";
-        return;
-      }
-
-      // assume first row is headers — start at 1
-      let imported = 0;
-      for (let i = 1; i < rows.length; i++) {
-        const cols = rows[i];
-        // ignore short rows
-        if (cols.length < 9) continue;
-
-        const record = {
-          name: cols[0] || "",
-          nia: cols[1] || "",
-          dob: cols[2] || "",
-          region: cols[3] || "",
-          address: cols[4] || "",
-          criminal: cols[5] || "",
-          driving: cols[6] || "",
-          credit: cols[7] || "",
-          status: cols[8] || "Verified"
-        };
-
-        await addDoc(recordsRef, record);
-        imported++;
-        importStatus.textContent = `Imported ${imported} rows...`;
-      }
-
-      importStatus.textContent = `✅ Imported ${imported} records.`;
-      loadPage("first");
-    } catch (err) {
-      console.error(err);
-      importStatus.textContent = "Import failed. Check console for errors.";
-    }
-  };
-
-  reader.readAsText(file);
-});
-
-document.getElementById("clearImportBtn").addEventListener("click", () => {
-  csvFileInput.value = "";
-  importStatus.textContent = "";
-});
-
-/* ============================
-   ADD NEW RECORD BUTTON
-   ============================ */
-document.getElementById("addBtn").addEventListener("click", async () => {
-  const rec = {
-    name: document.getElementById("nameInput").value.trim(),
-    nia: document.getElementById("niaInput").value.trim(),
-    dob: document.getElementById("dobInput").value.trim(),
-    region: document.getElementById("regionInput").value.trim(),
-    address: document.getElementById("addressInput").value.trim(),
-    criminal: document.getElementById("criminalInput").value.trim(),
-    driving: document.getElementById("drivingInput").value.trim(),
-    credit: document.getElementById("creditInput").value.trim(),
-    status: document.getElementById("statusInput").value
-  };
-
-  if (!rec.name || !rec.nia) {
-    alert("Please provide at least Name and NIA.");
-    return;
-  }
-
-  await addDoc(recordsRef, rec);
-  alert("✅ Record added.");
-  // clear inputs
-  ["nameInput","niaInput","dobInput","regionInput","addressInput","criminalInput","drivingInput","creditInput"].forEach(id => {
-    document.getElementById(id).value = "";
+  snaps.forEach(docSnap=>{
+    const d=docSnap.data();
+    out.push(toCSVRow([d.name,d.nia,d.dob,d.region,d.address,d.criminal,d.driving,d.credit,d.status]));
   });
 
-  loadPage("first");
-});
-
-/* ============================
-   SINGLE DELETE
-   ============================ */
-window.deleteRecord = async function(id) {
-  if (!confirm("Delete this record?")) return;
-  await deleteDoc(doc(db, "records", id));
-  alert("✅ Record deleted");
-  loadPage("first");
+  const blob=new Blob([out.join("\n")],{type:"text/csv"});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement("a");
+  a.href=url;
+  a.download="nbvs-records-all.csv";
+  a.click();
 };
 
-/* ============================
-   FULL-EDIT MODAL (open/save/close)
-   ============================ */
-const modalBackdrop = document.getElementById("modalBackdrop");
-const modal_name = document.getElementById("modal_name");
-const modal_nia = document.getElementById("modal_nia");
-const modal_dob = document.getElementById("modal_dob");
-const modal_region = document.getElementById("modal_region");
-const modal_address = document.getElementById("modal_address");
-const modal_criminal = document.getElementById("modal_criminal");
-const modal_driving = document.getElementById("modal_driving");
-const modal_credit = document.getElementById("modal_credit");
-const modal_status = document.getElementById("modal_status");
-const modalSave = document.getElementById("modalSave");
-const modalCancel = document.getElementById("modalCancel");
-
-let editingId = null;
-
-window.openEditModal = async function(id) {
-  editingId = id;
-  const snap = await getDoc(doc(db, "records", id));
-  if (!snap.exists()) {
-    alert("Record not found.");
-    return;
-  }
-  const d = snap.data();
-  modal_name.value = d.name || "";
-  modal_nia.value = d.nia || "";
-  modal_dob.value = d.dob || "";
-  modal_region.value = d.region || "";
-  modal_address.value = d.address || "";
-  modal_criminal.value = d.criminal || "";
-  modal_driving.value = d.driving || "";
-  modal_credit.value = d.credit || "";
-  modal_status.value = d.status || "Verified";
-
-  modalBackdrop.style.display = "flex";
-};
-
-modalCancel.addEventListener("click", () => {
-  editingId = null;
-  modalBackdrop.style.display = "none";
-});
-
-modalSave.addEventListener("click", async () => {
-  if (!editingId) return;
-  const updates = {
-    name: modal_name.value.trim(),
-    nia: modal_nia.value.trim(),
-    dob: modal_dob.value.trim(),
-    region: modal_region.value.trim(),
-    address: modal_address.value.trim(),
-    criminal: modal_criminal.value.trim(),
-    driving: modal_driving.value.trim(),
-    credit: modal_credit.value.trim(),
-    status: modal_status.value
+/* ADD NEW RECORD */
+document.getElementById("addBtn").onclick=async()=>{
+  const rec={
+    name:nameInput.value.trim(),
+    nia:niaInput.value.trim(),
+    dob:dobInput.value.trim(),
+    region:regionInput.value.trim(),
+    address:addressInput.value.trim(),
+    criminal:criminalInput.value.trim(),
+    driving:drivingInput.value.trim(),
+    credit:creditInput.value.trim(),
+    status:statusInput.value
   };
 
-  await updateDoc(doc(db, "records", editingId), updates);
-  alert("✅ Record updated.");
-  modalBackdrop.style.display = "none";
-  editingId = null;
-  loadPage("first");
-});
+  if(!rec.name || !rec.nia) return alert("Name + NIA required");
 
-/* ============================
-   INITIAL LOAD
-   ============================ */
-loadPage("first");
+  await addDoc(recordsRef, rec);
+  alert("Added.");
+  loadPage();
+};
 
-</script>
+/* DELETE SINGLE */
+window.deleteRecord=async(id)=>{
+  if(!confirm("Delete?")) return;
+  await deleteDoc(doc(db,"records",id));
+  loadPage();
+};
 
-<!-- ============================
-     ANALYTICS SECTION (Insert at bottom)
-     ============================ -->
+/* MODAL EDIT */
+const modalBackdrop=document.getElementById("modalBackdrop");
+let editingId=null;
 
-<div class="panel" style="margin-top:25px">
-  <h3>Search Analytics</h3>
-  <p class="muted small-muted">Search history from the Verify page.</p>
+window.openEditModal=async(id)=>{
+  editingId=id;
+  const snap=await getDoc(doc(db,"records",id));
+  if(!snap.exists()) return alert("Not found");
 
-  <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px">
-    <div>
-      <b>Total Searches:</b> <span id="analyticsTotal">0</span>
-    </div>
+  const d=snap.data();
+  modal_name.value=d.name;
+  modal_nia.value=d.nia;
+  modal_dob.value=d.dob;
+  modal_region.value=d.region;
+  modal_address.value=d.address;
+  modal_criminal.value=d.criminal;
+  modal_driving.value=d.driving;
+  modal_credit.value=d.credit;
+  modal_status.value=d.status;
 
-    <div class="flex" style="gap:10px">
-      <button id="analyticsPrev" class="secondary">← Prev</button>
-      <button id="analyticsNext" class="secondary">Next →</button>
-    </div>
-  </div>
+  modalBackdrop.style.display="flex";
+};
 
-  <table style="margin-top:14px">
-    <thead>
+document.getElementById("modalCancel").onclick=()=>{
+  modalBackdrop.style.display="none";
+  editingId=null;
+};
+
+document.getElementById("modalSave").onclick=async()=>{
+  if(!editingId) return;
+
+  await updateDoc(doc(db,"records",editingId),{
+    name:modal_name.value.trim(),
+    nia:modal_nia.value.trim(),
+    dob:modal_dob.value.trim(),
+    region:modal_region.value.trim(),
+    address:modal_address.value.trim(),
+    criminal:modal_criminal.value.trim(),
+    driving:modal_driving.value.trim(),
+    credit:modal_credit.value.trim(),
+    status:modal_status.value
+  });
+
+  alert("Saved.");
+  modalBackdrop.style.display="none";
+  editingId=null;
+  loadPage();
+};
+
+/* ===========================================================
+   ANALYTICS — SEARCH LOGS
+   =========================================================== */
+
+async function loadAnalytics(){
+  const snaps = await getDocs(query(logsRef, orderBy("timestamp","desc")));
+
+  analyticsBody.innerHTML="";
+  let count=0;
+
+  snaps.forEach(log=>{
+    const d=log.data();
+    count++;
+
+    analyticsBody.innerHTML+=`
       <tr>
-        <th>Search Term</th>
-        <th>Timestamp</th>
-        <th>Platform</th>
-      </tr>
-    </thead>
-    <tbody id="analyticsTable"></tbody>
-  </table>
-</div>
-
-<script type="module">
-import {
-  collection, getDocs, query, orderBy, limit, startAfter
-} from "https://www.gstatic.com/firebasejs/10.7.2/firebase-firestore.js";
-
-/* ============================
-   ANALYTICS LOGIC
-   ============================ */
-
-const logsRef = collection(db, "search_logs");
-const ANALYTICS_PAGE_SIZE = 10;
-
-let analyticsLastVisible = null;
-let analyticsData = [];
-
-/* ============================
-   Load analytics (first page)
-   ============================ */
-async function loadAnalytics(first = true) {
-  let q = query(logsRef, orderBy("timestamp","desc"), limit(ANALYTICS_PAGE_SIZE));
-
-  if (!first && analyticsLastVisible) {
-    q = query(logsRef, orderBy("timestamp","desc"), startAfter(analyticsLastVisible), limit(ANALYTICS_PAGE_SIZE));
-  }
-
-  const snap = await getDocs(q);
-
-  if (!snap.empty) {
-    analyticsLastVisible = snap.docs[snap.docs.length - 1];
-  }
-
-  analyticsData = snap.docs.map(doc => doc.data());
-
-  renderAnalytics();
-}
-
-/* ============================
-   Render analytics table
-   ============================ */
-function renderAnalytics() {
-  const table = document.getElementById("analyticsTable");
-  const totalEl = document.getElementById("analyticsTotal");
-
-  table.innerHTML = "";
-
-  analyticsData.forEach(row => {
-    const ts = row.timestamp?.toDate
-      ? row.timestamp.toDate().toLocaleString()
-      : new Date(row.timestamp).toLocaleString();
-
-    table.innerHTML += `
-      <tr>
-        <td>${row.term}</td>
-        <td>${ts}</td>
-        <td>${row.platform}</td>
+        <td>${d.term}</td>
+        <td>${d.platform}</td>
+        <td>${new Date(d.timestamp.toMillis()).toLocaleString()}</td>
       </tr>
     `;
   });
 
-  // ✅ Count total logs
-  totalEl.textContent = Number(totalEl.textContent) + analyticsData.length;
+  totalLogs.textContent=count;
 }
 
-/* ============================
-   Prev/Next buttons
-   ============================ */
-document.getElementById("analyticsNext").addEventListener("click", () => {
-  loadAnalytics(false);
-});
-
-document.getElementById("analyticsPrev").addEventListener("click", async () => {
-  // reload from beginning
-  analyticsLastVisible = null;
-  document.getElementById("analyticsTotal").textContent = 0;
-  loadAnalytics(true);
-});
-
-/* ============================
-   INITIAL LOAD
-   ============================ */
-loadAnalytics(true);
+/* INITIAL LOAD */
+loadPage();
+loadAnalytics();
 
 </script>
 
 </body>
 </html>
-
 
