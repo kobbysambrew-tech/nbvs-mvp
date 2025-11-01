@@ -27,7 +27,7 @@
 
 <main>
 
-  <p class="muted">Each verification costs <strong>¢30</strong> if you don't have credits. You have <span id="userPlan">loading…</span>.</p>
+  <p class="muted">Each verification costs <strong>¢30</strong>. You have <span id="userPlan">loading…</span>.</p>
 
   <div class="panel">
     <label>Search by full name or NIA ID</label>
@@ -63,7 +63,7 @@
 
 <script type="module">
 
-/* ✅ IMPORTS */
+/* ✅ FIREBASE IMPORTS */
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-app.js";
 import { 
   getFirestore, doc, getDoc, setDoc, updateDoc,
@@ -116,6 +116,7 @@ await ensureWallet();
 /* ✅ UI ELEMENTS */
 const freeCountEl = document.getElementById("freeCountDisplay");
 const planDisplay = document.getElementById("planDisplay");
+const userPlanTop = document.getElementById("userPlan");
 const resultsDiv = document.getElementById("resultsArea");
 
 async function loadUser() {
@@ -125,6 +126,7 @@ async function loadUser() {
 function updateUI(u) {
   freeCountEl.textContent = "Free: " + u.freeSearches;
   planDisplay.textContent = "Plan: " + u.plan;
+  userPlanTop.textContent = u.plan;
 }
 
 updateUI(await loadUser());
@@ -140,7 +142,7 @@ async function deductSearch() {
       await updateDoc(userRef, { monthlyRemaining: u.monthlyRemaining - 1 });
       return true;
     }
-    alert("BASIC plan out of searches.");
+    alert("Your BASIC plan is out of searches.");
     return false;
   }
 
@@ -168,6 +170,12 @@ document.getElementById("searchBtn").addEventListener("click", async () => {
 
   const docs = await getDocs(collection(db, "records"));
   let matches = [];
+
+  /* ✅ If no records exist ⇒ prevent freeze */
+  if (docs.empty) {
+    resultsDiv.textContent = "❌ No record found.";
+    return;
+  }
 
   docs.forEach(d => {
     const r = d.data();
@@ -215,7 +223,7 @@ document.getElementById("buyBasicBtn").addEventListener("click", async () => {
     plan: "basic",
     monthlyRemaining: 10
   });
-  alert("✅ BASIC activated");
+  alert("✅ BASIC activated.");
   updateUI(await loadUser());
 });
 
@@ -224,7 +232,7 @@ document.getElementById("buyProBtn").addEventListener("click", async () => {
     plan: "pro",
     planExpires: Date.now() + 30 * 24 * 60 * 60 * 1000
   });
-  alert("✅ PRO activated");
+  alert("✅ PRO activated (30 days unlimited).");
   updateUI(await loadUser());
 });
 
