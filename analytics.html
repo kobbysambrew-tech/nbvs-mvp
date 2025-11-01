@@ -37,8 +37,9 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
 // Table elements
-const totalLabel = document.getElementById("totalCount");
-const tableBody = document.getElementById("logTable");
+const totalLabel = document.getElementById("total");
+const tableBody = document.getElementById("logs");
+
 
 // Load logs
 async function loadLogs() {
