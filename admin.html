@@ -11,210 +11,153 @@
       --accent:#004f2e;
       --yellow:#fcd116;
       --red:#ce1126;
-      --bg:#0f1720;
-      --panel:#0b1220;
-      --muted:#a8b0b8;
-      --glass: rgba(255,255,255,0.03);
-      --card:#0b1220;
-      --card-2:#0d1620;
+      --bg-dark:#071017;
+      --panel-dark:#0b1220;
+      --muted-dark:#9fb0b8;
+      --bg-light:#f6f7f9;
+      --panel-light:#ffffff;
+      --muted-light:#666;
       --maxw:1280px;
     }
 
-    /* Light theme overrides */
-    body.light {
-      --bg: #f6f7f9;
-      --panel: #ffffff;
-      --card: #ffffff;
-      --card-2: #ffffff;
-      --muted: #666;
-      --glass: rgba(0,0,0,0.03);
-    }
-
+    /* Base */
     *{box-sizing:border-box}
+    html,body{height:100%}
     body{
       margin:0;
-      min-height:100vh;
-      font-family: "Segoe UI", Roboto, Arial, sans-serif;
-      background: linear-gradient(180deg,#071017 0%, #071a1c 60%);
+      font-family:"Segoe UI", Roboto, Arial, sans-serif;
+      background:linear-gradient(180deg,#071017 0%, #071a1c 60%);
       color:#e6eef2;
       display:flex;
-      transition: all .3s ease;
+      min-height:100vh;
+      overflow:hidden;
     }
-
     body.light {
+      background:var(--bg-light);
       color:#111;
-      background: #f6f7f9;
     }
 
-    /* SIDEBAR */
+    /* Sidebar */
     .sidebar{
       width:260px;
-      background:linear-gradient(180deg,var(--card), var(--card-2));
-      padding:22px;
+      background:linear-gradient(180deg,var(--panel-dark), #071826 120%);
+      padding:20px;
       display:flex;
       flex-direction:column;
-      gap:18px;
-      box-shadow: 6px 0 30px rgba(0,0,0,0.35);
-      min-height:100vh;
-    }
-    .brand{
-      display:flex;
       gap:12px;
-      align-items:center;
+      min-height:100vh;
+      transition:transform .28s ease;
+      z-index:40;
+      box-shadow:6px 0 30px rgba(0,0,0,0.35);
     }
-    .brand .crest{
-      width:56px;
-      height:56px;
-      background-image: url('https://upload.wikimedia.org/wikipedia/commons/0/0c/Coat_of_arms_of_Ghana.svg');
-      background-size:contain;
-      background-position:center;
-      background-repeat:no-repeat;
-      border-radius:8px;
-      box-shadow:0 6px 18px rgba(0,0,0,0.25);
+    body.light .sidebar{background:var(--panel-light);box-shadow:none}
+    .brand{display:flex;gap:12px;align-items:center}
+    .crest{
+      width:56px;height:56px;border-radius:8px;background-image:url('https://upload.wikimedia.org/wikipedia/commons/0/0c/Coat_of_arms_of_Ghana.svg');background-size:contain;background-position:center;background-repeat:no-repeat;box-shadow:0 6px 18px rgba(0,0,0,0.25)
     }
-    .brand h2{font-size:1.05rem;margin:0;line-height:1;color:var(--green);}
-    .brand p{margin:0;font-size:0.85rem;color:var(--muted)}
+    .brand h2{margin:0;font-size:1.05rem;color:var(--green);line-height:1}
+    .brand p{margin:0;font-size:0.85rem;color:var(--muted-dark)}
 
-    .nav{
-      display:flex;
-      flex-direction:column;
-      gap:6px;
-      margin-top:8px;
-    }
+    .nav{display:flex;flex-direction:column;gap:6px;margin-top:10px}
     .nav button{
-      text-align:left;
-      padding:10px 12px;
-      border-radius:8px;
-      border:none;
-      background:transparent;
-      color:inherit;
-      font-weight:700;
-      cursor:pointer;
-      display:flex;
-      gap:10px;
-      align-items:center;
+      text-align:left;padding:10px 12px;border-radius:8px;border:none;background:transparent;color:inherit;cursor:pointer;font-weight:700;display:flex;gap:10px;align-items:center;
     }
     .nav button.active{
-      background: linear-gradient(90deg, rgba(0,0,0,0.18), rgba(0,0,0,0.08));
-      box-shadow: inset 0 1px 0 rgba(255,255,255,0.02);
+      background:linear-gradient(90deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
       border-left:4px solid var(--green);
     }
 
-    .sidebar .small{font-size:0.9rem;color:var(--muted)}
+    .sidebar .small{font-size:0.9rem;color:var(--muted-dark)}
 
-    .logout{
-      margin-top:auto;
-      display:flex;
-      gap:8px;
-      align-items:center;
-    }
-    .logout button{
-      background:var(--red);
-      color:white;
-      border:none;
-      padding:8px 12px;
-      border-radius:8px;
-      font-weight:800;
-      cursor:pointer;
+    .logout{margin-top:auto;display:flex;gap:8px;align-items:center}
+    .logout .info{flex:1}
+    .logout button{background:var(--red);color:#fff;border:none;padding:8px 12px;border-radius:8px;font-weight:800;cursor:pointer}
+
+    /* Mobile hamburger */
+    .hamburger{
+      display:none;
+      position:fixed;
+      left:14px;top:14px;
+      z-index:60;
+      background:var(--green);
+      color:#fff;border:none;padding:10px;border-radius:10px;cursor:pointer;
+      box-shadow:0 8px 20px rgba(0,0,0,0.3);
     }
 
-    /* MAIN */
+    /* Main */
     .main{
       flex:1;
-      padding:28px;
+      padding:26px;
       overflow:auto;
       max-width:calc(100% - 260px);
+      transition:all .28s ease;
     }
+    body.light .main{background:transparent}
+    .topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;gap:12px}
+    .topbar h1{margin:0;font-size:1.2rem;color:var(--green)}
+    .top-controls{display:flex;gap:8px;align-items:center}
 
-    .topbar{
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      gap:12px;
-      margin-bottom:18px;
-    }
-    .topbar .title{
-      display:flex;
-      gap:12px;
-      align-items:center;
-    }
-    .topbar h1{
-      margin:0;font-size:1.2rem;color:var(--green)
-    }
-    .topbar .controls{display:flex;gap:8px;align-items:center}
+    .card{background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));padding:16px;border-radius:12px;margin-bottom:16px;border:1px solid rgba(255,255,255,0.02)}
+    body.light .card{background:#fff;border:1px solid rgba(0,0,0,0.04);box-shadow:0 6px 16px rgba(0,0,0,0.06)}
 
-    .card{
-      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
-      padding:16px;
-      border-radius:12px;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.35);
-      margin-bottom:16px;
-      border:1px solid rgba(255,255,255,0.02);
-    }
-    .muted{color:var(--muted)}
-
-    /* grid */
-    .grid-2{display:grid;grid-template-columns:1fr 380px;gap:16px}
+    /* grid layout */
+    .grid-2{display:grid;grid-template-columns:1fr 360px;gap:16px}
+    @media(max-width:980px){.grid-2{grid-template-columns:1fr}.sidebar{position:fixed;left:0;top:0;bottom:0;transform:translateX(-120%)}.hamburger{display:block}}
 
     /* table */
     table{width:100%;border-collapse:collapse}
     th,td{padding:10px;border-bottom:1px solid rgba(255,255,255,0.03);text-align:left;font-size:0.95rem}
     th{background:transparent;color:var(--green);position:sticky;top:0}
-    .actions button{margin-right:6px;padding:6px 8px;border-radius:6px;border:none;cursor:pointer}
+    body.light th{color:var(--green)}
 
-    /* inputs */
-    input,select,textarea{width:100%;padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,0.06);background:transparent;color:inherit}
-    input::placeholder{color:#9fb0b8}
-
-    /* small controls group */
-    .controls-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+    input,select{width:100%;padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,0.05);background:transparent;color:inherit;margin-top:8px}
+    body.light input,body.light select{background:#fff;color:#111;border:1px solid #ddd}
 
     /* modal */
-    .modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,0.6);display:none;align-items:center;justify-content:center;z-index:50}
-    .modal{background:var(--panel);padding:18px;border-radius:12px;min-width:320px;max-width:900px}
+    .modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,0.6);display:none;align-items:center;justify-content:center;z-index:80}
+    .modal{background:var(--panel-dark);padding:18px;border-radius:12px;min-width:320px;max-width:900px}
 
-    /* analytics table */
-    .analytics-table th, .analytics-table td{font-size:0.9rem;color:var(--muted)}
-    .analytics-table td{color:inherit}
+    /* small utils */
+    .muted{color:var(--muted-dark)}
+    .small{font-size:0.9rem}
+    .controls-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 
-    /* responsive */
-    @media(max-width:980px){
-      .sidebar{display:none}
-      body{background:#0b1220}
-      .main{max-width:100%;padding:14px}
-      .grid-2{grid-template-columns:1fr}
-    }
+    /* animations */
+    .fade-in-up{opacity:0;transform:translateY(8px);animation:fadeUp .45s forwards}
+    @keyframes fadeUp{to{opacity:1;transform:none}}
 
-    /* light mode tweaks */
-    body.light .card{box-shadow:0 6px 16px rgba(0,0,0,0.06);border:1px solid rgba(0,0,0,0.04)}
-    body.light th{color:var(--green)}
+    /* active highlight helper */
+    .active-highlight{box-shadow:0 10px 30px rgba(0,0,0,0.4);border-left:4px solid var(--green)}
   </style>
 </head>
 
 <body>
 
+  <!-- MOBILE HAMBURGER -->
+  <button class="hamburger" id="hamburgerBtn" aria-label="Open menu">☰</button>
+
   <!-- SIDEBAR -->
   <aside class="sidebar" id="sidebar">
     <div class="brand">
-      <div class="crest"></div>
+      <div class="crest" aria-hidden="true"></div>
       <div>
         <h2>NBVS Ghana</h2>
-        <p class="small">Admin Panel</p>
+        <p class="small muted">Admin Panel</p>
       </div>
     </div>
 
     <div class="small muted">Navigation</div>
     <nav class="nav" id="nav">
-      <button id="navRecords" class="active" onclick="showSection('records')">📋 Records</button>
-      <button id="navAnalytics" onclick="showSection('analytics')">📊 Analytics</button>
-      <button id="navImport" onclick="showSection('import')">⬆️ Import CSV</button>
-      <button id="navWallet" onclick="showSection('wallet')">💳 Wallet Logs</button>
+      <button id="navRecords" class="active" data-section="records">📋 Records</button>
+      <button id="navAnalytics" data-section="analytics">📊 Analytics</button>
+      <button id="navImport" data-section="import">⬆️ Import CSV</button>
+      <button id="navWallet" data-section="wallet">💳 Wallet</button>
     </nav>
 
     <div class="logout">
-      <div style="flex:1">
+      <div class="info">
         <div class="small muted">Logged in as</div>
-        <div style="font-weight:800;margin-top:6px">Admin — Aubrey</div>
+        <div style="font-weight:800">Admin — Aubrey</div>
       </div>
       <div>
         <button onclick="logout()">Logout</button>
@@ -223,90 +166,73 @@
   </aside>
 
   <!-- MAIN -->
-  <main class="main">
-
+  <main class="main" id="mainContent">
     <div class="topbar">
-      <div class="title">
+      <div>
         <h1>NBVS Admin Dashboard</h1>
-        <div style="margin-left:8px" class="muted">Manage records · analytics · import</div>
+        <div class="muted small">Manage records · analytics · import</div>
       </div>
 
-      <div class="controls">
+      <div class="top-controls">
         <button id="themeBtn" style="padding:8px 12px;border-radius:8px;border:none;background:var(--yellow);font-weight:700;cursor:pointer">Toggle Theme</button>
       </div>
     </div>
 
-    <!-- ===== GRID: left main column + right sidebar small panels ===== -->
-    <div id="recordsSection" class="grid-2">
-
-      <!-- LEFT: Records / Table -->
+    <section id="recordsSection" class="grid-2 fade-in-up">
       <div>
-
-        <!-- IMPORT PANEL (top left quick) -->
+        <!-- IMPORT PANEL -->
         <div id="panelImport" class="card">
-          <h3 style="margin:0 0 8px 0">Bulk Import</h3>
-          <div class="muted">CSV columns: name,nia,dob,region,address,criminal,driving,credit,status</div>
-
-          <div style="margin-top:12px;display:flex;gap:12px;align-items:center">
+          <h3 style="margin:0 0 8px 0">Bulk Import (CSV)</h3>
+          <div class="muted small">Columns: name,nia,dob,region,address,criminal,driving,credit,status</div>
+          <div style="display:flex;gap:12px;align-items:center;margin-top:12px">
             <input type="file" id="csvFile" accept=".csv" />
             <div style="display:flex;flex-direction:column;gap:8px">
-              <button id="importBtn" class="btn-green">Import CSV</button>
-              <button id="clearImportBtn" class="secondary">Clear</button>
+              <button id="importBtn" style="padding:10px;border-radius:8px;background:var(--green);color:#fff;border:none;cursor:pointer">Import CSV</button>
+              <button id="clearImportBtn" style="padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.04);background:transparent;cursor:pointer">Clear</button>
             </div>
           </div>
           <div id="importStatus" class="muted" style="margin-top:8px"></div>
         </div>
 
-        <!-- ADD RECORD CARD -->
+        <!-- ADD RECORD -->
         <div id="panelAdd" class="card" style="margin-top:12px">
           <h3 style="margin:0 0 8px 0">Add New Record</h3>
-          <div class="muted">Add a single record — appears immediately in records</div>
+          <div class="muted small">Add a single record — appears immediately</div>
 
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px">
             <div>
-              <label>Full name</label>
-              <input id="nameInput" placeholder="Full Name" />
-              <label style="margin-top:8px">NIA</label>
-              <input id="niaInput" placeholder="GHA-12345" />
-              <label style="margin-top:8px">DOB</label>
-              <input id="dobInput" placeholder="YYYY-MM-DD" />
-              <label style="margin-top:8px">Region</label>
-              <input id="regionInput" placeholder="Region" />
+              <label>Full name</label><input id="nameInput" placeholder="Full Name" />
+              <label>NIA</label><input id="niaInput" placeholder="GHA-12345" />
+              <label>DOB</label><input id="dobInput" placeholder="YYYY-MM-DD" />
+              <label>Region</label><input id="regionInput" placeholder="Region" />
             </div>
 
             <div>
-              <label>Address</label>
-              <input id="addressInput" placeholder="Address" />
-              <label style="margin-top:8px">Criminal</label>
-              <input id="criminalInput" placeholder="None / details" />
-              <label style="margin-top:8px">Driving</label>
-              <input id="drivingInput" placeholder="Clean / Suspended" />
-              <label style="margin-top:8px">Credit / Notes</label>
-              <input id="creditInput" placeholder="Notes" />
-              <label style="margin-top:8px">Status</label>
+              <label>Address</label><input id="addressInput" placeholder="Address" />
+              <label>Criminal</label><input id="criminalInput" placeholder="None / details" />
+              <label>Driving</label><input id="drivingInput" placeholder="Clean / Suspended" />
+              <label>Credit</label><input id="creditInput" placeholder="Notes" />
+              <label>Status</label>
               <select id="statusInput">
                 <option value="Verified">Verified</option>
                 <option value="Flagged">Flagged</option>
                 <option value="Warning">Warning</option>
               </select>
 
-              <div style="margin-top:12px">
-                <button id="addBtn" class="btn-green">Add Record</button>
-              </div>
+              <div style="margin-top:12px"><button id="addBtn" style="padding:10px;border-radius:8px;background:var(--green);color:#fff;border:none;cursor:pointer">Add Record</button></div>
             </div>
           </div>
         </div>
 
-        <!-- CONTROLS + TABLE -->
+        <!-- TABLE CARD -->
         <div class="card" style="margin-top:12px">
           <div style="display:flex;justify-content:space-between;align-items:center;gap:12px">
             <div style="display:flex;gap:8px;align-items:center">
               <input type="checkbox" id="selectAll" />
-              <label for="selectAll" style="margin:0 8px">Select all on page</label>
-
-              <button id="multiDeleteBtn" class="btn-red">Delete Selected</button>
-              <button id="exportSelectedBtn" class="btn-yellow">Export Selected</button>
-              <button id="downloadCsvBtn" class="btn-green">Download All</button>
+              <label for="selectAll">Select all on page</label>
+              <button id="multiDeleteBtn" style="background:var(--red);color:#fff;border:none;padding:8px;border-radius:8px;cursor:pointer;margin-left:8px">Delete Selected</button>
+              <button id="exportSelectedBtn" style="background:var(--yellow);color:#111;border:none;padding:8px;border-radius:8px;cursor:pointer">Export Selected</button>
+              <button id="downloadCsvBtn" style="background:var(--green);color:#fff;border:none;padding:8px;border-radius:8px;cursor:pointer">Download All</button>
             </div>
 
             <div style="display:flex;gap:8px;align-items:center">
@@ -339,15 +265,15 @@
           <div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px">
             <div class="muted" id="pageInfo">Page 1</div>
             <div>
-              <button id="prevPageBtn" class="secondary">← Previous</button>
-              <button id="nextPageBtn" class="secondary">Next →</button>
+              <button id="prevPageBtn" style="padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.04);background:transparent;cursor:pointer">← Prev</button>
+              <button id="nextPageBtn" style="padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.04);background:transparent;cursor:pointer">Next →</button>
             </div>
           </div>
         </div>
 
       </div>
 
-      <!-- RIGHT: small panels (wallet + analytics quick) -->
+      <!-- RIGHT SIDE SMALL PANELS -->
       <aside>
         <div class="card">
           <h3>Quick Stats</h3>
@@ -358,49 +284,37 @@
         <div class="card" style="margin-top:12px">
           <h3>Wallet</h3>
           <div class="muted">Open wallet page</div>
-          <div style="margin-top:10px">
-            <button onclick="openWallet()" class="btn-green">Open Wallet</button>
-          </div>
+          <div style="margin-top:10px"><button id="openWalletBtn" style="padding:8px;border-radius:8px;background:var(--green);color:#fff;border:none;cursor:pointer">Open Wallet</button></div>
         </div>
 
         <div class="card" style="margin-top:12px">
           <h3>Analytics Summary</h3>
           <div class="muted">Total searches</div>
           <div id="totalLogs" style="font-size:1.4rem;font-weight:800;margin-top:8px">0</div>
-          <div style="margin-top:8px">
-            <button onclick="scrollToAnalytics()" class="secondary">View full logs</button>
-          </div>
+          <div style="margin-top:8px"><button onclick="document.getElementById('analyticsSection').scrollIntoView({behavior:'smooth'})" style="padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.04);background:transparent;cursor:pointer">View full logs</button></div>
         </div>
       </aside>
+    </section>
 
-    </div>
-
-    <!-- ANALYTICS full table (below records) -->
-    <div id="analyticsSection" class="card" style="margin-top:18px">
+    <!-- ANALYTICS -->
+    <section id="analyticsSection" class="card fade-in-up">
       <h3>Search Analytics</h3>
-      <div class="muted">Search history from Verify page (term, platform, timestamp)</div>
-
+      <div class="muted small">Search history from the Verify page (term, platform, timestamp)</div>
       <div style="margin-top:12px;overflow:auto">
         <table class="analytics-table">
           <thead>
-            <tr>
-              <th>Search Term</th>
-              <th>Platform</th>
-              <th>Timestamp</th>
-            </tr>
+            <tr><th>Search Term</th><th>Platform</th><th>Timestamp</th></tr>
           </thead>
           <tbody id="analyticsBody"></tbody>
         </table>
       </div>
-    </div>
-
+    </section>
   </main>
 
   <!-- EDIT MODAL -->
-  <div id="modalBackdrop" class="modal-backdrop" role="dialog" aria-modal="true" aria-hidden="true">
+  <div id="modalBackdrop" class="modal-backdrop" aria-hidden="true">
     <div class="modal">
       <h3>Edit Record</h3>
-
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px">
         <div>
           <label>Full name</label><input id="modal_name" />
@@ -414,372 +328,18 @@
           <label>Driving</label><input id="modal_driving" />
           <label>Credit</label><input id="modal_credit" />
           <label>Status</label>
-          <select id="modal_status">
-            <option>Verified</option>
-            <option>Flagged</option>
-            <option>Warning</option>
-          </select>
+          <select id="modal_status"><option>Verified</option><option>Flagged</option><option>Warning</option></select>
         </div>
       </div>
-
       <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:12px">
-        <button id="modalCancel" class="secondary">Cancel</button>
-        <button id="modalSave" class="btn-green">Save changes</button>
+        <button id="modalCancel" style="padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.04);background:transparent;cursor:pointer">Cancel</button>
+        <button id="modalSave" style="padding:8px;border-radius:8px;background:var(--green);color:#fff;border:none;cursor:pointer">Save</button>
       </div>
     </div>
   </div>
 
-<!-- ===== FIREBASE + LOGIC (preserves your original functionality) ===== -->
-<script type="module">
-/* Firebase imports */
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-app.js";
-import {
-  getFirestore, collection, doc, addDoc, getDocs, getDoc,
-  updateDoc, deleteDoc, query, orderBy, limit, startAfter,
-  startAt, where
-} from "https://www.gstatic.com/firebasejs/10.7.2/firebase-firestore.js";
-
-/* ======= Config (same as your other pages) ======= */
-const firebaseConfig = {
-  apiKey:"AIzaSyCDh_qL3jiCMHROK0_Soul2Wsv3t3y4wv0",
-  authDomain:"nbvs-ghana.firebaseapp.com",
-  projectId:"nbvs-ghana",
-  storageBucket:"nbvs-ghana.firebasestorage.app",
-  messagingSenderId:"702636577113",
-  appId:"1:702636577113:web:8369b43a2aa43aeb95fc48"
-};
-
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-
-/* ======= Refs & State (kept from your original code) ======= */
-const recordsRef = collection(db, "records");
-const logsRef = collection(db, "search_logs");
-const PAGE_SIZE = 10;
-
-let lastVisible = null;
-let firstVisible = null;
-let currentPage = 1;
-let currentSnapshot = [];
-let selectedIds = new Set();
-let activeFilter = "ALL";
-let activeSearch = "";
-
-/* DOM shortcuts */
-const recordsTable = document.getElementById("recordsTable");
-const analyticsBody = document.getElementById("analyticsBody");
-const totalLogsEl = document.getElementById("totalLogs");
-const totalRecordsEl = document.getElementById("totalRecords");
-
-/* Utility CSV helpers */
-function toCSVRow(arr){ return arr.map(v => `"${String(v ?? "").replace(/"/g,'""')}"`).join(","); }
-function parseCSV(text){
-  const lines = text.split(/\r?\n/).map(l => l.trim()).filter(l => l.length);
-  return lines.map(line=>{
-    const regex = /,(?=(?:[^"]*"[^"]*")*[^"]*$)/;
-    return line.split(regex).map(p => p.replace(/^"|"$/g, ""));
-  });
-}
-
-/* ============================
-   RENDER / QUERY LOGIC
-   ============================ */
-function buildQuery(direction="first") {
-  let q = query(recordsRef, orderBy("name"), limit(PAGE_SIZE));
-
-  if (activeFilter !== "ALL") {
-    q = query(recordsRef, where("status", "==", activeFilter), orderBy("name"), limit(PAGE_SIZE));
-  }
-
-  if (direction === "next" && lastVisible) {
-    q = query(recordsRef, orderBy("name"), startAfter(lastVisible), limit(PAGE_SIZE));
-  }
-  if (direction === "prev" && firstVisible && currentPage > 1) {
-    q = query(recordsRef, orderBy("name"), startAt(firstVisible), limit(PAGE_SIZE));
-  }
-
-  return q;
-}
-
-async function loadPage(direction="first") {
-  const snapshot = await getDocs(buildQuery(direction));
-
-  currentSnapshot = snapshot.docs;
-  if (!snapshot.empty) {
-    firstVisible = snapshot.docs[0];
-    lastVisible = snapshot.docs[snapshot.docs.length - 1];
-  }
-
-  let docsToRender = currentSnapshot;
-
-  if (activeSearch.trim() !== "") {
-    const s = activeSearch.toLowerCase();
-    docsToRender = currentSnapshot.filter(docSnap => {
-      const d = docSnap.data();
-      return (d.name?.toLowerCase().includes(s) || d.nia?.toLowerCase().includes(s));
-    });
-  }
-
-  renderTable(docsToRender);
-  document.getElementById("pageInfo").textContent = `Page ${currentPage}`;
-}
-
-/* Render table rows */
-function renderTable(docs) {
-  recordsTable.innerHTML = "";
-  selectedIds.clear();
-  document.getElementById("selectAll").checked = false;
-
-  docs.forEach(docSnap => {
-    const d = docSnap.data();
-    const id = docSnap.id;
-
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td style="width:40px"><input type="checkbox" class="rowCheckbox" data-id="${id}"></td>
-      <td>${escapeHtml(d.name)}</td>
-      <td>${escapeHtml(d.nia)}</td>
-      <td>${escapeHtml(d.region)}</td>
-      <td>${escapeHtml(d.status)}</td>
-      <td class="actions">
-        <button class="secondary" onclick="openEditModal('${id}')">Edit</button>
-        <button class="btn-red" onclick="deleteRecord('${id}')">Delete</button>
-      </td>
-    `;
-    recordsTable.appendChild(tr);
-  });
-
-  document.querySelectorAll(".rowCheckbox").forEach(cb=>{
-    cb.addEventListener("change", e=>{
-      const id = e.target.dataset.id;
-      if (e.target.checked) selectedIds.add(id);
-      else selectedIds.delete(id);
-    });
-  });
-}
-
-/* escape simple html to prevent injection into table cells */
-function escapeHtml(str){ return String(str ?? "").replace(/[&<>"']/g, s=>({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"':'&quot;', "'":'&#39;' }[s])); }
-
-/* NEXT / PREV */
-document.getElementById("nextPageBtn").addEventListener("click", () => { currentPage++; loadPage("next"); });
-document.getElementById("prevPageBtn").addEventListener("click", () => { if (currentPage>1) { currentPage--; loadPage("prev"); }});
-
-/* SELECT ALL */
-document.getElementById("selectAll").addEventListener("change", e => {
-  const checked = e.target.checked;
-  document.querySelectorAll(".rowCheckbox").forEach(cb=>{
-    cb.checked = checked;
-    if (checked) selectedIds.add(cb.dataset.id);
-    else selectedIds.clear();
-  });
-});
-
-/* FILTER / SEARCH */
-document.getElementById("filterSelect").addEventListener("change", e => {
-  activeFilter = e.target.value; currentPage = 1; loadPage();
-});
-document.getElementById("globalSearch").addEventListener("input", e => {
-  activeSearch = e.target.value; loadPage();
-});
-
-/* DOWNLOAD ALL */
-document.getElementById("downloadCsvBtn").addEventListener("click", async () => {
-  const snaps = await getDocs(recordsRef);
-  let out = [];
-  out.push(toCSVRow(["name","nia","dob","region","address","criminal","driving","credit","status"]));
-  snaps.forEach(s => {
-    const d = s.data();
-    out.push(toCSVRow([d.name,d.nia,d.dob,d.region,d.address,d.criminal,d.driving,d.credit,d.status]));
-  });
-  const blob = new Blob([out.join("\n")], {type:"text/csv"});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a"); a.href = url; a.download = "nbvs-records-all.csv"; a.click();
-});
-
-/* EXPORT SELECTED */
-document.getElementById("exportSelectedBtn").addEventListener("click", async () => {
-  if (selectedIds.size === 0) return alert("No rows selected.");
-  let out = []; out.push(toCSVRow(["name","nia","dob","region","address","criminal","driving","credit","status"]));
-  for (const id of selectedIds) {
-    const snap = await getDoc(doc(db,"records",id));
-    if (snap.exists()) {
-      const d = snap.data();
-      out.push(toCSVRow([d.name,d.nia,d.dob,d.region,d.address,d.criminal,d.driving,d.credit,d.status]));
-    }
-  }
-  const blob = new Blob([out.join("\n")], {type:"text/csv"});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a"); a.href=url; a.download="nbvs-selected.csv"; a.click();
-});
-
-/* DELETE MULTI */
-document.getElementById("multiDeleteBtn").addEventListener("click", async () => {
-  if (selectedIds.size === 0) return alert("No rows selected.");
-  if (!confirm(`Delete ${selectedIds.size} selected records?`)) return;
-  for (const id of selectedIds) {
-    await deleteDoc(doc(db,"records",id));
-  }
-  alert("Deleted selected records");
-  loadPage("first");
-});
-
-/* ADD RECORD */
-document.getElementById("addBtn").addEventListener("click", async () => {
-  const rec = {
-    name: document.getElementById("nameInput").value.trim(),
-    nia: document.getElementById("niaInput").value.trim(),
-    dob: document.getElementById("dobInput").value.trim(),
-    region: document.getElementById("regionInput").value.trim(),
-    address: document.getElementById("addressInput").value.trim(),
-    criminal: document.getElementById("criminalInput").value.trim(),
-    driving: document.getElementById("drivingInput").value.trim(),
-    credit: document.getElementById("creditInput").value.trim(),
-    status: document.getElementById("statusInput").value
-  };
-  if (!rec.name || !rec.nia) return alert("Please provide Name and NIA.");
-  await addDoc(recordsRef, rec);
-  alert("Record added.");
-  // clear inputs
-  ["nameInput","niaInput","dobInput","regionInput","addressInput","criminalInput","drivingInput","creditInput"].forEach(id => { const el=document.getElementById(id); if(el) el.value=""; });
-  loadPage("first");
-});
-
-/* DELETE SINGLE */
-window.deleteRecord = async function(id){
-  if (!confirm("Delete this record?")) return;
-  await deleteDoc(doc(db,"records",id));
-  loadPage("first");
-};
-
-/* EDIT MODAL */
-const modalBackdrop = document.getElementById("modalBackdrop");
-let editingId = null;
-
-window.openEditModal = async function(id){
-  editingId = id;
-  const snap = await getDoc(doc(db,"records",id));
-  if (!snap.exists()) return alert("Record not found.");
-  const d = snap.data();
-  modal_name.value = d.name || "";
-  modal_nia.value = d.nia || "";
-  modal_dob.value = d.dob || "";
-  modal_region.value = d.region || "";
-  modal_address.value = d.address || "";
-  modal_criminal.value = d.criminal || "";
-  modal_driving.value = d.driving || "";
-  modal_credit.value = d.credit || "";
-  modal_status.value = d.status || "Verified";
-  modalBackdrop.style.display = "flex";
-};
-
-document.getElementById("modalCancel").addEventListener("click", () => {
-  editingId = null; modalBackdrop.style.display = "none";
-});
-
-document.getElementById("modalSave").addEventListener("click", async () => {
-  if (!editingId) return;
-  const updates = {
-    name: modal_name.value.trim(),
-    nia: modal_nia.value.trim(),
-    dob: modal_dob.value.trim(),
-    region: modal_region.value.trim(),
-    address: modal_address.value.trim(),
-    criminal: modal_criminal.value.trim(),
-    driving: modal_driving.value.trim(),
-    credit: modal_credit.value.trim(),
-    status: modal_status.value
-  };
-  await updateDoc(doc(db,"records",editingId), updates);
-  alert("Record updated.");
-  editingId = null; modalBackdrop.style.display = "none"; loadPage("first");
-});
-
-/* BULK IMPORT */
-document.getElementById("importBtn").addEventListener("click", () => {
-  const file = document.getElementById("csvFile").files[0];
-  if (!file) return alert("Select a CSV file.");
-  const reader = new FileReader();
-  reader.onload = async (e) => {
-    try {
-      document.getElementById("importStatus").innerText = "Parsing CSV...";
-      const rows = parseCSV(e.target.result);
-      if (rows.length < 2) { document.getElementById("importStatus").innerText = "No rows to import."; return; }
-      let imported = 0;
-      for (let i=1;i<rows.length;i++){
-        const cols = rows[i]; if (cols.length < 9) continue;
-        const record = { name: cols[0]||"", nia:cols[1]||"", dob:cols[2]||"", region:cols[3]||"", address:cols[4]||"", criminal:cols[5]||"", driving:cols[6]||"", credit:cols[7]||"", status:cols[8]||"Verified" };
-        await addDoc(recordsRef, record);
-        imported++;
-        document.getElementById("importStatus").innerText = `Imported ${imported} rows...`;
-      }
-      document.getElementById("importStatus").innerText = `Imported ${imported} records.`;
-      loadPage("first");
-    } catch(err) { console.error(err); document.getElementById("importStatus").innerText = "Import failed. See console."; }
-  };
-  reader.readAsText(file);
-});
-document.getElementById("clearImportBtn").addEventListener("click", () => { document.getElementById("csvFile").value=""; document.getElementById("importStatus").innerText=""; });
-
-/* OPEN WALLET */
-function openWallet(){ window.location.href = "wallet.html"; }
-
-/* ANALYTICS */
-async function loadAnalytics(){
-  const snaps = await getDocs(query(logsRef, orderBy("timestamp","desc")));
-  analyticsBody.innerHTML = ""; let count = 0;
-  snaps.forEach(s=>{
-    const d = s.data();
-    const ts = d.timestamp?.toDate ? d.timestamp.toDate().toLocaleString() : (d.timestamp ? new Date(d.timestamp).toLocaleString() : "");
-    analyticsBody.innerHTML += `<tr><td>${escapeHtml(d.term)}</td><td>${escapeHtml(d.platform)}</td><td>${ts}</td></tr>`;
-    count++;
-  });
-  totalLogsEl.textContent = count;
-}
-
-/* TOTAL RECORDS */
-async function loadTotals(){
-  const snaps = await getDocs(recordsRef);
-  totalRecordsEl.textContent = snaps.size;
-}
-
-/* UI helpers: switch sections */
-function showSection(name){
-  // nav active
-  document.querySelectorAll('#nav button').forEach(b=>b.classList.remove('active'));
-  if (name==='records') document.getElementById('navRecords').classList.add('active');
-  if (name==='analytics') document.getElementById('navAnalytics').classList.add('active');
-  if (name==='import') document.getElementById('navImport').classList.add('active');
-  if (name==='wallet') document.getElementById('navWallet').classList.add('active');
-
-  // simple scroll behavior: if analytics -> scroll to analytics section; else scroll to top
-  if (name==='analytics') { document.getElementById('analyticsSection').scrollIntoView({behavior:'smooth'}); }
-  else { window.scrollTo({top:0, behavior:'smooth'}); }
-}
-
-/* THEME toggle */
-const themeBtn = document.getElementById("themeBtn");
-const prefersLight = false;
-function initTheme(){
-  if (localStorage.getItem("nbvs-theme")==="light") document.body.classList.add("light");
-  themeBtn.addEventListener("click", ()=>{
-    document.body.classList.toggle("light");
-    if (document.body.classList.contains("light")) localStorage.setItem("nbvs-theme","light");
-    else localStorage.removeItem("nbvs-theme");
-  });
-}
-
-/* MULTI-DELETE + EXPORT already handled above */
-
-/* INITIAL LOAD */
-loadPage("first");
-loadAnalytics();
-loadTotals();
-initTheme();
-
-/* Helper: escape already defined above */
-
-</script>
+  <!-- script loads admin.js (module) -->
+  <script type="module" src="admin.js"></script>
 
 </body>
 </html>
