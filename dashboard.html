@@ -20,7 +20,7 @@
 
   body {
     margin:0;
-    font-family:"Segoe UI",Airal,sans-serif;
+    font-family:"Segoe UI",Arial,sans-serif;
     background:var(--light-bg);
     color:var(--text-light);
     height:100vh;
@@ -30,7 +30,6 @@
     transition:0.4s;
   }
 
-  /* DARK MODE */
   body.dark {
     background:var(--dark-bg);
     color:var(--text-dark);
@@ -51,30 +50,7 @@
     background:var(--glass-dark);
   }
 
-  /* Gradient animated border */
-  .login-container::before {
-    content:"";
-    position:absolute;
-    inset:0;
-    padding:2px;
-    border-radius:16px;
-    background:linear-gradient(135deg, var(--red), var(--yellow), var(--green));
-    background-size:300% 300%;
-    animation:borderMove 6s infinite linear;
-    -webkit-mask:
-        linear-gradient(#fff 0 0) content-box,
-        linear-gradient(#fff 0 0);
-    -webkit-mask-composite:xor;
-            mask-composite:exclude;
-  }
-
-  @keyframes borderMove {
-    0%{background-position:0% 50%}
-    50%{background-position:100% 50%}
-    100%{background-position:0% 50%}
-  }
-
-  /* Logo */
+  /* Ghana Crest */
   .ghana-logo {
     width:90px;
     height:90px;
@@ -103,7 +79,6 @@
     opacity:0.9;
   }
 
-  /* input fields */
   .password-wrap {
     position:relative;
   }
@@ -125,7 +100,6 @@
     border:1px solid #555;
   }
 
-  /* show password */
   .toggle-pass {
     position:absolute;
     right:14px;
@@ -136,7 +110,6 @@
     opacity:0.7;
   }
 
-  /* login button */
   button {
     width:100%;
     padding:12px;
@@ -156,7 +129,7 @@
     transform:translateY(-2px);
   }
 
-  /* loading spinner */
+  /* Loader */
   .loading {
     display:none;
     margin:auto;
@@ -168,11 +141,11 @@
     height:30px;
     animation:spin 0.7s linear infinite;
   }
+
   @keyframes spin {
     to {transform:rotate(360deg)}
   }
 
-  /* error message */
   .error {
     margin-top:10px;
     color:var(--red);
@@ -181,7 +154,6 @@
     font-weight:700;
   }
 
-  /* shake animation on error */
   .shake {
     animation:shakeAnim 0.4s;
   }
@@ -194,7 +166,7 @@
     100%{transform:translateX(0)}
   }
 
-  /* toggle button */
+  /* Dark mode button */
   .dark-toggle {
     position:fixed;
     top:20px;
@@ -225,7 +197,7 @@
   <div class="ghana-logo"></div>
 
   <h2>NBVS Admin</h2>
-  <p>Authorized access only</p>
+  <p>Authorized Access Only</p>
 
   <div class="password-wrap">
     <input type="password" id="passwordInput" placeholder="Enter Password">
@@ -242,48 +214,47 @@
 <script>
   const ADMIN_PASSWORD = "aubrey";
 
-  // login function
   function login() {
     const inp = document.getElementById("passwordInput");
     const loader = document.getElementById("loader");
     const error = document.getElementById("errorBox");
 
-    if (inp.value.trim() !== ADMIN_PASSWORD) {
+    const val = inp.value.trim();
+
+    if (val !== ADMIN_PASSWORD) {
       error.style.display = "block";
       document.querySelector(".login-container").classList.add("shake");
       setTimeout(() => {
         document.querySelector(".login-container").classList.remove("shake");
-      }, 500);
+      }, 400);
       return;
     }
 
-    // show spinner
     loader.style.display = "block";
     error.style.display = "none";
 
-    // fade-out before redirect
     setTimeout(() => {
       document.body.style.opacity = "0";
       setTimeout(() => {
         window.location.href = "admin.html";
-      }, 300);
-    }, 800);
+      }, 350);
+    }, 500);
   }
 
-  // password toggle
   function togglePassword() {
     const field = document.getElementById("passwordInput");
     field.type = field.type === "password" ? "text" : "password";
   }
 
-  // dark mode
   function toggleDark() {
     document.body.classList.toggle("dark");
   }
 
-  // enter key == login
-  document.addEventListener("keydown", (e) => {
-    if (e.key === "Enter") login();
+  /* ENTER KEY SUPPORT */
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Enter") {
+      login();
+    }
   });
 </script>
 
