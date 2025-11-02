@@ -312,6 +312,30 @@
       </div>
     </section>
   </main>
+<!-- AUDIT LOGS SECTION -->
+<section id="auditSection" class="card fade-in-up" style="margin-top:18px">
+  <h3>Audit Logs (tamper-proof)</h3>
+  <div class="muted small">
+    Immutable audit events (action, admin, target, details, prevHash, hash, timestamp)
+  </div>
+
+  <div style="margin-top:12px;overflow:auto">
+    <table style="width:100%">
+      <thead>
+        <tr>
+          <th>Action</th>
+          <th>Admin</th>
+          <th>Target ID</th>
+          <th>Details</th>
+          <th>prevHash</th>
+          <th>hash</th>
+          <th>Timestamp</th>
+        </tr>
+      </thead>
+      <tbody id="auditBody"></tbody>
+    </table>
+  </div>
+</section>
 
   <!-- EDIT MODAL -->
   <div id="modalBackdrop" class="modal-backdrop" aria-hidden="true">
