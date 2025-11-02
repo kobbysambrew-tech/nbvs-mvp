@@ -1,7 +1,7 @@
-// admin.js — module
+// admin.js — module (with tamper-proof audit log)
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-app.js";
 import {
-  getFirestore, collection, doc, addDoc, getDocs, getDoc,
+  getFirestore, collection, collectionGroup, doc, addDoc, getDocs, getDoc,
   updateDoc, deleteDoc, query, orderBy, limit, startAfter, startAt, where
 } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-firestore.js";
 
@@ -39,6 +39,12 @@ const panelImport = document.getElementById("panelImport");
 const hamburgerBtn = document.getElementById("hamburgerBtn");
 const sidebar = document.getElementById("sidebar");
 
+/* Audit UI */
+let auditBodyEl = null; // will be set on init
+
+/* ========== ADMIN USER (logged-in admin) ========== */
+const ADMIN_USER = "Aubrey"; // record who performed actions
+
 /* ========== UTIL HELPERS ========== */
 function toCSVRow(arr){ return arr.map(v => `"${String(v ?? "").replace(/"/g,'""')}"`).join(","); }
 function parseCSV(text){
@@ -50,6 +56,79 @@ function parseCSV(text){
 }
 function escapeHtml(str){ return String(str ?? "").replace(/[&<>"']/g, s=>({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"':'&quot;', "'":'&#39;' }[s])); }
 
+/* ========== SHA256 (Web Crypto) ========== */
+async function sha256Hex(input) {
+  // input is string; convert to Uint8Array
+  const enc = new TextEncoder();
+  const data = enc.encode(input);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map(b => b.toString(16).padStart(2,'0')).join('');
+}
+
+/* ========== AUDIT (tamper-proof chain) ========== */
+/*
+  Structure:
+    collection: audit_logs/{YYYY-MM-DD}/events
+  Each event doc fields:
+    action, admin, targetId (if any), details, timestamp (ISO), prevHash, hash
+*/
+function auditCollectionForDate(dateKey){
+  return collection(db, "audit_logs", dateKey, "events");
+}
+
+async function getLastEventHash(dateKey){
+  try{
+    const q = query(auditCollectionForDate(dateKey), orderBy("timestamp","desc"), limit(1));
+    const snap = await getDocs(q);
+    if(snap.empty) return "";
+    const d = snap.docs[0].data();
+    return d.hash || "";
+  } catch(err){
+    console.error("getLastEventHash error", err);
+    return "";
+  }
+}
+
+/* Append tamper-proof audit entry (fire & forget by default) */
+async function appendAudit(event){
+  try{
+    const now = new Date();
+    const timestamp = now.toISOString();
+    const dateKey = timestamp.slice(0,10); // YYYY-MM-DD
+
+    // Build event payload (without hash)
+    const payload = {
+      action: event.action,
+      admin: ADMIN_USER,
+      targetId: event.targetId ?? null,
+      details: event.details ?? "",
+      meta: event.meta ?? null, // optional object (e.g. {count: 5})
+      timestamp
+    };
+
+    // prevHash
+    const prev = await getLastEventHash(dateKey);
+
+    // compute hash input: prevHash + JSON(payload)
+    const hashInput = prev + JSON.stringify(payload);
+    const hash = await sha256Hex(hashInput);
+
+    // store event with prevHash + hash
+    await addDoc(auditCollectionForDate(dateKey), {
+      ...payload,
+      prevHash: prev,
+      hash
+    });
+
+    // done
+    return true;
+  } catch(err){
+    console.error("appendAudit error", err);
+    return false;
+  }
+}
+
 /* ========== NAV / UI ========== */
 function setActiveNav(id){
   document.querySelectorAll("#nav button").forEach(b=>b.classList.remove("active"));
@@ -57,31 +136,36 @@ function setActiveNav(id){
   if(el) el.classList.add("active");
 }
 window.showSection = function(name){
-  // map name to element ids used in HTML
   const map = {
     records: "navRecords",
     analytics: "navAnalytics",
     import: "navImport",
-    wallet: "navWallet"
+    wallet: "navWallet",
+    audit: "navAudit"
   };
   setActiveNav(map[name] || "navRecords");
 
-  if(name === "records"){
-    document.getElementById("recordsSection").scrollIntoView({behavior:"smooth"});
-  } else if(name === "analytics"){
-    document.getElementById("analyticsSection").scrollIntoView({behavior:"smooth"});
-  } else if(name === "import"){
-    panelImport.scrollIntoView({behavior:"smooth"});
-  } else if(name === "wallet"){
+  if(name === "records") document.getElementById("recordsSection").scrollIntoView({behavior:"smooth"});
+  else if(name === "analytics") document.getElementById("analyticsSection").scrollIntoView({behavior:"smooth"});
+  else if(name === "import") panelImport.scrollIntoView({behavior:"smooth"});
+  else if(name === "wallet"){
     const walletBtn = document.getElementById("openWalletBtn");
     if(walletBtn) walletBtn.scrollIntoView({behavior:"smooth"});
+  } else if(name === "audit"){
+    const el = document.getElementById("auditSection");
+    if(el) el.scrollIntoView({behavior:"smooth"});
   }
 
-  // auto-close sidebar on mobile
   if(window.innerWidth < 980) sidebar.style.transform = "translateX(-120%)";
 };
 
-window.logout = function(){ window.location.href = "dashboard.html"; };
+window.logout = async function(){
+  // audit logout
+  try{
+    await appendAudit({ action: "logout", details: "Admin logged out" });
+  } catch(err){ console.error("logout audit", err); }
+  window.location.href = "dashboard.html";
+};
 window.openWallet = function(){ window.location.href = "wallet.html"; };
 
 /* mobile hamburger */
@@ -101,7 +185,7 @@ function initTheme(){
   });
 }
 
-/* highlight on scroll (active section) */
+/* highlight on scroll */
 let sectionObserver = null;
 function initSectionObserver(){
   const options = { root: null, rootMargin: '0px', threshold: 0.25 };
@@ -111,11 +195,12 @@ function initSectionObserver(){
         if(e.target.id === "analyticsSection") setActiveNav("navAnalytics");
         else if(e.target.id === "recordsSection") setActiveNav("navRecords");
         else if(e.target.id === "panelImport") setActiveNav("navImport");
+        else if(e.target.id === "auditSection") setActiveNav("navAudit");
       }
     });
   }, options);
 
-  const els = [document.getElementById("recordsSection"), document.getElementById("analyticsSection"), panelImport];
+  const els = [document.getElementById("recordsSection"), document.getElementById("analyticsSection"), panelImport, document.getElementById("auditSection")];
   els.forEach(el=>{ if(el) sectionObserver.observe(el); });
 }
 
@@ -200,6 +285,9 @@ document.getElementById("downloadCsvBtn").addEventListener("click", async ()=>{
   let out = []; out.push(toCSVRow(["name","nia","dob","region","address","criminal","driving","credit","status"]));
   snaps.forEach(s=>{ const d=s.data(); out.push(toCSVRow([d.name,d.nia,d.dob,d.region,d.address,d.criminal,d.driving,d.credit,d.status])); });
   const blob=new Blob([out.join("\n")],{type:"text/csv"}); const url=URL.createObjectURL(blob); const a=document.createElement("a"); a.href=url; a.download="nbvs-records-all.csv"; a.click();
+
+  // audit download (summary)
+  appendAudit({ action: "download_all_records", details: `Downloaded all records (count ${snaps.size})`, meta: { count: snaps.size } });
 });
 
 /* export selected */
@@ -208,14 +296,20 @@ document.getElementById("exportSelectedBtn").addEventListener("click", async ()=
   let out=[]; out.push(toCSVRow(["name","nia","dob","region","address","criminal","driving","credit","status"]));
   for(const id of selectedIds){ const snap = await getDoc(doc(db,"records",id)); if(snap.exists()){ const d=snap.data(); out.push(toCSVRow([d.name,d.nia,d.dob,d.region,d.address,d.criminal,d.driving,d.credit,d.status])); } }
   const blob=new Blob([out.join("\n")],{type:"text/csv"}); const url=URL.createObjectURL(blob); const a=document.createElement("a"); a.href=url; a.download="nbvs-selected.csv"; a.click();
+
+  // audit export selected
+  appendAudit({ action: "export_selected", details: `Exported ${selectedIds.size} selected records`, meta: { ids: Array.from(selectedIds) } });
 });
 
 /* multi-delete */
 document.getElementById("multiDeleteBtn").addEventListener("click", async ()=>{
   if(selectedIds.size===0) return alert("No rows selected.");
   if(!confirm(`Delete ${selectedIds.size} selected records?`)) return;
-  for(const id of selectedIds) await deleteDoc(doc(db,"records",id));
-  alert("Deleted selected records"); loadPage("first");
+  const ids = Array.from(selectedIds);
+  for(const id of ids) await deleteDoc(doc(db,"records",id));
+  alert("Deleted selected records");
+  appendAudit({ action: "multi_delete", details: `Deleted ${ids.length} records`, meta: { ids } });
+  loadPage("first");
 });
 
 /* add record */
@@ -232,8 +326,10 @@ document.getElementById("addBtn").addEventListener("click", async ()=>{
     status: document.getElementById("statusInput").value
   };
   if(!rec.name || !rec.nia) return alert("Please provide Name and NIA.");
-  await addDoc(recordsRef, rec);
-  alert("Record added."); ["nameInput","niaInput","dobInput","regionInput","addressInput","criminalInput","drivingInput","creditInput"].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=""; });
+  const addedRef = await addDoc(recordsRef, rec);
+  alert("Record added.");
+  appendAudit({ action: "add_record", targetId: addedRef.id, details: `Added ${rec.name}`, meta: { nia: rec.nia } });
+  ["nameInput","niaInput","dobInput","regionInput","addressInput","criminalInput","drivingInput","creditInput"].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=""; });
   loadPage("first");
 });
 
@@ -241,6 +337,7 @@ document.getElementById("addBtn").addEventListener("click", async ()=>{
 window.deleteRecord = async function(id){
   if(!confirm("Delete this record?")) return;
   await deleteDoc(doc(db,"records",id));
+  appendAudit({ action: "delete_record", targetId: id, details: `Deleted record ${id}` });
   loadPage("first");
 };
 
@@ -280,7 +377,9 @@ document.getElementById("modalSave").addEventListener("click", async ()=>{
     status: document.getElementById("modal_status").value
   };
   await updateDoc(doc(db,"records",editingId), updates);
-  alert("Record updated."); editingId=null; modalBackdrop.style.display = "none"; loadPage("first");
+  appendAudit({ action: "update_record", targetId: editingId, details: `Updated record ${editingId}`, meta: { updates } });
+  alert("Record updated.");
+  editingId=null; modalBackdrop.style.display = "none"; loadPage("first");
 });
 
 /* bulk import */
@@ -294,13 +393,16 @@ document.getElementById("importBtn").addEventListener("click", ()=>{
       const rows = parseCSV(e.target.result);
       if(rows.length < 2){ document.getElementById("importStatus").innerText = "No rows to import."; return; }
       let imported = 0;
+      const ids = [];
       for(let i=1;i<rows.length;i++){
         const cols = rows[i]; if(cols.length < 9) continue;
         const record = { name:cols[0]||"", nia:cols[1]||"", dob:cols[2]||"", region:cols[3]||"", address:cols[4]||"", criminal:cols[5]||"", driving:cols[6]||"", credit:cols[7]||"", status:cols[8]||"Verified" };
-        await addDoc(recordsRef, record);
+        const ref = await addDoc(recordsRef, record);
+        ids.push(ref.id);
         imported++; document.getElementById("importStatus").innerText = `Imported ${imported} rows...`;
       }
       document.getElementById("importStatus").innerText = `Imported ${imported} records.`;
+      appendAudit({ action: "bulk_import", details: `Imported ${imported} rows via CSV`, meta: { count: imported, ids } });
       loadPage("first");
     }catch(err){ console.error(err); document.getElementById("importStatus").innerText = "Import failed. See console."; }
   };
@@ -324,6 +426,33 @@ async function loadAnalytics(){
   totalLogsEl.textContent = count;
 }
 
+/* audit logs load (collectionGroup across audit_logs/*/events) */
+async function loadAuditLogs(limitCount = 200){
+  try{
+    auditBodyEl = auditBodyEl || document.getElementById("auditBody");
+    if(!auditBodyEl) return;
+    // collectionGroup to query all 'events' subcollections
+    const q = query(collectionGroup(db, "events"), orderBy("timestamp","desc"), limit(limitCount));
+    const snaps = await getDocs(q);
+    auditBodyEl.innerHTML = "";
+    snaps.forEach(s=>{
+      const d = s.data();
+      const ts = d.timestamp || "";
+      auditBodyEl.innerHTML += `<tr>
+        <td>${escapeHtml(d.action)}</td>
+        <td>${escapeHtml(d.admin || "")}</td>
+        <td>${escapeHtml(d.targetId || "")}</td>
+        <td>${escapeHtml(String(d.details || ""))}</td>
+        <td>${escapeHtml(d.prevHash || "").slice(0,10)}</td>
+        <td>${escapeHtml(d.hash || "").slice(0,10)}</td>
+        <td>${escapeHtml(String(ts).slice(0,19))}</td>
+      </tr>`;
+    });
+  }catch(err){
+    console.error("loadAuditLogs error", err);
+  }
+}
+
 /* totals */
 async function loadTotals(){
   const snaps = await getDocs(recordsRef);
@@ -338,12 +467,19 @@ function init(){
   loadAnalytics();
   loadTotals();
 
-  // nav button wiring (for mobile & desktop)
+  // nav button wiring
   document.querySelectorAll("#nav button").forEach(b=>{
     b.addEventListener("click", ()=> showSection(b.dataset.section));
   });
 
-  // make sure sidebar is visible on desktop
+  // audit nav button (if exists)
+  const navAudit = document.getElementById("navAudit");
+  if(navAudit) navAudit.addEventListener("click", async ()=>{
+    showSection("audit");
+    await loadAuditLogs();
+  });
+
+  // ensure sidebar visible on desktop
   if(window.innerWidth >= 980) sidebar.style.transform = "translateX(0)";
 }
 init();
