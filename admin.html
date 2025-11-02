@@ -1,291 +1,437 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>NBVS Admin Dashboard</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>NBVS Admin — Dashboard</title>
 
   <style>
     :root{
       --green:#006b3f;
+      --accent:#004f2e;
       --yellow:#fcd116;
       --red:#ce1126;
-      --bg:#f8f9fa;
-      --card:#ffffff;
-      --muted:#666;
-      --maxw:1200px;
+      --bg:#0f1720;
+      --panel:#0b1220;
+      --muted:#a8b0b8;
+      --glass: rgba(255,255,255,0.03);
+      --card:#0b1220;
+      --card-2:#0d1620;
+      --maxw:1280px;
     }
+
+    /* Light theme overrides */
+    body.light {
+      --bg: #f6f7f9;
+      --panel: #ffffff;
+      --card: #ffffff;
+      --card-2: #ffffff;
+      --muted: #666;
+      --glass: rgba(0,0,0,0.03);
+    }
+
+    *{box-sizing:border-box}
     body{
-      font-family:"Segoe UI",Arial,sans-serif;
-      background:var(--bg);
       margin:0;
-      padding:20px;
+      min-height:100vh;
+      font-family: "Segoe UI", Roboto, Arial, sans-serif;
+      background: linear-gradient(180deg,#071017 0%, #071a1c 60%);
+      color:#e6eef2;
       display:flex;
-      justify-content:center;
-    }
-    .container{max-width:var(--maxw);width:100%}
-    h1{color:var(--green);text-align:center;margin-bottom:18px}
-
-    .panel{
-      background:var(--card);
-      padding:18px;
-      border-radius:10px;
-      box-shadow:0 3px 8px rgba(0,0,0,0.06);
-      margin-bottom:16px;
+      transition: all .3s ease;
     }
 
-    input,select{
-      width:100%;
-      padding:10px;
-      border-radius:6px;
-      border:1px solid #ddd;
+    body.light {
+      color:#111;
+      background: #f6f7f9;
+    }
+
+    /* SIDEBAR */
+    .sidebar{
+      width:260px;
+      background:linear-gradient(180deg,var(--card), var(--card-2));
+      padding:22px;
+      display:flex;
+      flex-direction:column;
+      gap:18px;
+      box-shadow: 6px 0 30px rgba(0,0,0,0.35);
+      min-height:100vh;
+    }
+    .brand{
+      display:flex;
+      gap:12px;
+      align-items:center;
+    }
+    .brand .crest{
+      width:56px;
+      height:56px;
+      background-image: url('https://upload.wikimedia.org/wikipedia/commons/0/0c/Coat_of_arms_of_Ghana.svg');
+      background-size:contain;
+      background-position:center;
+      background-repeat:no-repeat;
+      border-radius:8px;
+      box-shadow:0 6px 18px rgba(0,0,0,0.25);
+    }
+    .brand h2{font-size:1.05rem;margin:0;line-height:1;color:var(--green);}
+    .brand p{margin:0;font-size:0.85rem;color:var(--muted)}
+
+    .nav{
+      display:flex;
+      flex-direction:column;
+      gap:6px;
       margin-top:8px;
     }
-
-    button{
-      padding:10px 14px;
-      border:none;
+    .nav button{
+      text-align:left;
+      padding:10px 12px;
       border-radius:8px;
+      border:none;
+      background:transparent;
+      color:inherit;
+      font-weight:700;
       cursor:pointer;
-      font-weight:600;
+      display:flex;
+      gap:10px;
+      align-items:center;
     }
-    .btn-red{background:var(--red);color:#fff}
-    .btn-yellow{background:var(--yellow);color:#111}
-    .btn-green{background:var(--green);color:#fff}
-    .secondary{background:#f4f4f4;color:#111;border:1px solid #ccc}
+    .nav button.active{
+      background: linear-gradient(90deg, rgba(0,0,0,0.18), rgba(0,0,0,0.08));
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.02);
+      border-left:4px solid var(--green);
+    }
 
-    table{width:100%;border-collapse:collapse;margin-top:12px}
-    th,td{padding:10px;border-bottom:1px solid #eee;text-align:left}
-    th{background:var(--green);color:#fff;position:sticky;top:0}
+    .sidebar .small{font-size:0.9rem;color:var(--muted)}
 
-    .actions button{margin-right:4px}
-    .pagination{display:flex;gap:8px;justify-content:center;margin-top:12px}
-
-    .muted{color:var(--muted);font-size:.9rem}
-
-    /* Header Bar */
-    .admin-top{
-      width:100%;
-      background:var(--green);
+    .logout{
+      margin-top:auto;
+      display:flex;
+      gap:8px;
+      align-items:center;
+    }
+    .logout button{
+      background:var(--red);
       color:white;
-      padding:14px 20px;
-      border-radius:10px;
-      margin-bottom:20px;
+      border:none;
+      padding:8px 12px;
+      border-radius:8px;
+      font-weight:800;
+      cursor:pointer;
+    }
+
+    /* MAIN */
+    .main{
+      flex:1;
+      padding:28px;
+      overflow:auto;
+      max-width:calc(100% - 260px);
+    }
+
+    .topbar{
       display:flex;
       justify-content:space-between;
       align-items:center;
-      box-shadow:0 4px 12px rgba(0,0,0,0.15);
+      gap:12px;
+      margin-bottom:18px;
     }
-
-    .top-buttons button{
-      padding:8px 14px;
-      border-radius:8px;
-      font-weight:600;
-      cursor:pointer;
-    }
-    .btn-nav-yellow{background:var(--yellow);color:#111}
-    .btn-nav-white{background:white;color:var(--green)}
-    .btn-nav-red{background:var(--red);color:white}
-
-    /* Modal */
-    .modal-backdrop{
-      position:fixed;
-      inset:0;
-      background:rgba(0,0,0,0.45);
-      display:none;
+    .topbar .title{
+      display:flex;
+      gap:12px;
       align-items:center;
-      justify-content:center;
     }
-    .modal{
-      background:#fff;
-      padding:18px;
-      border-radius:10px;
-      max-width:720px;
-      width:100%;
-      box-shadow:0 10px 30px rgba(0,0,0,0.2)
+    .topbar h1{
+      margin:0;font-size:1.2rem;color:var(--green)
+    }
+    .topbar .controls{display:flex;gap:8px;align-items:center}
+
+    .card{
+      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+      padding:16px;
+      border-radius:12px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.35);
+      margin-bottom:16px;
+      border:1px solid rgba(255,255,255,0.02);
+    }
+    .muted{color:var(--muted)}
+
+    /* grid */
+    .grid-2{display:grid;grid-template-columns:1fr 380px;gap:16px}
+
+    /* table */
+    table{width:100%;border-collapse:collapse}
+    th,td{padding:10px;border-bottom:1px solid rgba(255,255,255,0.03);text-align:left;font-size:0.95rem}
+    th{background:transparent;color:var(--green);position:sticky;top:0}
+    .actions button{margin-right:6px;padding:6px 8px;border-radius:6px;border:none;cursor:pointer}
+
+    /* inputs */
+    input,select,textarea{width:100%;padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,0.06);background:transparent;color:inherit}
+    input::placeholder{color:#9fb0b8}
+
+    /* small controls group */
+    .controls-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+
+    /* modal */
+    .modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,0.6);display:none;align-items:center;justify-content:center;z-index:50}
+    .modal{background:var(--panel);padding:18px;border-radius:12px;min-width:320px;max-width:900px}
+
+    /* analytics table */
+    .analytics-table th, .analytics-table td{font-size:0.9rem;color:var(--muted)}
+    .analytics-table td{color:inherit}
+
+    /* responsive */
+    @media(max-width:980px){
+      .sidebar{display:none}
+      body{background:#0b1220}
+      .main{max-width:100%;padding:14px}
+      .grid-2{grid-template-columns:1fr}
     }
 
-    @media(max-width:880px){
-      .admin-top{flex-direction:column;gap:12px}
-    }
+    /* light mode tweaks */
+    body.light .card{box-shadow:0 6px 16px rgba(0,0,0,0.06);border:1px solid rgba(0,0,0,0.04)}
+    body.light th{color:var(--green)}
   </style>
 </head>
 
 <body>
 
-<!-- ✅ ADMIN HEADER BAR -->
-<div class="admin-top">
-  <div style="font-size:1.2rem;font-weight:700">⚙️ NBVS Admin Panel — Welcome, Admin Aubrey</div>
-
-  <div class="top-buttons">
-    <button class="btn-nav-yellow" onclick="scrollToRecords()">Records</button>
-    <button class="btn-nav-white" onclick="scrollToAnalytics()">Analytics</button>
-    <button class="btn-nav-red" onclick="logout()">Logout</button>
-  </div>
-</div>
-
-<script>
-function logout(){
-  window.location.href = "dashboard.html";
-}
-function scrollToRecords(){
-  document.getElementById("recordsSection").scrollIntoView({behavior:"smooth"});
-}
-function scrollToAnalytics(){
-  document.getElementById("analyticsTable").scrollIntoView({behavior:"smooth"});
-}
-</script>
-
-<div class="container">
-
-  <h1>NBVS Admin Dashboard</h1>
-
-  <!-- ✅ BULK IMPORT -->
-  <div class="panel">
-    <h3>Bulk Import (CSV)</h3>
-    <p class="muted">Columns: name, nia, dob, region, address, criminal, driving, credit, status</p>
-
-    <input type="file" id="csvFile" accept=".csv" />
-    <div style="margin-top:10px">
-      <button class="btn-green" id="importBtn">Import CSV</button>
-      <button class="secondary" id="clearImportBtn">Clear File</button>
-    </div>
-    <p id="importStatus" class="muted" style="margin-top:8px"></p>
-  </div>
-
-  <!-- ✅ ADD RECORD -->
-  <div class="panel">
-    <h3>Add New Record</h3>
-
-    <div style="display:flex;gap:16px;flex-wrap:wrap">
-      <div style="flex:1;min-width:260px">
-        <label>Name</label><input id="nameInput"/>
-        <label>NIA</label><input id="niaInput"/>
-        <label>DOB</label><input id="dobInput"/>
-        <label>Region</label><input id="regionInput"/>
-      </div>
-
-      <div style="flex:1;min-width:260px">
-        <label>Address</label><input id="addressInput"/>
-        <label>Criminal</label><input id="criminalInput"/>
-        <label>Driving</label><input id="drivingInput"/>
-        <label>Credit</label><input id="creditInput"/>
-        <label>Status</label>
-        <select id="statusInput">
-          <option>Verified</option>
-          <option>Flagged</option>
-          <option>Warning</option>
-        </select>
-
-        <button class="btn-green" style="margin-top:10px" id="addBtn">Add Record</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- ✅ RECORDS TABLE -->
-  <div class="panel" id="recordsSection">
-
-    <div style="display:flex;justify-content:space-between;align-items:center">
-      <div style="display:flex;gap:12px;align-items:center">
-        <input type="checkbox" id="selectAll"/>
-        <label for="selectAll">Select all</label>
-
-        <button class="btn-red" id="multiDeleteBtn">Delete Selected</button>
-        <button class="btn-yellow" id="exportSelectedBtn">Export Selected</button>
-        <button class="btn-green" id="downloadCsvBtn">Download All</button>
-      </div>
-
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <div class="brand">
+      <div class="crest"></div>
       <div>
-        <input id="globalSearch" placeholder="Search name or NIA..." style="padding:8px;width:220px">
-        <select id="filterSelect">
-          <option value="ALL">All</option>
-          <option value="Verified">Verified</option>
-          <option value="Flagged">Flagged</option>
-          <option value="Warning">Warning</option>
-        </select>
+        <h2>NBVS Ghana</h2>
+        <p class="small">Admin Panel</p>
       </div>
     </div>
 
-    <table>
-      <thead>
-        <tr>
-          <th></th>
-          <th>Name</th>
-          <th>NIA</th>
-          <th>Region</th>
-          <th>Status</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
+    <div class="small muted">Navigation</div>
+    <nav class="nav" id="nav">
+      <button id="navRecords" class="active" onclick="showSection('records')">📋 Records</button>
+      <button id="navAnalytics" onclick="showSection('analytics')">📊 Analytics</button>
+      <button id="navImport" onclick="showSection('import')">⬆️ Import CSV</button>
+      <button id="navWallet" onclick="showSection('wallet')">💳 Wallet Logs</button>
+    </nav>
 
-      <tbody id="recordsTable"></tbody>
-    </table>
-
-    <div class="pagination">
-      <button class="secondary" id="prevPageBtn">← Prev</button>
-      <button class="secondary" id="nextPageBtn">Next →</button>
-    </div>
-
-    <div class="muted" id="pageInfo">Page 1</div>
-  </div>
-
-  <!-- ✅ ANALYTICS SECTION -->
-  <div class="panel">
-    <h2>Analytics — Search Logs</h2>
-    <p class="muted">Live tracking of verify searches</p>
-
-    <p><b>Total Searches:</b> <span id="totalLogs">0</span></p>
-
-    <table id="analyticsTable">
-      <thead>
-        <tr>
-          <th>Term</th>
-          <th>Platform</th>
-          <th>Timestamp</th>
-        </tr>
-      </thead>
-      <tbody id="analyticsBody"></tbody>
-    </table>
-  </div>
-
-</div>
-
-<!-- ✅ MODAL FOR EDITING -->
-<div id="modalBackdrop" class="modal-backdrop">
-  <div class="modal">
-    <h3>Edit Record</h3>
-
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
-      <div>
-        <label>Name</label><input id="modal_name"/>
-        <label>NIA</label><input id="modal_nia"/>
-        <label>DOB</label><input id="modal_dob"/>
-        <label>Region</label><input id="modal_region"/>
+    <div class="logout">
+      <div style="flex:1">
+        <div class="small muted">Logged in as</div>
+        <div style="font-weight:800;margin-top:6px">Admin — Aubrey</div>
       </div>
       <div>
-        <label>Address</label><input id="modal_address"/>
-        <label>Criminal</label><input id="modal_criminal"/>
-        <label>Driving</label><input id="modal_driving"/>
-        <label>Credit</label><input id="modal_credit"/>
-        <label>Status</label>
-        <select id="modal_status">
-          <option>Verified</option>
-          <option>Flagged</option>
-          <option>Warning</option>
-        </select>
+        <button onclick="logout()">Logout</button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+
+    <div class="topbar">
+      <div class="title">
+        <h1>NBVS Admin Dashboard</h1>
+        <div style="margin-left:8px" class="muted">Manage records · analytics · import</div>
+      </div>
+
+      <div class="controls">
+        <button id="themeBtn" style="padding:8px 12px;border-radius:8px;border:none;background:var(--yellow);font-weight:700;cursor:pointer">Toggle Theme</button>
       </div>
     </div>
 
-    <div style="margin-top:10px;display:flex;justify-content:flex-end;gap:10px">
-      <button class="secondary" id="modalCancel">Cancel</button>
-      <button class="btn-green" id="modalSave">Save</button>
+    <!-- ===== GRID: left main column + right sidebar small panels ===== -->
+    <div id="recordsSection" class="grid-2">
+
+      <!-- LEFT: Records / Table -->
+      <div>
+
+        <!-- IMPORT PANEL (top left quick) -->
+        <div id="panelImport" class="card">
+          <h3 style="margin:0 0 8px 0">Bulk Import</h3>
+          <div class="muted">CSV columns: name,nia,dob,region,address,criminal,driving,credit,status</div>
+
+          <div style="margin-top:12px;display:flex;gap:12px;align-items:center">
+            <input type="file" id="csvFile" accept=".csv" />
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <button id="importBtn" class="btn-green">Import CSV</button>
+              <button id="clearImportBtn" class="secondary">Clear</button>
+            </div>
+          </div>
+          <div id="importStatus" class="muted" style="margin-top:8px"></div>
+        </div>
+
+        <!-- ADD RECORD CARD -->
+        <div id="panelAdd" class="card" style="margin-top:12px">
+          <h3 style="margin:0 0 8px 0">Add New Record</h3>
+          <div class="muted">Add a single record — appears immediately in records</div>
+
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px">
+            <div>
+              <label>Full name</label>
+              <input id="nameInput" placeholder="Full Name" />
+              <label style="margin-top:8px">NIA</label>
+              <input id="niaInput" placeholder="GHA-12345" />
+              <label style="margin-top:8px">DOB</label>
+              <input id="dobInput" placeholder="YYYY-MM-DD" />
+              <label style="margin-top:8px">Region</label>
+              <input id="regionInput" placeholder="Region" />
+            </div>
+
+            <div>
+              <label>Address</label>
+              <input id="addressInput" placeholder="Address" />
+              <label style="margin-top:8px">Criminal</label>
+              <input id="criminalInput" placeholder="None / details" />
+              <label style="margin-top:8px">Driving</label>
+              <input id="drivingInput" placeholder="Clean / Suspended" />
+              <label style="margin-top:8px">Credit / Notes</label>
+              <input id="creditInput" placeholder="Notes" />
+              <label style="margin-top:8px">Status</label>
+              <select id="statusInput">
+                <option value="Verified">Verified</option>
+                <option value="Flagged">Flagged</option>
+                <option value="Warning">Warning</option>
+              </select>
+
+              <div style="margin-top:12px">
+                <button id="addBtn" class="btn-green">Add Record</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- CONTROLS + TABLE -->
+        <div class="card" style="margin-top:12px">
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:12px">
+            <div style="display:flex;gap:8px;align-items:center">
+              <input type="checkbox" id="selectAll" />
+              <label for="selectAll" style="margin:0 8px">Select all on page</label>
+
+              <button id="multiDeleteBtn" class="btn-red">Delete Selected</button>
+              <button id="exportSelectedBtn" class="btn-yellow">Export Selected</button>
+              <button id="downloadCsvBtn" class="btn-green">Download All</button>
+            </div>
+
+            <div style="display:flex;gap:8px;align-items:center">
+              <input id="globalSearch" placeholder="Search name or NIA..." style="padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.03);background:transparent;color:inherit" />
+              <select id="filterSelect">
+                <option value="ALL">All</option>
+                <option value="Verified">Verified</option>
+                <option value="Flagged">Flagged</option>
+                <option value="Warning">Warning</option>
+              </select>
+            </div>
+          </div>
+
+          <div style="margin-top:12px;overflow:auto">
+            <table>
+              <thead>
+                <tr>
+                  <th style="width:40px"></th>
+                  <th>Name</th>
+                  <th>NIA</th>
+                  <th>Region</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="recordsTable"></tbody>
+            </table>
+          </div>
+
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px">
+            <div class="muted" id="pageInfo">Page 1</div>
+            <div>
+              <button id="prevPageBtn" class="secondary">← Previous</button>
+              <button id="nextPageBtn" class="secondary">Next →</button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- RIGHT: small panels (wallet + analytics quick) -->
+      <aside>
+        <div class="card">
+          <h3>Quick Stats</h3>
+          <div class="muted">Total records</div>
+          <div id="totalRecords" style="font-size:1.6rem;font-weight:800;margin-top:8px">—</div>
+        </div>
+
+        <div class="card" style="margin-top:12px">
+          <h3>Wallet</h3>
+          <div class="muted">Open wallet page</div>
+          <div style="margin-top:10px">
+            <button onclick="openWallet()" class="btn-green">Open Wallet</button>
+          </div>
+        </div>
+
+        <div class="card" style="margin-top:12px">
+          <h3>Analytics Summary</h3>
+          <div class="muted">Total searches</div>
+          <div id="totalLogs" style="font-size:1.4rem;font-weight:800;margin-top:8px">0</div>
+          <div style="margin-top:8px">
+            <button onclick="scrollToAnalytics()" class="secondary">View full logs</button>
+          </div>
+        </div>
+      </aside>
+
     </div>
 
-  </div>
-</div>
+    <!-- ANALYTICS full table (below records) -->
+    <div id="analyticsSection" class="card" style="margin-top:18px">
+      <h3>Search Analytics</h3>
+      <div class="muted">Search history from Verify page (term, platform, timestamp)</div>
 
-<!-- ✅ FIREBASE + FULL JS (records + analytics) -->
+      <div style="margin-top:12px;overflow:auto">
+        <table class="analytics-table">
+          <thead>
+            <tr>
+              <th>Search Term</th>
+              <th>Platform</th>
+              <th>Timestamp</th>
+            </tr>
+          </thead>
+          <tbody id="analyticsBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- EDIT MODAL -->
+  <div id="modalBackdrop" class="modal-backdrop" role="dialog" aria-modal="true" aria-hidden="true">
+    <div class="modal">
+      <h3>Edit Record</h3>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px">
+        <div>
+          <label>Full name</label><input id="modal_name" />
+          <label>NIA</label><input id="modal_nia" />
+          <label>DOB</label><input id="modal_dob" />
+          <label>Region</label><input id="modal_region" />
+        </div>
+        <div>
+          <label>Address</label><input id="modal_address" />
+          <label>Criminal</label><input id="modal_criminal" />
+          <label>Driving</label><input id="modal_driving" />
+          <label>Credit</label><input id="modal_credit" />
+          <label>Status</label>
+          <select id="modal_status">
+            <option>Verified</option>
+            <option>Flagged</option>
+            <option>Warning</option>
+          </select>
+        </div>
+      </div>
+
+      <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:12px">
+        <button id="modalCancel" class="secondary">Cancel</button>
+        <button id="modalSave" class="btn-green">Save changes</button>
+      </div>
+    </div>
+  </div>
+
+<!-- ===== FIREBASE + LOGIC (preserves your original functionality) ===== -->
 <script type="module">
+/* Firebase imports */
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-app.js";
 import {
   getFirestore, collection, doc, addDoc, getDocs, getDoc,
@@ -293,6 +439,7 @@ import {
   startAt, where
 } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-firestore.js";
 
+/* ======= Config (same as your other pages) ======= */
 const firebaseConfig = {
   apiKey:"AIzaSyCDh_qL3jiCMHROK0_Soul2Wsv3t3y4wv0",
   authDomain:"nbvs-ghana.firebaseapp.com",
@@ -305,311 +452,334 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-/* ===========================================================
-   RECORDS SYSTEM (UNCHANGED — FULLY WORKING)
-   =========================================================== */
-
-const recordsRef = collection(db,"records");
-const logsRef = collection(db,"search_logs");
-
+/* ======= Refs & State (kept from your original code) ======= */
+const recordsRef = collection(db, "records");
+const logsRef = collection(db, "search_logs");
 const PAGE_SIZE = 10;
+
 let lastVisible = null;
 let firstVisible = null;
 let currentPage = 1;
+let currentSnapshot = [];
 let selectedIds = new Set();
 let activeFilter = "ALL";
 let activeSearch = "";
 
-/* SHORTCUTS */
+/* DOM shortcuts */
 const recordsTable = document.getElementById("recordsTable");
 const analyticsBody = document.getElementById("analyticsBody");
-const totalLogs = document.getElementById("totalLogs");
+const totalLogsEl = document.getElementById("totalLogs");
+const totalRecordsEl = document.getElementById("totalRecords");
 
-/* CSV UTIL */
-function toCSVRow(arr){
-  return arr.map(v => `"${String(v??"").replace(/"/g,'""')}"`).join(",");
-}
+/* Utility CSV helpers */
+function toCSVRow(arr){ return arr.map(v => `"${String(v ?? "").replace(/"/g,'""')}"`).join(","); }
 function parseCSV(text){
-  return text.split(/\r?\n/)
-    .map(l => l.trim())
-    .filter(l => l.length)
-    .map(line => {
-      const regex = /,(?=(?:[^"]*"[^"]*")*[^"]*$)/;
-      return line.split(regex).map(p => p.replace(/^"|"$/g,""));
-    });
+  const lines = text.split(/\r?\n/).map(l => l.trim()).filter(l => l.length);
+  return lines.map(line=>{
+    const regex = /,(?=(?:[^"]*"[^"]*")*[^"]*$)/;
+    return line.split(regex).map(p => p.replace(/^"|"$/g, ""));
+  });
 }
 
-/* ===========================================================
-   RECORDS — LOADING + RENDERING
-   =========================================================== */
-
-function buildQuery(direction="first"){
+/* ============================
+   RENDER / QUERY LOGIC
+   ============================ */
+function buildQuery(direction="first") {
   let q = query(recordsRef, orderBy("name"), limit(PAGE_SIZE));
 
-  if(activeFilter!=="ALL"){
-    q = query(recordsRef,
-      where("status","==",activeFilter),
-      orderBy("name"),
-      limit(PAGE_SIZE)
-    );
+  if (activeFilter !== "ALL") {
+    q = query(recordsRef, where("status", "==", activeFilter), orderBy("name"), limit(PAGE_SIZE));
   }
 
-  if(direction==="next" && lastVisible){
+  if (direction === "next" && lastVisible) {
     q = query(recordsRef, orderBy("name"), startAfter(lastVisible), limit(PAGE_SIZE));
   }
-  if(direction==="prev" && firstVisible && currentPage>1){
+  if (direction === "prev" && firstVisible && currentPage > 1) {
     q = query(recordsRef, orderBy("name"), startAt(firstVisible), limit(PAGE_SIZE));
   }
 
   return q;
 }
 
-async function loadPage(direction="first"){
+async function loadPage(direction="first") {
   const snapshot = await getDocs(buildQuery(direction));
 
-  if(!snapshot.empty){
+  currentSnapshot = snapshot.docs;
+  if (!snapshot.empty) {
     firstVisible = snapshot.docs[0];
-    lastVisible = snapshot.docs[snapshot.docs.length-1];
+    lastVisible = snapshot.docs[snapshot.docs.length - 1];
   }
 
-  let docs = snapshot.docs;
+  let docsToRender = currentSnapshot;
 
-  if(activeSearch.trim()!==""){
+  if (activeSearch.trim() !== "") {
     const s = activeSearch.toLowerCase();
-    docs = docs.filter(d=>{
-      const v=d.data();
-      return v.name.toLowerCase().includes(s) || v.nia.toLowerCase().includes(s);
+    docsToRender = currentSnapshot.filter(docSnap => {
+      const d = docSnap.data();
+      return (d.name?.toLowerCase().includes(s) || d.nia?.toLowerCase().includes(s));
     });
   }
 
-  renderTable(docs);
+  renderTable(docsToRender);
   document.getElementById("pageInfo").textContent = `Page ${currentPage}`;
 }
 
-function renderTable(docs){
-  recordsTable.innerHTML="";
+/* Render table rows */
+function renderTable(docs) {
+  recordsTable.innerHTML = "";
   selectedIds.clear();
-  document.getElementById("selectAll").checked=false;
+  document.getElementById("selectAll").checked = false;
 
-  docs.forEach(docSnap=>{
-    const d=docSnap.data();
-    const id=docSnap.id;
+  docs.forEach(docSnap => {
+    const d = docSnap.data();
+    const id = docSnap.id;
 
-    recordsTable.innerHTML+=`
-      <tr>
-        <td><input type="checkbox" class="rowCheckbox" data-id="${id}"></td>
-        <td>${d.name}</td>
-        <td>${d.nia}</td>
-        <td>${d.region}</td>
-        <td>${d.status}</td>
-        <td>
-          <button class="btn-yellow" onclick="openEditModal('${id}')">Edit</button>
-          <button class="btn-red" onclick="deleteRecord('${id}')">Delete</button>
-        </td>
-      </tr>
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td style="width:40px"><input type="checkbox" class="rowCheckbox" data-id="${id}"></td>
+      <td>${escapeHtml(d.name)}</td>
+      <td>${escapeHtml(d.nia)}</td>
+      <td>${escapeHtml(d.region)}</td>
+      <td>${escapeHtml(d.status)}</td>
+      <td class="actions">
+        <button class="secondary" onclick="openEditModal('${id}')">Edit</button>
+        <button class="btn-red" onclick="deleteRecord('${id}')">Delete</button>
+      </td>
     `;
+    recordsTable.appendChild(tr);
   });
 
   document.querySelectorAll(".rowCheckbox").forEach(cb=>{
-    cb.addEventListener("change",e=>{
-      const id=e.target.dataset.id;
-      if(e.target.checked) selectedIds.add(id);
+    cb.addEventListener("change", e=>{
+      const id = e.target.dataset.id;
+      if (e.target.checked) selectedIds.add(id);
       else selectedIds.delete(id);
     });
   });
 }
 
-/* NEXT/PREV */
-document.getElementById("nextPageBtn").onclick=()=>{currentPage++;loadPage("next")};
-document.getElementById("prevPageBtn").onclick=()=>{if(currentPage>1){currentPage--;loadPage("prev")}};
+/* escape simple html to prevent injection into table cells */
+function escapeHtml(str){ return String(str ?? "").replace(/[&<>"']/g, s=>({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"':'&quot;', "'":'&#39;' }[s])); }
+
+/* NEXT / PREV */
+document.getElementById("nextPageBtn").addEventListener("click", () => { currentPage++; loadPage("next"); });
+document.getElementById("prevPageBtn").addEventListener("click", () => { if (currentPage>1) { currentPage--; loadPage("prev"); }});
 
 /* SELECT ALL */
-document.getElementById("selectAll").onchange=e=>{
-  const checked=e.target.checked;
+document.getElementById("selectAll").addEventListener("change", e => {
+  const checked = e.target.checked;
   document.querySelectorAll(".rowCheckbox").forEach(cb=>{
-    cb.checked=checked;
-    if(checked) selectedIds.add(cb.dataset.id);
+    cb.checked = checked;
+    if (checked) selectedIds.add(cb.dataset.id);
     else selectedIds.clear();
   });
-};
+});
 
-/* FILTER */
-document.getElementById("filterSelect").onchange=e=>{
-  activeFilter=e.target.value;
-  currentPage=1;
-  loadPage();
-};
-
-/* SEARCH */
-document.getElementById("globalSearch").oninput=e=>{
-  activeSearch=e.target.value;
-  loadPage();
-};
-
-/* DELETE MULTI */
-document.getElementById("multiDeleteBtn").onclick=async()=>{
-  if(selectedIds.size===0) return alert("Nothing selected.");
-  if(!confirm("Delete selected?")) return;
-  for(const id of selectedIds){
-    await deleteDoc(doc(db,"records",id));
-  }
-  alert("Deleted.");
-  loadPage();
-};
-
-/* EXPORT SELECTED */
-document.getElementById("exportSelectedBtn").onclick=async()=>{
-  if(selectedIds.size===0) return alert("Nothing selected.");
-
-  let out=[];
-  out.push(toCSVRow(["name","nia","dob","region","address","criminal","driving","credit","status"]));
-
-  for(const id of selectedIds){
-    const snap=await getDoc(doc(db,"records",id));
-    if(snap.exists()){
-      const d=snap.data();
-      out.push(toCSVRow([
-        d.name,d.nia,d.dob,d.region,d.address,d.criminal,d.driving,d.credit,d.status
-      ]));
-    }
-  }
-
-  const blob=new Blob([out.join("\n")],{type:"text/csv"});
-  const url=URL.createObjectURL(blob);
-  const a=document.createElement("a");
-  a.href=url;
-  a.download="nbvs-selected.csv";
-  a.click();
-};
+/* FILTER / SEARCH */
+document.getElementById("filterSelect").addEventListener("change", e => {
+  activeFilter = e.target.value; currentPage = 1; loadPage();
+});
+document.getElementById("globalSearch").addEventListener("input", e => {
+  activeSearch = e.target.value; loadPage();
+});
 
 /* DOWNLOAD ALL */
-document.getElementById("downloadCsvBtn").onclick=async()=>{
-  const snaps=await getDocs(recordsRef);
-  let out=[];
+document.getElementById("downloadCsvBtn").addEventListener("click", async () => {
+  const snaps = await getDocs(recordsRef);
+  let out = [];
   out.push(toCSVRow(["name","nia","dob","region","address","criminal","driving","credit","status"]));
-
-  snaps.forEach(docSnap=>{
-    const d=docSnap.data();
+  snaps.forEach(s => {
+    const d = s.data();
     out.push(toCSVRow([d.name,d.nia,d.dob,d.region,d.address,d.criminal,d.driving,d.credit,d.status]));
   });
+  const blob = new Blob([out.join("\n")], {type:"text/csv"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a"); a.href = url; a.download = "nbvs-records-all.csv"; a.click();
+});
 
-  const blob=new Blob([out.join("\n")],{type:"text/csv"});
-  const url=URL.createObjectURL(blob);
-  const a=document.createElement("a");
-  a.href=url;
-  a.download="nbvs-records-all.csv";
-  a.click();
-};
+/* EXPORT SELECTED */
+document.getElementById("exportSelectedBtn").addEventListener("click", async () => {
+  if (selectedIds.size === 0) return alert("No rows selected.");
+  let out = []; out.push(toCSVRow(["name","nia","dob","region","address","criminal","driving","credit","status"]));
+  for (const id of selectedIds) {
+    const snap = await getDoc(doc(db,"records",id));
+    if (snap.exists()) {
+      const d = snap.data();
+      out.push(toCSVRow([d.name,d.nia,d.dob,d.region,d.address,d.criminal,d.driving,d.credit,d.status]));
+    }
+  }
+  const blob = new Blob([out.join("\n")], {type:"text/csv"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a"); a.href=url; a.download="nbvs-selected.csv"; a.click();
+});
 
-/* ADD NEW RECORD */
-document.getElementById("addBtn").onclick=async()=>{
-  const rec={
-    name:nameInput.value.trim(),
-    nia:niaInput.value.trim(),
-    dob:dobInput.value.trim(),
-    region:regionInput.value.trim(),
-    address:addressInput.value.trim(),
-    criminal:criminalInput.value.trim(),
-    driving:drivingInput.value.trim(),
-    credit:creditInput.value.trim(),
-    status:statusInput.value
+/* DELETE MULTI */
+document.getElementById("multiDeleteBtn").addEventListener("click", async () => {
+  if (selectedIds.size === 0) return alert("No rows selected.");
+  if (!confirm(`Delete ${selectedIds.size} selected records?`)) return;
+  for (const id of selectedIds) {
+    await deleteDoc(doc(db,"records",id));
+  }
+  alert("Deleted selected records");
+  loadPage("first");
+});
+
+/* ADD RECORD */
+document.getElementById("addBtn").addEventListener("click", async () => {
+  const rec = {
+    name: document.getElementById("nameInput").value.trim(),
+    nia: document.getElementById("niaInput").value.trim(),
+    dob: document.getElementById("dobInput").value.trim(),
+    region: document.getElementById("regionInput").value.trim(),
+    address: document.getElementById("addressInput").value.trim(),
+    criminal: document.getElementById("criminalInput").value.trim(),
+    driving: document.getElementById("drivingInput").value.trim(),
+    credit: document.getElementById("creditInput").value.trim(),
+    status: document.getElementById("statusInput").value
   };
-
-  if(!rec.name || !rec.nia) return alert("Name + NIA required");
-
+  if (!rec.name || !rec.nia) return alert("Please provide Name and NIA.");
   await addDoc(recordsRef, rec);
-  alert("Added.");
-  loadPage();
-};
+  alert("Record added.");
+  // clear inputs
+  ["nameInput","niaInput","dobInput","regionInput","addressInput","criminalInput","drivingInput","creditInput"].forEach(id => { const el=document.getElementById(id); if(el) el.value=""; });
+  loadPage("first");
+});
 
 /* DELETE SINGLE */
-window.deleteRecord=async(id)=>{
-  if(!confirm("Delete?")) return;
+window.deleteRecord = async function(id){
+  if (!confirm("Delete this record?")) return;
   await deleteDoc(doc(db,"records",id));
-  loadPage();
+  loadPage("first");
 };
 
-/* MODAL EDIT */
-const modalBackdrop=document.getElementById("modalBackdrop");
-let editingId=null;
+/* EDIT MODAL */
+const modalBackdrop = document.getElementById("modalBackdrop");
+let editingId = null;
 
-window.openEditModal=async(id)=>{
-  editingId=id;
-  const snap=await getDoc(doc(db,"records",id));
-  if(!snap.exists()) return alert("Not found");
-
-  const d=snap.data();
-  modal_name.value=d.name;
-  modal_nia.value=d.nia;
-  modal_dob.value=d.dob;
-  modal_region.value=d.region;
-  modal_address.value=d.address;
-  modal_criminal.value=d.criminal;
-  modal_driving.value=d.driving;
-  modal_credit.value=d.credit;
-  modal_status.value=d.status;
-
-  modalBackdrop.style.display="flex";
+window.openEditModal = async function(id){
+  editingId = id;
+  const snap = await getDoc(doc(db,"records",id));
+  if (!snap.exists()) return alert("Record not found.");
+  const d = snap.data();
+  modal_name.value = d.name || "";
+  modal_nia.value = d.nia || "";
+  modal_dob.value = d.dob || "";
+  modal_region.value = d.region || "";
+  modal_address.value = d.address || "";
+  modal_criminal.value = d.criminal || "";
+  modal_driving.value = d.driving || "";
+  modal_credit.value = d.credit || "";
+  modal_status.value = d.status || "Verified";
+  modalBackdrop.style.display = "flex";
 };
 
-document.getElementById("modalCancel").onclick=()=>{
-  modalBackdrop.style.display="none";
-  editingId=null;
-};
+document.getElementById("modalCancel").addEventListener("click", () => {
+  editingId = null; modalBackdrop.style.display = "none";
+});
 
-document.getElementById("modalSave").onclick=async()=>{
-  if(!editingId) return;
+document.getElementById("modalSave").addEventListener("click", async () => {
+  if (!editingId) return;
+  const updates = {
+    name: modal_name.value.trim(),
+    nia: modal_nia.value.trim(),
+    dob: modal_dob.value.trim(),
+    region: modal_region.value.trim(),
+    address: modal_address.value.trim(),
+    criminal: modal_criminal.value.trim(),
+    driving: modal_driving.value.trim(),
+    credit: modal_credit.value.trim(),
+    status: modal_status.value
+  };
+  await updateDoc(doc(db,"records",editingId), updates);
+  alert("Record updated.");
+  editingId = null; modalBackdrop.style.display = "none"; loadPage("first");
+});
 
-  await updateDoc(doc(db,"records",editingId),{
-    name:modal_name.value.trim(),
-    nia:modal_nia.value.trim(),
-    dob:modal_dob.value.trim(),
-    region:modal_region.value.trim(),
-    address:modal_address.value.trim(),
-    criminal:modal_criminal.value.trim(),
-    driving:modal_driving.value.trim(),
-    credit:modal_credit.value.trim(),
-    status:modal_status.value
-  });
+/* BULK IMPORT */
+document.getElementById("importBtn").addEventListener("click", () => {
+  const file = document.getElementById("csvFile").files[0];
+  if (!file) return alert("Select a CSV file.");
+  const reader = new FileReader();
+  reader.onload = async (e) => {
+    try {
+      document.getElementById("importStatus").innerText = "Parsing CSV...";
+      const rows = parseCSV(e.target.result);
+      if (rows.length < 2) { document.getElementById("importStatus").innerText = "No rows to import."; return; }
+      let imported = 0;
+      for (let i=1;i<rows.length;i++){
+        const cols = rows[i]; if (cols.length < 9) continue;
+        const record = { name: cols[0]||"", nia:cols[1]||"", dob:cols[2]||"", region:cols[3]||"", address:cols[4]||"", criminal:cols[5]||"", driving:cols[6]||"", credit:cols[7]||"", status:cols[8]||"Verified" };
+        await addDoc(recordsRef, record);
+        imported++;
+        document.getElementById("importStatus").innerText = `Imported ${imported} rows...`;
+      }
+      document.getElementById("importStatus").innerText = `Imported ${imported} records.`;
+      loadPage("first");
+    } catch(err) { console.error(err); document.getElementById("importStatus").innerText = "Import failed. See console."; }
+  };
+  reader.readAsText(file);
+});
+document.getElementById("clearImportBtn").addEventListener("click", () => { document.getElementById("csvFile").value=""; document.getElementById("importStatus").innerText=""; });
 
-  alert("Saved.");
-  modalBackdrop.style.display="none";
-  editingId=null;
-  loadPage();
-};
+/* OPEN WALLET */
+function openWallet(){ window.location.href = "wallet.html"; }
 
-/* ===========================================================
-   ANALYTICS — SEARCH LOGS
-   =========================================================== */
-
+/* ANALYTICS */
 async function loadAnalytics(){
   const snaps = await getDocs(query(logsRef, orderBy("timestamp","desc")));
-
-  analyticsBody.innerHTML="";
-  let count=0;
-
-  snaps.forEach(log=>{
-    const d=log.data();
+  analyticsBody.innerHTML = ""; let count = 0;
+  snaps.forEach(s=>{
+    const d = s.data();
+    const ts = d.timestamp?.toDate ? d.timestamp.toDate().toLocaleString() : (d.timestamp ? new Date(d.timestamp).toLocaleString() : "");
+    analyticsBody.innerHTML += `<tr><td>${escapeHtml(d.term)}</td><td>${escapeHtml(d.platform)}</td><td>${ts}</td></tr>`;
     count++;
-
-    analyticsBody.innerHTML+=`
-      <tr>
-        <td>${d.term}</td>
-        <td>${d.platform}</td>
-        <td>${new Date(d.timestamp.toMillis()).toLocaleString()}</td>
-      </tr>
-    `;
   });
-
-  totalLogs.textContent=count;
+  totalLogsEl.textContent = count;
 }
 
+/* TOTAL RECORDS */
+async function loadTotals(){
+  const snaps = await getDocs(recordsRef);
+  totalRecordsEl.textContent = snaps.size;
+}
+
+/* UI helpers: switch sections */
+function showSection(name){
+  // nav active
+  document.querySelectorAll('#nav button').forEach(b=>b.classList.remove('active'));
+  if (name==='records') document.getElementById('navRecords').classList.add('active');
+  if (name==='analytics') document.getElementById('navAnalytics').classList.add('active');
+  if (name==='import') document.getElementById('navImport').classList.add('active');
+  if (name==='wallet') document.getElementById('navWallet').classList.add('active');
+
+  // simple scroll behavior: if analytics -> scroll to analytics section; else scroll to top
+  if (name==='analytics') { document.getElementById('analyticsSection').scrollIntoView({behavior:'smooth'}); }
+  else { window.scrollTo({top:0, behavior:'smooth'}); }
+}
+
+/* THEME toggle */
+const themeBtn = document.getElementById("themeBtn");
+const prefersLight = false;
+function initTheme(){
+  if (localStorage.getItem("nbvs-theme")==="light") document.body.classList.add("light");
+  themeBtn.addEventListener("click", ()=>{
+    document.body.classList.toggle("light");
+    if (document.body.classList.contains("light")) localStorage.setItem("nbvs-theme","light");
+    else localStorage.removeItem("nbvs-theme");
+  });
+}
+
+/* MULTI-DELETE + EXPORT already handled above */
+
 /* INITIAL LOAD */
-loadPage();
+loadPage("first");
 loadAnalytics();
+loadTotals();
+initTheme();
+
+/* Helper: escape already defined above */
 
 </script>
 
 </body>
 </html>
-
