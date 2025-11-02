@@ -6,109 +6,285 @@
 <title>NBVS Admin Login</title>
 
 <style>
-  :root{
+  :root {
     --green:#006b3f;
     --yellow:#fcd116;
     --red:#ce1126;
-    --bg:#f6f7f9;
-    --card:#ffffff;
+    --dark-bg:#0b0b0b;
+    --light-bg:#f6f7f9;
+    --glass-light:rgba(255,255,255,0.65);
+    --glass-dark:rgba(0,0,0,0.45);
+    --text-light:#222;
+    --text-dark:#eee;
   }
 
-  body{
-    font-family:"Segoe UI",Arial,sans-serif;
-    background:var(--bg);
+  body {
+    margin:0;
+    font-family:"Segoe UI",Airal,sans-serif;
+    background:var(--light-bg);
+    color:var(--text-light);
+    height:100vh;
     display:flex;
     justify-content:center;
     align-items:center;
-    height:100vh;
-    margin:0;
+    transition:0.4s;
   }
 
-  .login-box{
-    background:var(--card);
+  /* DARK MODE */
+  body.dark {
+    background:var(--dark-bg);
+    color:var(--text-dark);
+  }
+
+  .login-container {
+    width:360px;
     padding:30px;
-    width:350px;
-    border-radius:12px;
-    box-shadow:0 8px 30px rgba(0,0,0,0.10);
+    border-radius:16px;
+    background:var(--glass-light);
+    backdrop-filter:blur(18px);
+    box-shadow:0 8px 40px rgba(0,0,0,0.25);
+    position:relative;
+    animation:fadeIn .7s ease-out;
+  }
+
+  body.dark .login-container {
+    background:var(--glass-dark);
+  }
+
+  /* Gradient animated border */
+  .login-container::before {
+    content:"";
+    position:absolute;
+    inset:0;
+    padding:2px;
+    border-radius:16px;
+    background:linear-gradient(135deg, var(--red), var(--yellow), var(--green));
+    background-size:300% 300%;
+    animation:borderMove 6s infinite linear;
+    -webkit-mask:
+        linear-gradient(#fff 0 0) content-box,
+        linear-gradient(#fff 0 0);
+    -webkit-mask-composite:xor;
+            mask-composite:exclude;
+  }
+
+  @keyframes borderMove {
+    0%{background-position:0% 50%}
+    50%{background-position:100% 50%}
+    100%{background-position:0% 50%}
+  }
+
+  /* Logo */
+  .ghana-logo {
+    width:90px;
+    height:90px;
+    margin:auto;
+    margin-bottom:10px;
+    background:url('https://upload.wikimedia.org/wikipedia/commons/0/0c/Coat_of_arms_of_Ghana.svg') center/contain no-repeat;
+    animation:logoDrop .8s ease-out;
+  }
+
+  @keyframes logoDrop {
+    from {opacity:0; transform:translateY(-20px)}
+    to {opacity:1; transform:translateY(0)}
+  }
+
+  h2 {
     text-align:center;
-    animation:fadeIn .6s ease-out;
-  }
-
-  h2{
-    margin:0 0 10px 0;
+    margin-bottom:6px;
+    font-size:1.7rem;
     color:var(--green);
+    font-weight:800;
   }
 
-  p{
-    color:#555;
-    margin-bottom:20px;
+  p {
+    text-align:center;
+    margin-bottom:18px;
+    opacity:0.9;
   }
 
-  input{
+  /* input fields */
+  .password-wrap {
+    position:relative;
+  }
+
+  input {
     width:100%;
     padding:12px;
-    border-radius:8px;
-    border:1px solid #ddd;
-    margin-bottom:14px;
+    border-radius:10px;
+    border:1px solid #ccc;
+    margin-bottom:12px;
     font-size:1rem;
+    background:white;
+    outline:none;
   }
 
-  button{
+  body.dark input {
+    background:#1a1a1a;
+    color:white;
+    border:1px solid #555;
+  }
+
+  /* show password */
+  .toggle-pass {
+    position:absolute;
+    right:14px;
+    top:50%;
+    transform:translateY(-50%);
+    cursor:pointer;
+    font-size:1.2rem;
+    opacity:0.7;
+  }
+
+  /* login button */
+  button {
     width:100%;
     padding:12px;
     background:var(--green);
-    color:white;
     border:none;
-    border-radius:8px;
-    font-size:1rem;
+    border-radius:10px;
+    color:white;
+    font-size:1.1rem;
     font-weight:700;
     cursor:pointer;
+    margin-top:8px;
+    transition:0.25s;
   }
 
-  button:hover{
+  button:hover {
     background:#004f2e;
+    transform:translateY(-2px);
   }
 
-  .error{
-    color:var(--red);
-    margin-top:10px;
-    font-weight:600;
+  /* loading spinner */
+  .loading {
     display:none;
+    margin:auto;
+    margin-top:14px;
+    border:4px solid #eee;
+    border-top:4px solid var(--green);
+    border-radius:50%;
+    width:30px;
+    height:30px;
+    animation:spin 0.7s linear infinite;
+  }
+  @keyframes spin {
+    to {transform:rotate(360deg)}
   }
 
-  @keyframes fadeIn{
-    from{opacity:0;transform:translateY(20px)}
-    to{opacity:1;transform:translateY(0)}
+  /* error message */
+  .error {
+    margin-top:10px;
+    color:var(--red);
+    text-align:center;
+    display:none;
+    font-weight:700;
+  }
+
+  /* shake animation on error */
+  .shake {
+    animation:shakeAnim 0.4s;
+  }
+
+  @keyframes shakeAnim {
+    0%{transform:translateX(0)}
+    25%{transform:translateX(-6px)}
+    50%{transform:translateX(6px)}
+    75%{transform:translateX(-6px)}
+    100%{transform:translateX(0)}
+  }
+
+  /* toggle button */
+  .dark-toggle {
+    position:fixed;
+    top:20px;
+    right:20px;
+    background:var(--yellow);
+    color:#111;
+    padding:8px 12px;
+    font-weight:700;
+    border-radius:10px;
+    box-shadow:0 4px 10px rgba(0,0,0,0.3);
+    cursor:pointer;
+    border:none;
+  }
+
+  @keyframes fadeIn {
+    from {opacity:0;transform:translateY(20px)}
+    to {opacity:1;transform:translateY(0)}
   }
 </style>
 </head>
 
 <body>
 
-<div class="login-box">
-  <h2>Admin Login</h2>
-  <p>Enter your administrator password</p>
+<button class="dark-toggle" onclick="toggleDark()">🌙 Dark Mode</button>
 
-  <input type="password" id="passwordInput" placeholder="Password">
+<div class="login-container">
+
+  <div class="ghana-logo"></div>
+
+  <h2>NBVS Admin</h2>
+  <p>Authorized access only</p>
+
+  <div class="password-wrap">
+    <input type="password" id="passwordInput" placeholder="Enter Password">
+    <span class="toggle-pass" onclick="togglePassword()">👁</span>
+  </div>
 
   <button onclick="login()">Login</button>
 
-  <div class="error" id="errorBox">Incorrect password</div>
+  <div class="loading" id="loader"></div>
+  <div class="error" id="errorBox">Incorrect Password</div>
+
 </div>
 
 <script>
   const ADMIN_PASSWORD = "aubrey";
 
-  function login(){
-    const input = document.getElementById("passwordInput").value.trim();
+  // login function
+  function login() {
+    const inp = document.getElementById("passwordInput");
+    const loader = document.getElementById("loader");
+    const error = document.getElementById("errorBox");
 
-    if(input === ADMIN_PASSWORD){
-      window.location.href = "admin.html";
-    } else {
-      const err = document.getElementById("errorBox");
-      err.style.display = "block";
+    if (inp.value.trim() !== ADMIN_PASSWORD) {
+      error.style.display = "block";
+      document.querySelector(".login-container").classList.add("shake");
+      setTimeout(() => {
+        document.querySelector(".login-container").classList.remove("shake");
+      }, 500);
+      return;
     }
+
+    // show spinner
+    loader.style.display = "block";
+    error.style.display = "none";
+
+    // fade-out before redirect
+    setTimeout(() => {
+      document.body.style.opacity = "0";
+      setTimeout(() => {
+        window.location.href = "admin.html";
+      }, 300);
+    }, 800);
   }
+
+  // password toggle
+  function togglePassword() {
+    const field = document.getElementById("passwordInput");
+    field.type = field.type === "password" ? "text" : "password";
+  }
+
+  // dark mode
+  function toggleDark() {
+    document.body.classList.toggle("dark");
+  }
+
+  // enter key == login
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") login();
+  });
 </script>
 
 </body>
