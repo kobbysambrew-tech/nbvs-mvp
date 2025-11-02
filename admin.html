@@ -20,7 +20,6 @@
       --maxw:1280px;
     }
 
-    /* Base */
     *{box-sizing:border-box}
     html,body{height:100%}
     body{
@@ -32,12 +31,8 @@
       min-height:100vh;
       overflow:hidden;
     }
-    body.light {
-      background:var(--bg-light);
-      color:#111;
-    }
+    body.light { background:var(--bg-light); color:#111; }
 
-    /* Sidebar */
     .sidebar{
       width:260px;
       background:linear-gradient(180deg,var(--panel-dark), #071826 120%);
@@ -50,41 +45,32 @@
       z-index:40;
       box-shadow:6px 0 30px rgba(0,0,0,0.35);
     }
-    body.light .sidebar{background:var(--panel-light);box-shadow:none}
+    body.light .sidebar{background:var(--panel-light)}
+
     .brand{display:flex;gap:12px;align-items:center}
     .crest{
-      width:56px;height:56px;border-radius:8px;background-image:url('https://upload.wikimedia.org/wikipedia/commons/0/0c/Coat_of_arms_of_Ghana.svg');background-size:contain;background-position:center;background-repeat:no-repeat;box-shadow:0 6px 18px rgba(0,0,0,0.25)
+      width:56px;height:56px;border-radius:8px;
+      background-image:url('https://upload.wikimedia.org/wikipedia/commons/0/0c/Coat_of_arms_of_Ghana.svg');
+      background-size:contain;background-position:center;background-repeat:no-repeat;
     }
-    .brand h2{margin:0;font-size:1.05rem;color:var(--green);line-height:1}
-    .brand p{margin:0;font-size:0.85rem;color:var(--muted-dark)}
 
     .nav{display:flex;flex-direction:column;gap:6px;margin-top:10px}
     .nav button{
-      text-align:left;padding:10px 12px;border-radius:8px;border:none;background:transparent;color:inherit;cursor:pointer;font-weight:700;display:flex;gap:10px;align-items:center;
+      text-align:left;padding:10px 12px;border-radius:8px;border:none;
+      background:transparent;color:inherit;cursor:pointer;font-weight:700;
+      display:flex;gap:10px;align-items:center;
     }
-    .nav button.active{
-      background:linear-gradient(90deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
-      border-left:4px solid var(--green);
-    }
-
-    .sidebar .small{font-size:0.9rem;color:var(--muted-dark)}
+    .nav button.active{ background:rgba(255,255,255,0.06); border-left:4px solid var(--green); }
 
     .logout{margin-top:auto;display:flex;gap:8px;align-items:center}
-    .logout .info{flex:1}
     .logout button{background:var(--red);color:#fff;border:none;padding:8px 12px;border-radius:8px;font-weight:800;cursor:pointer}
 
-    /* Mobile hamburger */
     .hamburger{
-      display:none;
-      position:fixed;
-      left:14px;top:14px;
-      z-index:60;
-      background:var(--green);
-      color:#fff;border:none;padding:10px;border-radius:10px;cursor:pointer;
-      box-shadow:0 8px 20px rgba(0,0,0,0.3);
+      display:none;position:fixed;left:14px;top:14px;z-index:60;
+      background:var(--green);color:#fff;border:none;padding:10px;border-radius:10px;
+      cursor:pointer;
     }
 
-    /* Main */
     .main{
       flex:1;
       padding:26px;
@@ -92,280 +78,273 @@
       max-width:calc(100% - 260px);
       transition:all .28s ease;
     }
-    body.light .main{background:transparent}
-    .topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;gap:12px}
-    .topbar h1{margin:0;font-size:1.2rem;color:var(--green)}
-    .top-controls{display:flex;gap:8px;align-items:center}
 
-    .card{background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));padding:16px;border-radius:12px;margin-bottom:16px;border:1px solid rgba(255,255,255,0.02)}
-    body.light .card{background:#fff;border:1px solid rgba(0,0,0,0.04);box-shadow:0 6px 16px rgba(0,0,0,0.06)}
+    .topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
 
-    /* grid layout */
+    .card{
+      background:rgba(255,255,255,0.02);padding:16px;border-radius:12px;margin-bottom:18px;
+      border:1px solid rgba(255,255,255,0.05);
+    }
+    body.light .card{background:#fff;border:1px solid #ddd}
+
     .grid-2{display:grid;grid-template-columns:1fr 360px;gap:16px}
-    @media(max-width:980px){.grid-2{grid-template-columns:1fr}.sidebar{position:fixed;left:0;top:0;bottom:0;transform:translateX(-120%)}.hamburger{display:block}}
+    @media(max-width:980px){
+      .grid-2{grid-template-columns:1fr}
+      .sidebar{position:fixed;left:0;top:0;bottom:0;transform:translateX(-120%)}
+      .hamburger{display:block}
+    }
 
-    /* table */
     table{width:100%;border-collapse:collapse}
-    th,td{padding:10px;border-bottom:1px solid rgba(255,255,255,0.03);text-align:left;font-size:0.95rem}
-    th{background:transparent;color:var(--green);position:sticky;top:0}
-    body.light th{color:var(--green)}
+    th,td{padding:10px;border-bottom:1px solid rgba(255,255,255,0.06);font-size:0.95rem}
+    th{color:var(--green)}
 
-    input,select{width:100%;padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,0.05);background:transparent;color:inherit;margin-top:8px}
-    body.light input,body.light select{background:#fff;color:#111;border:1px solid #ddd}
+    input,select{
+      width:100%;padding:10px;margin-top:8px;border-radius:8px;
+      border:1px solid rgba(255,255,255,0.06);background:transparent;color:inherit;
+    }
+    body.light input,body.light select{background:#fff;color:#111;border:1px solid #ccc}
 
-    /* modal */
-    .modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,0.6);display:none;align-items:center;justify-content:center;z-index:80}
-    .modal{background:var(--panel-dark);padding:18px;border-radius:12px;min-width:320px;max-width:900px}
+    .modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,0.6);display:none;align-items:center;justify-content:center}
+    .modal{background:#0b1220;padding:18px;border-radius:12px;max-width:900px}
 
-    /* small utils */
-    .muted{color:var(--muted-dark)}
-    .small{font-size:0.9rem}
-    .controls-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-
-    /* animations */
-    .fade-in-up{opacity:0;transform:translateY(8px);animation:fadeUp .45s forwards}
-    @keyframes fadeUp{to{opacity:1;transform:none}}
-
-    /* active highlight helper */
-    .active-highlight{box-shadow:0 10px 30px rgba(0,0,0,0.4);border-left:4px solid var(--green)}
   </style>
 </head>
 
 <body>
 
-  <!-- MOBILE HAMBURGER -->
-  <button class="hamburger" id="hamburgerBtn" aria-label="Open menu">☰</button>
+<button class="hamburger" id="hamburgerBtn">☰</button>
 
-  <!-- SIDEBAR -->
-  <aside class="sidebar" id="sidebar">
-    <div class="brand">
-      <div class="crest" aria-hidden="true"></div>
-      <div>
-        <h2>NBVS Ghana</h2>
-        <p class="small muted">Admin Panel</p>
-      </div>
-    </div>
-
-    <div class="small muted">Navigation</div>
-    <nav class="nav" id="nav">
-      <button id="navRecords" class="active" data-section="records">📋 Records</button>
-      <button id="navAnalytics" data-section="analytics">📊 Analytics</button>
-      <button id="navImport" data-section="import">⬆️ Import CSV</button>
-      <button id="navWallet" data-section="wallet">💳 Wallet</button>
-      <button id="navAudit" data-section="audit">🧾 Audit Logs</button>
-
-    </nav>
-
-    <div class="logout">
-      <div class="info">
-        <div class="small muted">Logged in as</div>
-        <div style="font-weight:800">Admin — Aubrey</div>
-      </div>
-      <div>
-        <button onclick="logout()">Logout</button>
-      </div>
-    </div>
-  </aside>
-
-  <!-- MAIN -->
-  <main class="main" id="mainContent">
-    <div class="topbar">
-      <div>
-        <h1>NBVS Admin Dashboard</h1>
-        <div class="muted small">Manage records · analytics · import</div>
-      </div>
-
-      <div class="top-controls">
-        <button id="themeBtn" style="padding:8px 12px;border-radius:8px;border:none;background:var(--yellow);font-weight:700;cursor:pointer">Toggle Theme</button>
-      </div>
-    </div>
-
-    <section id="recordsSection" class="grid-2 fade-in-up">
-      <div>
-        <!-- IMPORT PANEL -->
-        <div id="panelImport" class="card">
-          <h3 style="margin:0 0 8px 0">Bulk Import (CSV)</h3>
-          <div class="muted small">Columns: name,nia,dob,region,address,criminal,driving,credit,status</div>
-          <div style="display:flex;gap:12px;align-items:center;margin-top:12px">
-            <input type="file" id="csvFile" accept=".csv" />
-            <div style="display:flex;flex-direction:column;gap:8px">
-              <button id="importBtn" style="padding:10px;border-radius:8px;background:var(--green);color:#fff;border:none;cursor:pointer">Import CSV</button>
-              <button id="clearImportBtn" style="padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.04);background:transparent;cursor:pointer">Clear</button>
-            </div>
-          </div>
-          <div id="importStatus" class="muted" style="margin-top:8px"></div>
-        </div>
-
-        <!-- ADD RECORD -->
-        <div id="panelAdd" class="card" style="margin-top:12px">
-          <h3 style="margin:0 0 8px 0">Add New Record</h3>
-          <div class="muted small">Add a single record — appears immediately</div>
-
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px">
-            <div>
-              <label>Full name</label><input id="nameInput" placeholder="Full Name" />
-              <label>NIA</label><input id="niaInput" placeholder="GHA-12345" />
-              <label>DOB</label><input id="dobInput" placeholder="YYYY-MM-DD" />
-              <label>Region</label><input id="regionInput" placeholder="Region" />
-            </div>
-
-            <div>
-              <label>Address</label><input id="addressInput" placeholder="Address" />
-              <label>Criminal</label><input id="criminalInput" placeholder="None / details" />
-              <label>Driving</label><input id="drivingInput" placeholder="Clean / Suspended" />
-              <label>Credit</label><input id="creditInput" placeholder="Notes" />
-              <label>Status</label>
-              <select id="statusInput">
-                <option value="Verified">Verified</option>
-                <option value="Flagged">Flagged</option>
-                <option value="Warning">Warning</option>
-              </select>
-
-              <div style="margin-top:12px"><button id="addBtn" style="padding:10px;border-radius:8px;background:var(--green);color:#fff;border:none;cursor:pointer">Add Record</button></div>
-            </div>
-          </div>
-        </div>
-
-        <!-- TABLE CARD -->
-        <div class="card" style="margin-top:12px">
-          <div style="display:flex;justify-content:space-between;align-items:center;gap:12px">
-            <div style="display:flex;gap:8px;align-items:center">
-              <input type="checkbox" id="selectAll" />
-              <label for="selectAll">Select all on page</label>
-              <button id="multiDeleteBtn" style="background:var(--red);color:#fff;border:none;padding:8px;border-radius:8px;cursor:pointer;margin-left:8px">Delete Selected</button>
-              <button id="exportSelectedBtn" style="background:var(--yellow);color:#111;border:none;padding:8px;border-radius:8px;cursor:pointer">Export Selected</button>
-              <button id="downloadCsvBtn" style="background:var(--green);color:#fff;border:none;padding:8px;border-radius:8px;cursor:pointer">Download All</button>
-            </div>
-
-            <div style="display:flex;gap:8px;align-items:center">
-              <input id="globalSearch" placeholder="Search name or NIA..." style="padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.03);background:transparent;color:inherit" />
-              <select id="filterSelect">
-                <option value="ALL">All</option>
-                <option value="Verified">Verified</option>
-                <option value="Flagged">Flagged</option>
-                <option value="Warning">Warning</option>
-              </select>
-            </div>
-          </div>
-
-          <div style="margin-top:12px;overflow:auto">
-            <table>
-              <thead>
-                <tr>
-                  <th style="width:40px"></th>
-                  <th>Name</th>
-                  <th>NIA</th>
-                  <th>Region</th>
-                  <th>Status</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody id="recordsTable"></tbody>
-            </table>
-          </div>
-
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px">
-            <div class="muted" id="pageInfo">Page 1</div>
-            <div>
-              <button id="prevPageBtn" style="padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.04);background:transparent;cursor:pointer">← Prev</button>
-              <button id="nextPageBtn" style="padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.04);background:transparent;cursor:pointer">Next →</button>
-            </div>
-          </div>
-        </div>
-
-      </div>
-
-      <!-- RIGHT SIDE SMALL PANELS -->
-      <aside>
-        <div class="card">
-          <h3>Quick Stats</h3>
-          <div class="muted">Total records</div>
-          <div id="totalRecords" style="font-size:1.6rem;font-weight:800;margin-top:8px">—</div>
-        </div>
-
-        <div class="card" style="margin-top:12px">
-          <h3>Wallet</h3>
-          <div class="muted">Open wallet page</div>
-          <div style="margin-top:10px"><button id="openWalletBtn" style="padding:8px;border-radius:8px;background:var(--green);color:#fff;border:none;cursor:pointer">Open Wallet</button></div>
-        </div>
-
-        <div class="card" style="margin-top:12px">
-          <h3>Analytics Summary</h3>
-          <div class="muted">Total searches</div>
-          <div id="totalLogs" style="font-size:1.4rem;font-weight:800;margin-top:8px">0</div>
-          <div style="margin-top:8px"><button onclick="document.getElementById('analyticsSection').scrollIntoView({behavior:'smooth'})" style="padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.04);background:transparent;cursor:pointer">View full logs</button></div>
-        </div>
-      </aside>
-    </section>
-
-    <!-- ANALYTICS -->
-    <section id="analyticsSection" class="card fade-in-up">
-      <h3>Search Analytics</h3>
-      <div class="muted small">Search history from the Verify page (term, platform, timestamp)</div>
-      <div style="margin-top:12px;overflow:auto">
-        <table class="analytics-table">
-          <thead>
-            <tr><th>Search Term</th><th>Platform</th><th>Timestamp</th></tr>
-          </thead>
-          <tbody id="analyticsBody"></tbody>
-        </table>
-      </div>
-    </section>
-  </main>
-<!-- AUDIT LOGS SECTION -->
-<section id="auditSection" class="card fade-in-up" style="margin-top:18px">
-  <h3>Audit Logs (tamper-proof)</h3>
-  <div class="muted small">
-    Immutable audit events (action, admin, target, details, prevHash, hash, timestamp)
-  </div>
-
-  <div style="margin-top:12px;overflow:auto">
-    <table style="width:100%">
-      <thead>
-        <tr>
-          <th>Action</th>
-          <th>Admin</th>
-          <th>Target ID</th>
-          <th>Details</th>
-          <th>prevHash</th>
-          <th>hash</th>
-          <th>Timestamp</th>
-        </tr>
-      </thead>
-      <tbody id="auditBody"></tbody>
-    </table>
-  </div>
-</section>
-
-  <!-- EDIT MODAL -->
-  <div id="modalBackdrop" class="modal-backdrop" aria-hidden="true">
-    <div class="modal">
-      <h3>Edit Record</h3>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px">
-        <div>
-          <label>Full name</label><input id="modal_name" />
-          <label>NIA</label><input id="modal_nia" />
-          <label>DOB</label><input id="modal_dob" />
-          <label>Region</label><input id="modal_region" />
-        </div>
-        <div>
-          <label>Address</label><input id="modal_address" />
-          <label>Criminal</label><input id="modal_criminal" />
-          <label>Driving</label><input id="modal_driving" />
-          <label>Credit</label><input id="modal_credit" />
-          <label>Status</label>
-          <select id="modal_status"><option>Verified</option><option>Flagged</option><option>Warning</option></select>
-        </div>
-      </div>
-      <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:12px">
-        <button id="modalCancel" style="padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.04);background:transparent;cursor:pointer">Cancel</button>
-        <button id="modalSave" style="padding:8px;border-radius:8px;background:var(--green);color:#fff;border:none;cursor:pointer">Save</button>
-      </div>
+<!-- SIDEBAR -->
+<aside class="sidebar" id="sidebar">
+  <div class="brand">
+    <div class="crest"></div>
+    <div>
+      <h2>NBVS Ghana</h2>
+      <p class="small muted">Admin Panel</p>
     </div>
   </div>
 
-  <!-- script loads admin.js (module) -->
-  <script type="module" src="admin.js"></script>
+  <div class="small muted">Navigation</div>
+  <nav class="nav" id="nav">
+    <button id="navRecords" class="active" data-section="records">📋 Records</button>
+    <button id="navAnalytics" data-section="analytics">📊 Analytics</button>
+    <button id="navImport" data-section="import">⬆️ Import CSV</button>
+    <button id="navWallet" data-section="wallet">💳 Wallet</button>
+
+    <!-- ✅ AUDIT TAB BUTTON -->
+    <button id="navAudit" data-section="audit">🧾 Audit Logs</button>
+  </nav>
+
+  <div class="logout">
+    <div class="info">
+      <div class="small muted">Logged in as</div>
+      <div style="font-weight:800">Admin — Aubrey</div>
+    </div>
+    <div><button onclick="logout()">Logout</button></div>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<main class="main" id="mainContent">
+
+  <div class="topbar">
+    <div>
+      <h1>NBVS Admin Dashboard</h1>
+      <div class="muted small">Manage records · analytics · import</div>
+    </div>
+    <button id="themeBtn" style="padding:8px 12px;border-radius:8px;border:none;background:var(--yellow);font-weight:700">Toggle Theme</button>
+  </div>
+
+  <!-- RECORDS SECTION -->
+  <section id="recordsSection" class="grid-2 fade-in-up">
+
+    <div>
+      <!-- IMPORT PANEL -->
+      <div id="panelImport" class="card">
+        <h3>Bulk Import (CSV)</h3>
+        <div class="muted small">Columns: name,nia,dob,region,address,criminal,driving,credit,status</div>
+        <div style="display:flex;gap:12px;margin-top:12px">
+          <input type="file" id="csvFile" accept=".csv" />
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <button id="importBtn" style="padding:10px;border-radius:8px;background:var(--green);color:#fff;border:none">Import CSV</button>
+            <button id="clearImportBtn" style="padding:8px;border-radius:8px;border:1px solid #444;background:transparent">Clear</button>
+          </div>
+        </div>
+        <div id="importStatus" class="muted" style="margin-top:8px"></div>
+      </div>
+
+      <!-- ADD RECORD -->
+      <div id="panelAdd" class="card" style="margin-top:12px">
+        <h3>Add New Record</h3>
+        <div class="muted small">Appears immediately</div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px">
+          <div>
+            <label>Full name</label><input id="nameInput" />
+            <label>NIA</label><input id="niaInput" />
+            <label>DOB</label><input id="dobInput" />
+            <label>Region</label><input id="regionInput" />
+          </div>
+
+          <div>
+            <label>Address</label><input id="addressInput" />
+            <label>Criminal</label><input id="criminalInput" />
+            <label>Driving</label><input id="drivingInput" />
+            <label>Credit</label><input id="creditInput" />
+            <label>Status</label>
+            <select id="statusInput">
+              <option value="Verified">Verified</option>
+              <option value="Flagged">Flagged</option>
+              <option value="Warning">Warning</option>
+            </select>
+            <button id="addBtn" style="margin-top:12px;padding:10px;border-radius:8px;background:var(--green);color:#fff;border:none">Add</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- TABLE -->
+      <div class="card" style="margin-top:12px">
+        <div style="display:flex;justify-content:space-between;gap:12px">
+          <div style="display:flex;gap:8px;align-items:center">
+            <input type="checkbox" id="selectAll" />
+            <label for="selectAll">Select all</label>
+            <button id="multiDeleteBtn" style="background:var(--red);color:white;padding:8px;border:none;border-radius:8px">Delete Selected</button>
+            <button id="exportSelectedBtn" style="background:var(--yellow);color:black;padding:8px;border:none;border-radius:8px">Export Selected</button>
+            <button id="downloadCsvBtn" style="background:var(--green);color:white;padding:8px;border:none;border-radius:8px">Download All</button>
+          </div>
+
+          <div style="display:flex;gap:8px">
+            <input id="globalSearch" placeholder="Search..." />
+            <select id="filterSelect">
+              <option value="ALL">All</option>
+              <option value="Verified">Verified</option>
+              <option value="Flagged">Flagged</option>
+              <option value="Warning">Warning</option>
+            </select>
+          </div>
+        </div>
+
+        <div style="margin-top:12px;overflow:auto">
+          <table>
+            <thead>
+              <tr>
+                <th></th>
+                <th>Name</th>
+                <th>NIA</th>
+                <th>Region</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="recordsTable"></tbody>
+          </table>
+        </div>
+
+        <div style="display:flex;justify-content:space-between;margin-top:12px">
+          <div class="muted" id="pageInfo">Page 1</div>
+          <div>
+            <button id="prevPageBtn">← Prev</button>
+            <button id="nextPageBtn">Next →</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT SIDE PANELS -->
+    <aside>
+      <div class="card">
+        <h3>Quick Stats</h3>
+        <div class="muted">Total Records</div>
+        <div id="totalRecords" style="font-size:1.5rem;font-weight:800">—</div>
+      </div>
+
+      <div class="card">
+        <h3>Wallet</h3>
+        <button id="openWalletBtn" style="padding:8px;border-radius:8px;background:var(--green);color:white;border:none;margin-top:12px">Open Wallet</button>
+      </div>
+
+      <div class="card">
+        <h3>Analytics Summary</h3>
+        <div id="totalLogs" style="font-size:1.4rem;font-weight:800">0</div>
+        <button onclick="document.getElementById('analyticsSection').scrollIntoView({behavior:'smooth'})" style="margin-top:8px">View Full</button>
+      </div>
+    </aside>
+  </section>
+
+  <!-- ANALYTICS SECTION -->
+  <section id="analyticsSection" class="card fade-in-up">
+    <h3>Search Analytics</h3>
+    <div class="muted small">Search history from Verify page</div>
+    <div style="margin-top:12px;overflow:auto">
+      <table>
+        <thead>
+          <tr><th>Search Term</th><th>Platform</th><th>Timestamp</th></tr>
+        </thead>
+        <tbody id="analyticsBody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ✅ AUDIT LOGS (FIXED LOCATION — INSIDE MAIN) -->
+  <section id="auditSection" class="card fade-in-up">
+    <h3>Audit Logs (Tamper-Proof)</h3>
+    <div class="muted small">All admin actions with hash chain verification</div>
+
+    <div style="margin-top:12px;overflow:auto">
+      <table>
+        <thead>
+          <tr>
+            <th>Action</th>
+            <th>Admin</th>
+            <th>Target ID</th>
+            <th>Details</th>
+            <th>prevHash</th>
+            <th>hash</th>
+            <th>Timestamp</th>
+          </tr>
+        </thead>
+        <tbody id="auditBody"></tbody>
+      </table>
+    </div>
+  </section>
+
+</main>
+
+<!-- EDIT MODAL -->
+<div id="modalBackdrop" class="modal-backdrop" aria-hidden="true">
+  <div class="modal">
+    <h3>Edit Record</h3>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px">
+      <div>
+        <label>Full name</label><input id="modal_name" />
+        <label>NIA</label><input id="modal_nia" />
+        <label>DOB</label><input id="modal_dob" />
+        <label>Region</label><input id="modal_region" />
+      </div>
+
+      <div>
+        <label>Address</label><input id="modal_address" />
+        <label>Criminal</label><input id="modal_criminal" />
+        <label>Driving</label><input id="modal_driving" />
+        <label>Credit</label><input id="modal_credit" />
+        <label>Status</label>
+        <select id="modal_status">
+          <option>Verified</option>
+          <option>Flagged</option>
+          <option>Warning</option>
+        </select>
+      </div>
+    </div>
+
+    <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:12px">
+      <button id="modalCancel">Cancel</button>
+      <button id="modalSave" style="background:var(--green);color:white;border:none;padding:8px 16px;border-radius:8px">Save</button>
+    </div>
+  </div>
+</div>
+
+<script type="module" src="admin.js"></script>
 
 </body>
 </html>
