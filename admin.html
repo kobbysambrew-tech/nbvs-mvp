@@ -1,350 +1,204 @@
+<!-- ADMIN.HTML TEMPLATE (MOBILE-FRIENDLY, MATCHES YOUR ADMIN.JS STRUCTURE) -->
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-admin-page>
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>NBVS Admin — Dashboard</title>
-
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Panel</title>
   <style>
-    :root{
-      --green:#006b3f;
-      --accent:#004f2e;
-      --yellow:#fcd116;
-      --red:#ce1126;
-      --bg-dark:#071017;
-      --panel-dark:#0b1220;
-      --muted-dark:#9fb0b8;
-      --bg-light:#f6f7f9;
-      --panel-light:#ffffff;
-      --muted-light:#666;
-      --maxw:1280px;
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f7f7f7;
     }
-
-    *{box-sizing:border-box}
-    html,body{height:100%}
-    body{
-      margin:0;
-      font-family:"Segoe UI", Roboto, Arial, sans-serif;
-      background:linear-gradient(180deg,#071017 0%, #071a1c 60%);
-      color:#e6eef2;
-      display:flex;
-      min-height:100vh;
-      overflow:hidden;
+    header {
+      background: #111;
+      color: #fff;
+      padding: 14px 18px;
+      font-size: 20px;
+      font-weight: bold;
     }
-    body.light { background:var(--bg-light); color:#111; }
-
-    .sidebar{
-      width:260px;
-      background:linear-gradient(180deg,var(--panel-dark), #071826 120%);
-      padding:20px;
-      display:flex;
-      flex-direction:column;
-      gap:12px;
-      min-height:100vh;
-      transition:transform .28s ease;
-      z-index:40;
-      box-shadow:6px 0 30px rgba(0,0,0,0.35);
+    nav {
+      display: flex;
+      background: #222;
+      overflow-x: auto;
     }
-    body.light .sidebar{background:var(--panel-light)}
-
-    .brand{display:flex;gap:12px;align-items:center}
-    .crest{
-      width:56px;height:56px;border-radius:8px;
-      background-image:url('https://upload.wikimedia.org/wikipedia/commons/0/0c/Coat_of_arms_of_Ghana.svg');
-      background-size:contain;background-position:center;background-repeat:no-repeat;
+    nav button {
+      flex: 1;
+      padding: 14px;
+      border: none;
+      background: #222;
+      color: #fff;
+      font-size: 15px;
+      cursor: pointer;
+      border-right: 1px solid #333;
     }
-
-    .nav{display:flex;flex-direction:column;gap:6px;margin-top:10px}
-    .nav button{
-      text-align:left;padding:10px 12px;border-radius:8px;border:none;
-      background:transparent;color:inherit;cursor:pointer;font-weight:700;
-      display:flex;gap:10px;align-items:center;
+    nav button:hover {
+      background: #333;
     }
-    .nav button.active{ background:rgba(255,255,255,0.06); border-left:4px solid var(--green); }
-
-    .logout{margin-top:auto;display:flex;gap:8px;align-items:center}
-    .logout button{background:var(--red);color:#fff;border:none;padding:8px 12px;border-radius:8px;font-weight:800;cursor:pointer}
-
-    .hamburger{
-      display:none;position:fixed;left:14px;top:14px;z-index:60;
-      background:var(--green);color:#fff;border:none;padding:10px;border-radius:10px;
-      cursor:pointer;
+    section {
+      display: none;
+      padding: 20px;
     }
-
-    .main{
-      flex:1;
-      padding:26px;
-      overflow:auto;
-      max-width:calc(100% - 260px);
-      transition:all .28s ease;
+    .stat-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 12px;
     }
-
-    .topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
-
-    .card{
-      background:rgba(255,255,255,0.02);padding:16px;border-radius:12px;margin-bottom:18px;
-      border:1px solid rgba(255,255,255,0.05);
+    .stat-card {
+      background: #fff;
+      padding: 18px;
+      border-radius: 10px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
     }
-    body.light .card{background:#fff;border:1px solid #ddd}
-
-    .grid-2{display:grid;grid-template-columns:1fr 360px;gap:16px}
-    @media(max-width:980px){
-      .grid-2{grid-template-columns:1fr}
-      .sidebar{position:fixed;left:0;top:0;bottom:0;transform:translateX(-120%)}
-      .hamburger{display:block}
+    .stat-number {
+      font-size: 28px;
+      font-weight: bold;
     }
-
-    table{width:100%;border-collapse:collapse}
-    th,td{padding:10px;border-bottom:1px solid rgba(255,255,255,0.06);font-size:0.95rem}
-    th{color:var(--green)}
-
-    input,select{
-      width:100%;padding:10px;margin-top:8px;border-radius:8px;
-      border:1px solid rgba(255,255,255,0.06);background:transparent;color:inherit;
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #fff;
     }
-    body.light input,body.light select{background:#fff;color:#111;border:1px solid #ccc}
-
-    .modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,0.6);display:none;align-items:center;justify-content:center}
-    .modal{background:#0b1220;padding:18px;border-radius:12px;max-width:900px}
-
+    th, td {
+      border: 1px solid #eee;
+      padding: 10px;
+      font-size: 15px;
+    }
+    th {
+      background: #fafafa;
+    }
+    #verify-card input {
+      width: 100%;
+      padding: 12px;
+      margin-bottom: 10px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+    #verify-buttons button {
+      width: 100%;
+      padding: 12px;
+      margin-top: 6px;
+      background: #111;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
   </style>
 </head>
 
 <body>
+  <header>Admin Dashboard</header>
 
-<button class="hamburger" id="hamburgerBtn">☰</button>
-
-<!-- SIDEBAR -->
-<aside class="sidebar" id="sidebar">
-  <div class="brand">
-    <div class="crest"></div>
-    <div>
-      <h2>NBVS Ghana</h2>
-      <p class="small muted">Admin Panel</p>
-    </div>
-  </div>
-
-  <div class="small muted">Navigation</div>
-  <nav class="nav" id="nav">
-    <button id="navRecords" class="active" data-section="records">📋 Records</button>
-    <button id="navAnalytics" data-section="analytics">📊 Analytics</button>
-    <button id="navImport" data-section="import">⬆️ Import CSV</button>
-    <button id="navWallet" data-section="wallet">💳 Wallet</button>
-
-    <!-- ✅ AUDIT TAB BUTTON -->
-    <button id="navAudit" data-section="audit">🧾 Audit Logs</button>
+  <nav>
+    <button id="tab-dashboard">Dashboard</button>
+    <button id="tab-verify">Verify</button>
+    <button id="tab-users">Users</button>
+    <button id="tab-logs">Search Logs</button>
+    <button id="tab-wallet">Wallet</button>
   </nav>
 
-  <div class="logout">
-    <div class="info">
-      <div class="small muted">Logged in as</div>
-      <div style="font-weight:800">Admin — Aubrey</div>
-    </div>
-    <div><button onclick="logout()">Logout</button></div>
-  </div>
-</aside>
-
-<!-- MAIN -->
-<main class="main" id="mainContent">
-
-  <div class="topbar">
-    <div>
-      <h1>NBVS Admin Dashboard</h1>
-      <div class="muted small">Manage records · analytics · import</div>
-    </div>
-    <button id="themeBtn" style="padding:8px 12px;border-radius:8px;border:none;background:var(--yellow);font-weight:700">Toggle Theme</button>
-  </div>
-
-  <!-- RECORDS SECTION -->
-  <section id="recordsSection" class="grid-2 fade-in-up">
-
-    <div>
-      <!-- IMPORT PANEL -->
-      <div id="panelImport" class="card">
-        <h3>Bulk Import (CSV)</h3>
-        <div class="muted small">Columns: name,nia,dob,region,address,criminal,driving,credit,status</div>
-        <div style="display:flex;gap:12px;margin-top:12px">
-          <input type="file" id="csvFile" accept=".csv" />
-          <div style="display:flex;flex-direction:column;gap:8px">
-            <button id="importBtn" style="padding:10px;border-radius:8px;background:var(--green);color:#fff;border:none">Import CSV</button>
-            <button id="clearImportBtn" style="padding:8px;border-radius:8px;border:1px solid #444;background:transparent">Clear</button>
-          </div>
-        </div>
-        <div id="importStatus" class="muted" style="margin-top:8px"></div>
+  <!-- DASHBOARD SECTION -->
+  <section id="section-dashboard" style="display:block;">
+    <div class="stat-grid">
+      <div class="stat-card">
+        <div>Users</div>
+        <div id="stat-users" class="stat-number">0</div>
       </div>
-
-      <!-- ADD RECORD -->
-      <div id="panelAdd" class="card" style="margin-top:12px">
-        <h3>Add New Record</h3>
-        <div class="muted small">Appears immediately</div>
-
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px">
-          <div>
-            <label>Full name</label><input id="nameInput" />
-            <label>NIA</label><input id="niaInput" />
-            <label>DOB</label><input id="dobInput" />
-            <label>Region</label><input id="regionInput" />
-          </div>
-
-          <div>
-            <label>Address</label><input id="addressInput" />
-            <label>Criminal</label><input id="criminalInput" />
-            <label>Driving</label><input id="drivingInput" />
-            <label>Credit</label><input id="creditInput" />
-            <label>Status</label>
-            <select id="statusInput">
-              <option value="Verified">Verified</option>
-              <option value="Flagged">Flagged</option>
-              <option value="Warning">Warning</option>
-            </select>
-            <button id="addBtn" style="margin-top:12px;padding:10px;border-radius:8px;background:var(--green);color:#fff;border:none">Add</button>
-          </div>
-        </div>
+      <div class="stat-card">
+        <div>Searches</div>
+        <div id="stat-searches" class="stat-number">0</div>
       </div>
-
-      <!-- TABLE -->
-      <div class="card" style="margin-top:12px">
-        <div style="display:flex;justify-content:space-between;gap:12px">
-          <div style="display:flex;gap:8px;align-items:center">
-            <input type="checkbox" id="selectAll" />
-            <label for="selectAll">Select all</label>
-            <button id="multiDeleteBtn" style="background:var(--red);color:white;padding:8px;border:none;border-radius:8px">Delete Selected</button>
-            <button id="exportSelectedBtn" style="background:var(--yellow);color:black;padding:8px;border:none;border-radius:8px">Export Selected</button>
-            <button id="downloadCsvBtn" style="background:var(--green);color:white;padding:8px;border:none;border-radius:8px">Download All</button>
-          </div>
-
-          <div style="display:flex;gap:8px">
-            <input id="globalSearch" placeholder="Search..." />
-            <select id="filterSelect">
-              <option value="ALL">All</option>
-              <option value="Verified">Verified</option>
-              <option value="Flagged">Flagged</option>
-              <option value="Warning">Warning</option>
-            </select>
-          </div>
-        </div>
-
-        <div style="margin-top:12px;overflow:auto">
-          <table>
-            <thead>
-              <tr>
-                <th></th>
-                <th>Name</th>
-                <th>NIA</th>
-                <th>Region</th>
-                <th>Status</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody id="recordsTable"></tbody>
-          </table>
-        </div>
-
-        <div style="display:flex;justify-content:space-between;margin-top:12px">
-          <div class="muted" id="pageInfo">Page 1</div>
-          <div>
-            <button id="prevPageBtn">← Prev</button>
-            <button id="nextPageBtn">Next →</button>
-          </div>
-        </div>
+      <div class="stat-card">
+        <div>Wallet Total</div>
+        <div id="stat-wallet" class="stat-number">$0.00</div>
+      </div>
+      <div class="stat-card">
+        <div>Transactions</div>
+        <div id="stat-transactions" class="stat-number">0</div>
       </div>
     </div>
 
-    <!-- RIGHT SIDE PANELS -->
-    <aside>
-      <div class="card">
-        <h3>Quick Stats</h3>
-        <div class="muted">Total Records</div>
-        <div id="totalRecords" style="font-size:1.5rem;font-weight:800">—</div>
-      </div>
-
-      <div class="card">
-        <h3>Wallet</h3>
-        <button id="openWalletBtn" style="padding:8px;border-radius:8px;background:var(--green);color:white;border:none;margin-top:12px">Open Wallet</button>
-      </div>
-
-      <div class="card">
-        <h3>Analytics Summary</h3>
-        <div id="totalLogs" style="font-size:1.4rem;font-weight:800">0</div>
-        <button onclick="document.getElementById('analyticsSection').scrollIntoView({behavior:'smooth'})" style="margin-top:8px">View Full</button>
-      </div>
-    </aside>
-  </section>
-
-  <!-- ANALYTICS SECTION -->
-  <section id="analyticsSection" class="card fade-in-up">
-    <h3>Search Analytics</h3>
-    <div class="muted small">Search history from Verify page</div>
-    <div style="margin-top:12px;overflow:auto">
-      <table>
-        <thead>
-          <tr><th>Search Term</th><th>Platform</th><th>Timestamp</th></tr>
-        </thead>
-        <tbody id="analyticsBody"></tbody>
-      </table>
+    <div style="margin-top:20px;">
+      <strong>Analytics:</strong> <span id="analytics-status">Loading…</span>
     </div>
   </section>
 
-  <!-- ✅ AUDIT LOGS (FIXED LOCATION — INSIDE MAIN) -->
-  <section id="auditSection" class="card fade-in-up">
-    <h3>Audit Logs (Tamper-Proof)</h3>
-    <div class="muted small">All admin actions with hash chain verification</div>
+  <!-- VERIFY SECTION -->
+  <section id="section-verify">
+    <div id="verify-card">
+      <input id="verify-input" placeholder="Phone, Email, or ID" />
 
-    <div style="margin-top:12px;overflow:auto">
-      <table>
-        <thead>
-          <tr>
-            <th>Action</th>
-            <th>Admin</th>
-            <th>Target ID</th>
-            <th>Details</th>
-            <th>prevHash</th>
-            <th>hash</th>
-            <th>Timestamp</th>
-          </tr>
-        </thead>
-        <tbody id="auditBody"></tbody>
-      </table>
+      <div id="verify-buttons">
+        <button id="btn-verify-phone">Verify by Phone</button>
+        <button id="btn-verify-email">Verify by Email</button>
+        <button id="btn-verify-id">Verify by ID</button>
+      </div>
+
+      <div id="verify-output" style="margin-top:15px;background:#fff;padding:12px;border-radius:8px;"></div>
     </div>
   </section>
 
-</main>
+  <!-- USERS SECTION -->
+  <section id="section-users">
+    <table>
+      <thead>
+        <tr>
+          <th>UID</th>
+          <th>Name</th>
+          <th>Email</th>
+          <th>Role</th>
+        </tr>
+      </thead>
+      <tbody id="users-body"></tbody>
+    </table>
+  </section>
 
-<!-- EDIT MODAL -->
-<div id="modalBackdrop" class="modal-backdrop" aria-hidden="true">
-  <div class="modal">
-    <h3>Edit Record</h3>
+  <!-- SEARCH LOGS SECTION -->
+  <section id="section-searchlogs">
+    <table>
+      <thead>
+        <tr>
+          <th>Time</th>
+          <th>User</th>
+          <th>Query</th>
+          <th>Result</th>
+        </tr>
+      </thead>
+      <tbody id="searchlogs-body"></tbody>
+    </table>
+  </section>
 
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px">
-      <div>
-        <label>Full name</label><input id="modal_name" />
-        <label>NIA</label><input id="modal_nia" />
-        <label>DOB</label><input id="modal_dob" />
-        <label>Region</label><input id="modal_region" />
-      </div>
+  <!-- WALLET SECTION -->
+  <section id="section-wallet">
+    <h3>Wallet Accounts</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>User</th>
+          <th>Balance</th>
+        </tr>
+      </thead>
+      <tbody id="wallet-body"></tbody>
+    </table>
 
-      <div>
-        <label>Address</label><input id="modal_address" />
-        <label>Criminal</label><input id="modal_criminal" />
-        <label>Driving</label><input id="modal_driving" />
-        <label>Credit</label><input id="modal_credit" />
-        <label>Status</label>
-        <select id="modal_status">
-          <option>Verified</option>
-          <option>Flagged</option>
-          <option>Warning</option>
-        </select>
-      </div>
-    </div>
+    <h3 style="margin-top:20px;">Transactions</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>Time</th>
+          <th>User</th>
+          <th>Type</th>
+          <th>Amount</th>
+        </tr>
+      </thead>
+      <tbody id="wallettx-body"></tbody>
+    </table>
+  </section>
 
-    <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:12px">
-      <button id="modalCancel">Cancel</button>
-      <button id="modalSave" style="background:var(--green);color:white;border:none;padding:8px 16px;border-radius:8px">Save</button>
-    </div>
-  </div>
-</div>
-
-<script type="module" src="admin.js"></script>
-
+  <!-- ADMIN JS -->
+  <script type="module" src="./admin.js"></script>
 </body>
 </html>
+
