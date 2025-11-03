@@ -28,6 +28,7 @@ import {
 // ---------------------------------------------------------------
 // ✅ YOUR REAL FIREBASE CONFIG (DO NOT CHANGE)
 // ---------------------------------------------------------------
+// ✅ Updated Firebase Config (final)
 const firebaseConfig = {
   apiKey: "AIzaSyCDh_qL3jcIMHR0K0_Soul2Wsv3t3y4wv0",
   authDomain: "nbvs-ghana.firebaseapp.com",
