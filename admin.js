@@ -88,6 +88,45 @@ async function initFirebase() {
     } catch (e) {
       analytics = null;
       console.info("Analytics init error:", e && e.message);
+      // After initializing Firebase...
+auth = getAuth(app);
+db = getFirestore(app);
+
+// Listen for login state
+onAuthStateChanged(auth, async (user) => {
+  if (!user) {
+    // Not logged in? Kick them out.
+    window.location.href = "/dashboard.html";
+    return;
+  }
+
+  currentUser = user;
+
+  // Get role
+  const uRef = doc(db, "users", user.uid);
+  const snap = await getDoc(uRef);
+
+  if (!snap.exists()) {
+    // No Firestore role? Not allowed
+    await signOut(auth);
+    window.location.href = "/dashboard.html";
+    return;
+  }
+
+  currentUserRole = (snap.data().role || "").toLowerCase();
+
+  // Role validation
+  if (currentUserRole !== "superadmin" && currentUserRole !== "staff") {
+    await signOut(auth);
+    window.location.href = "/dashboard.html";
+    return;
+  }
+
+  // ✅ They passed the role check → Finish loading the admin
+  setupBindings();
+  loadInitialData();  // This loads stats, wallet, users, logs, etc.
+});
+
     }
     // ---------------------------------------
 // ROLE & AUTH CONTROLS
