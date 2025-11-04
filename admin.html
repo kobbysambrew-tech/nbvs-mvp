@@ -1,4 +1,4 @@
-<!-- ADMIN.HTML TEMPLATE (MOBILE-FRIENDLY, MATCHES YOUR ADMIN.JS STRUCTURE) -->
+<!-- Updated ADMIN.HTML with role-based classes -->
 <!DOCTYPE html>
 <html lang="en" data-admin-page>
 <head>
@@ -6,102 +6,37 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Admin Panel</title>
   <style>
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: #f7f7f7;
-    }
-    header {
-      background: #111;
-      color: #fff;
-      padding: 14px 18px;
-      font-size: 20px;
-      font-weight: bold;
-    }
-    nav {
-      display: flex;
-      background: #222;
-      overflow-x: auto;
-    }
-    nav button {
-      flex: 1;
-      padding: 14px;
-      border: none;
-      background: #222;
-      color: #fff;
-      font-size: 15px;
-      cursor: pointer;
-      border-right: 1px solid #333;
-    }
-    nav button:hover {
-      background: #333;
-    }
-    section {
-      display: none;
-      padding: 20px;
-    }
-    .stat-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-      gap: 12px;
-    }
-    .stat-card {
-      background: #fff;
-      padding: 18px;
-      border-radius: 10px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-    }
-    .stat-number {
-      font-size: 28px;
-      font-weight: bold;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      background: #fff;
-    }
-    th, td {
-      border: 1px solid #eee;
-      padding: 10px;
-      font-size: 15px;
-    }
-    th {
-      background: #fafafa;
-    }
-    #verify-card input {
-      width: 100%;
-      padding: 12px;
-      margin-bottom: 10px;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-    }
-    #verify-buttons button {
-      width: 100%;
-      padding: 12px;
-      margin-top: 6px;
-      background: #111;
-      color: #fff;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-    }
+    body { margin: 0; font-family: Arial, sans-serif; background: #f7f7f7; }
+    header { background: #111; color: #fff; padding: 14px 18px; font-size: 20px; font-weight: bold; }
+    nav { display: flex; background: #222; overflow-x: auto; }
+    nav button { flex: 1; padding: 14px; border: none; background: #222; color: #fff; font-size: 15px; cursor: pointer; border-right: 1px solid #333; }
+    nav button:hover { background: #333; }
+    section { display: none; padding: 20px; }
+    .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
+    .stat-card { background: #fff; padding: 18px; border-radius: 10px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
+    .stat-number { font-size: 28px; font-weight: bold; }
+    table { width: 100%; border-collapse: collapse; background: #fff; }
+    th, td { border: 1px solid #eee; padding: 10px; font-size: 15px; }
+    th { background: #fafafa; }
+    #verify-card input { width: 100%; padding: 12px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 6px; }
+    #verify-buttons button { width: 100%; padding: 12px; margin-top: 6px; background: #111; color: #fff; border: none; border-radius: 6px; cursor: pointer; }
   </style>
 </head>
 
 <body data-admin-page>
   <header>Admin Dashboard</header>
-<!-- in admin.html header -->
-<div style="position:absolute;right:16px;top:12px;">
-  <span id="admin-role" style="margin-right:10px"></span>
-  <button id="btn-logout">Logout</button>
-</div>
+
+  <div style="position:absolute;right:16px;top:12px;">
+    <span id="admin-role" style="margin-right:10px"></span>
+    <button id="btn-logout">Logout</button>
+  </div>
 
   <nav>
     <button id="tab-dashboard">Dashboard</button>
     <button id="tab-verify">Verify</button>
     <button id="tab-users">Users</button>
     <button id="tab-logs">Search Logs</button>
-    <button id="tab-wallet">Wallet</button>
+    <button id="tab-wallet" class="admin-only">Wallet</button>
   </nav>
 
   <!-- DASHBOARD SECTION -->
@@ -115,11 +50,11 @@
         <div>Searches</div>
         <div id="stat-searches" class="stat-number">0</div>
       </div>
-      <div class="stat-card">
+      <div class="stat-card admin-only">
         <div>Wallet Total</div>
         <div id="stat-wallet" class="stat-number">$0.00</div>
       </div>
-      <div class="stat-card">
+      <div class="stat-card admin-only">
         <div>Transactions</div>
         <div id="stat-transactions" class="stat-number">0</div>
       </div>
@@ -175,8 +110,8 @@
     </table>
   </section>
 
-  <!-- WALLET SECTION -->
-  <section id="section-wallet">
+  <!-- WALLET SECTION (HIDDEN FROM STAFF) -->
+  <section id="section-wallet" class="admin-only">
     <h3>Wallet Accounts</h3>
     <table>
       <thead>
@@ -188,8 +123,8 @@
       <tbody id="wallet-body"></tbody>
     </table>
 
-    <h3 style="margin-top:20px;">Transactions</h3>
-    <table>
+    <h3 style="margin-top:20px;" class="admin-only">Transactions</h3>
+    <table class="admin-only">
       <thead>
         <tr>
           <th>Time</th>
@@ -202,8 +137,6 @@
     </table>
   </section>
 
-  <!-- ADMIN JS -->
   <script type="module" src="./admin.js"></script>
 </body>
 </html>
-
