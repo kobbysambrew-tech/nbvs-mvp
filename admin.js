@@ -89,6 +89,48 @@ async function initFirebase() {
       analytics = null;
       console.info("Analytics init error:", e && e.message);
     }
+    // ---------------------------------------
+// ROLE & AUTH CONTROLS
+// ---------------------------------------
+
+// Will be updated on login
+let currentUser = null;
+let currentUserRole = null;
+
+// This function runs after role is confirmed
+async function setupBindings() {
+  // Logout button
+  const logoutBtn = document.getElementById("btn-logout");
+  if (logoutBtn) logoutBtn.onclick = () => window.admin.doSignOut();
+
+  // Show role in UI
+  const roleEl = document.getElementById("admin-role");
+  if (roleEl) {
+    roleEl.textContent = currentUserRole || "";
+  }
+
+  // ✅ STAFF UI RESTRICTIONS
+  if (currentUserRole === "staff") {
+    // Hide wallet editing buttons or any sensitive UI
+    document.querySelectorAll(".wallet-edit").forEach(el => {
+      el.style.display = "none";
+    });
+
+    // Hide analytics controls if you want
+    document.querySelectorAll(".admin-only").forEach(el => {
+      el.style.display = "none";
+    });
+
+    // If you want staff to only view users, not delete:
+    document.querySelectorAll(".delete-user").forEach(el => {
+      el.style.display = "none";
+    });
+
+    // Add more restrictions as needed:
+    // document.getElementById("dangerous-section").style.display = "none";
+  }
+}
+
 
     // Auth state listener: run role check before allowing admin UI
     onAuthStateChanged(auth, async (user) => {
