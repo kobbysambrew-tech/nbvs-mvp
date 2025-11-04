@@ -18,7 +18,7 @@ import { getAnalytics, isSupported as analyticsSupported } from "https://www.gst
 
 // -------------------- CONFIG --------------------
 const firebaseConfig = {
-  apiKey: "AIzaSyCDh_qL3jcIMHR0K0_Soul2Wsv3t3y4wv0",
+  apiKey: "AIzaSyCDh_qL3jicMHROK0_Soul2Wsv3t3y4wv0",
   authDomain: "nbvs-ghana.firebaseapp.com",
   projectId: "nbvs-ghana",
   storageBucket: "nbvs-ghana.firebasestorage.app",
