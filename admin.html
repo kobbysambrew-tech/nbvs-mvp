@@ -4,146 +4,120 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Admin Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
-  /* -------------------- General -------------------- */
-  body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin:0; background:#f0f2f5; }
-  h2 { margin-top:0; }
-  button { cursor:pointer; }
-
-  /* -------------------- Header -------------------- */
-  header {
-    display:flex; justify-content:space-between; align-items:center;
-    padding:12px 20px; background:#1f2937; color:#fff; box-shadow:0 2px 5px rgba(0,0,0,0.1);
-  }
-  header h1 { font-size:1.4em; margin:0; }
-  header .role { font-weight:bold; margin-right:20px; }
-  header button { background:#ef4444; color:#fff; border:none; padding:6px 14px; border-radius:5px; transition:.2s; }
+  body { font-family: 'Inter', sans-serif; margin:0; background:#f4f5f7; color:#333; }
+  header { background:#1f2937; color:#fff; padding:12px 24px; display:flex; justify-content:space-between; align-items:center; }
+  header h1 { font-weight:600; font-size:1.3rem; }
+  header button { background:#ef4444; border:none; color:#fff; padding:6px 12px; border-radius:6px; cursor:pointer; transition:0.2s; }
   header button:hover { background:#dc2626; }
 
-  /* -------------------- Sidebar Tabs -------------------- */
-  nav {
-    display:flex; flex-wrap:wrap; background:#111827;
-  }
-  nav button {
-    flex:1; padding:12px; border:none; background:#111827; color:#fff; font-weight:bold;
-    transition:.2s; border-bottom:3px solid transparent;
-  }
-  nav button:hover, nav button.active { background:#1e40af; border-bottom:3px solid #2563eb; }
+  nav { display:flex; background:#fff; padding:8px 0; box-shadow:0 1px 3px rgba(0,0,0,0.1); }
+  nav button { flex:1; padding:10px 0; border:none; background:transparent; cursor:pointer; font-weight:500; transition:0.2s; }
+  nav button.active { border-bottom:3px solid #3b82f6; color:#3b82f6; }
+  nav button:hover:not(.active) { background:#f1f5f9; }
 
-  /* -------------------- Sections -------------------- */
-  section { display:none; padding:20px; }
-  section.active { display:block; }
-
-  /* -------------------- Cards -------------------- */
-  .stats-cards { display:flex; flex-wrap:wrap; gap:15px; margin-bottom:20px; }
-  .card { flex:1; min-width:150px; background:#fff; padding:15px 20px; border-radius:10px;
-          box-shadow:0 2px 6px rgba(0,0,0,0.1); }
-  .card h3 { margin:0; font-size:1em; color:#555; }
-  .card p { margin:5px 0 0 0; font-size:1.2em; font-weight:bold; }
-
-  /* -------------------- Tables -------------------- */
-  table { width:100%; border-collapse:collapse; background:#fff; box-shadow:0 2px 5px rgba(0,0,0,0.05); margin-bottom:20px; border-radius:6px; overflow:hidden; }
-  th, td { padding:10px; text-align:left; font-size:14px; }
-  th { background:#2563eb; color:#fff; font-weight:600; }
-  tr:nth-child(even){ background:#f3f4f6; }
-  tr:hover{ background:#e0e7ff; }
-
-  /* -------------------- Buttons -------------------- */
-  .btn { padding:5px 12px; border:none; border-radius:5px; color:#fff; transition:.2s; }
-  .btn.add { background:#10b981; }
-  .btn.add:hover { background:#059669; }
-  .btn.delete { background:#ef4444; }
-  .btn.delete:hover { background:#dc2626; }
-
-  /* -------------------- Verify Card -------------------- */
-  .verify-card { background:#fff; padding:15px 20px; border-radius:10px; box-shadow:0 2px 5px rgba(0,0,0,0.1); margin-top:15px; }
-
-  /* -------------------- Modal -------------------- */
-  .modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.4);
-           justify-content:center; align-items:center; z-index:9999; }
-  .modal-content { background:#fff; padding:20px 25px; border-radius:10px; width:90%; max-width:500px; box-shadow:0 2px 10px rgba(0,0,0,0.2); }
-  .modal-content h3 { margin-top:0; }
-  .modal-content input, .modal-content select { width:100%; padding:8px 10px; margin:8px 0; border:1px solid #ccc; border-radius:6px; }
-  .modal-content .btn { width:48%; margin-top:10px; }
-
-  /* -------------------- Responsive -------------------- */
-  @media(max-width:600px){ .stats-cards { flex-direction:column; } table th, table td{ font-size:12px; padding:6px; } nav button{ font-size:12px; padding:10px; } }
+  section { display:none; padding:16px 24px; }
+  table { width:100%; border-collapse:collapse; background:#fff; border-radius:8px; overflow:hidden; box-shadow:0 1px 4px rgba(0,0,0,0.05); }
+  th, td { padding:12px 10px; text-align:left; border-bottom:1px solid #e5e7eb; }
+  th { background:#f9fafb; font-weight:600; }
+  tr:hover { background:#f1f5f9; }
+  .btn { padding:6px 12px; border:none; border-radius:6px; cursor:pointer; transition:0.2s; }
+  .btn.add { background:#3b82f6; color:#fff; } .btn.add:hover{ background:#2563eb; }
+  .btn.delete { background:#ef4444; color:#fff; } .btn.delete:hover{ background:#dc2626; }
+  .btn.save { background:#10b981; color:#fff; } .btn.save:hover{ background:#059669; }
+  .modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.4); justify-content:center; align-items:center; z-index:1000; }
+  .modal-content { background:#fff; padding:20px; border-radius:8px; width:90%; max-width:420px; box-shadow:0 4px 10px rgba(0,0,0,0.15); display:flex; flex-direction:column; gap:10px; }
+  .modal-content input, .modal-content select { padding:8px 10px; border-radius:6px; border:1px solid #d1d5db; width:100%; }
+  .stats { display:flex; gap:16px; margin-bottom:16px; flex-wrap:wrap; }
+  .stat-card { flex:1; min-width:120px; background:#fff; padding:16px; border-radius:8px; box-shadow:0 1px 4px rgba(0,0,0,0.05); text-align:center; }
+  .verify-card { background:#f9fafb; padding:12px; border-radius:6px; margin-top:12px; }
+  @media(max-width:600px){ th, td{padding:8px 6px;} nav button{font-size:0.85rem;} }
 </style>
 </head>
 <body>
 
 <header>
-  <h1>NBVS Admin</h1>
+  <h1>Admin Dashboard</h1>
   <div>
-    Role: <span id="admin-role">—</span>
-    <button id="btn-logout">Logout</button>
+    <span id="admin-role">—</span>
+    <button id="btn-logout">Sign Out</button>
   </div>
 </header>
 
 <nav>
   <button id="tab-dashboard" class="active">Dashboard</button>
   <button id="tab-verify">Verify</button>
-  <button id="tab-users">Users</button>
-  <button id="tab-logs">Search Logs</button>
+  <button id="tab-users">Records</button>
   <button id="tab-wallet">Wallet</button>
+  <button id="tab-logs">Search Logs</button>
   <button id="tab-audit">Audit Logs</button>
 </nav>
 
-<section id="section-dashboard" class="active">
-  <h2>Stats</h2>
-  <div class="stats-cards">
-    <div class="card"><h3>Users</h3><p id="stat-users">—</p></div>
-    <div class="card"><h3>Searches</h3><p id="stat-searches">—</p></div>
-    <div class="card"><h3>Wallet Balance</h3><p id="stat-wallet">—</p></div>
-    <div class="card"><h3>Transactions</h3><p id="stat-transactions">—</p></div>
-    <div class="card"><h3>Analytics</h3><p id="analytics-status">—</p></div>
+<section id="section-dashboard">
+  <div class="stats">
+    <div class="stat-card">Users: <span id="stat-users">0</span></div>
+    <div class="stat-card">Searches: <span id="stat-searches">0</span></div>
+    <div class="stat-card">Wallet: <span id="stat-wallet">$0.00</span></div>
+    <div class="stat-card">Transactions: <span id="stat-transactions">0</span></div>
+    <div class="stat-card">Analytics: <span id="analytics-status">Loading…</span></div>
   </div>
 </section>
 
 <section id="section-verify">
-  <h2>Verify User</h2>
-  <input id="verify-input" type="text" placeholder="Enter name, ID, phone, or email">
-  <button class="btn add" id="btn-verify-name">By Name</button>
-  <button class="btn add" id="btn-verify-id">By ID</button>
-  <button class="btn add" id="btn-verify-phone">By Phone</button>
-  <button class="btn add" id="btn-verify-email">By Email</button>
+  <input type="text" id="verify-input" placeholder="Enter Name, ID, Phone, or Email">
+  <div style="margin:6px 0;">
+    <button class="btn add" id="btn-verify-name">Name</button>
+    <button class="btn add" id="btn-verify-id">ID</button>
+    <button class="btn add" id="btn-verify-phone">Phone</button>
+    <button class="btn add" id="btn-verify-email">Email</button>
+  </div>
   <div id="verify-output"></div>
 </section>
 
 <section id="section-users">
-  <h2>Users</h2>
   <button class="btn add" id="btn-add-user">Add Record</button>
   <table>
-    <thead><tr><th>ID</th><th>Name</th><th>Email</th><th>Role</th><th>Actions</th></tr></thead>
-    <tbody id="users-body"><tr><td colspan="5">Loading…</td></tr></tbody>
-  </table>
-</section>
-
-<section id="section-logs">
-  <h2>Search Logs</h2>
-  <table>
-    <thead><tr><th>Time</th><th>User</th><th>Query</th><th>Result</th></tr></thead>
-    <tbody id="searchlogs-body"><tr><td colspan="4">Loading…</td></tr></tbody>
+    <thead>
+      <tr><th>ID</th><th>Name</th><th>NIA</th><th>Status</th><th>Actions</th></tr>
+    </thead>
+    <tbody id="users-body">
+      <tr><td colspan="5">Loading…</td></tr>
+    </tbody>
   </table>
 </section>
 
 <section id="section-wallet">
-  <h2>Wallet</h2>
+  <h3>Wallet Balances</h3>
   <table>
-    <thead><tr><th>User</th><th>Balance</th><th>Actions</th></tr></thead>
-    <tbody id="wallet-body"><tr><td colspan="3">Loading…</td></tr></tbody>
+    <thead>
+      <tr><th>User ID</th><th>Balance</th><th>Actions</th></tr>
+    </thead>
+    <tbody id="wallet-body"></tbody>
   </table>
   <h3>Transactions</h3>
   <table>
-    <thead><tr><th>Time</th><th>User</th><th>Type</th><th>Amount</th></tr></thead>
-    <tbody id="wallettx-body"><tr><td colspan="4">Loading…</td></tr></tbody>
+    <thead>
+      <tr><th>Time</th><th>User</th><th>Type</th><th>Amount</th></tr>
+    </thead>
+    <tbody id="wallettx-body"></tbody>
+  </table>
+</section>
+
+<section id="section-logs">
+  <table>
+    <thead>
+      <tr><th>Time</th><th>User</th><th>Query</th><th>Result</th></tr>
+    </thead>
+    <tbody id="searchlogs-body"><tr><td colspan="4">Loading…</td></tr></tbody>
   </table>
 </section>
 
 <section id="section-audit">
-  <h2>Audit Logs</h2>
   <table>
-    <thead><tr><th>Time</th><th>User</th><th>Action</th><th>Meta</th></tr></thead>
+    <thead>
+      <tr><th>Time</th><th>User</th><th>Action</th><th>Meta</th></tr>
+    </thead>
     <tbody id="audit-logs-body"><tr><td colspan="4">Loading…</td></tr></tbody>
   </table>
 </section>
@@ -163,24 +137,12 @@
     </select>
     <input type="text" id="add-criminal" placeholder="Criminal Record">
     <div style="display:flex; justify-content:space-between;">
-      <button class="btn add" id="btn-save-user">Save</button>
+      <button class="btn save" id="btn-save-user">Save</button>
       <button class="btn delete" id="btn-cancel-user">Cancel</button>
     </div>
   </div>
 </div>
 
 <script type="module" src="admin.js"></script>
-<script>
-  // -------------------- Modal Logic --------------------
-  const modal = document.getElementById("modal-add-user");
-  const btnAdd = document.getElementById("btn-add-user");
-  const btnCancel = document.getElementById("btn-cancel-user");
-
-  btnAdd.onclick = () => { modal.style.display = "flex"; };
-  btnCancel.onclick = () => { modal.style.display = "none"; };
-
-  window.onclick = (e) => { if(e.target===modal) modal.style.display="none"; };
-</script>
-
 </body>
 </html>
