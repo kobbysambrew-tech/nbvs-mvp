@@ -147,18 +147,19 @@
 
 <!-- ✅ FULL WORKING FIREBASE LOGIC -->
 <script type="module">
-/* ---------------------------------------------
-   ✅ Firebase Setup
---------------------------------------------- */
+/* =========================
+   FULL verify.html SCRIPT
+   — paste over existing <script> block
+   ========================= */
+
+/* Firebase imports */
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-app.js";
-import { 
+import {
   getFirestore, doc, getDoc, setDoc, updateDoc,
-  collection, getDocs, addDoc
+  collection, getDocs, addDoc, query, orderBy, limit
 } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-firestore.js";
 
-/* ---------------------------------------------
-   ✅ Firebase config
---------------------------------------------- */
+/* ---------- CONFIG ---------- */
 const firebaseConfig = {
   apiKey:"AIzaSyCDh_qL3jiCMHROK0_Soul2Wsv3t3y4wv0",
   authDomain:"nbvs-ghana.firebaseapp.com",
@@ -171,195 +172,476 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-/* ---------------------------------------------
-   ✅ Device-based User ID (fixes free searches + incognito)
---------------------------------------------- */
-let userId = localStorage.getItem("nbvs_userId");
-if (!userId) {
-  userId = "guest_" + Math.random().toString(36).substring(2, 12);
-  localStorage.setItem("nbvs_userId", userId);
+/* ---------- UTILITIES / TOAST / SPINNER ---------- */
+function createToast(msg, time = 3500) {
+  const t = document.createElement("div");
+  t.textContent = msg;
+  t.style.position = "fixed";
+  t.style.right = "16px";
+  t.style.bottom = "16px";
+  t.style.background = "#111";
+  t.style.color = "#fff";
+  t.style.padding = "8px 12px";
+  t.style.borderRadius = "8px";
+  t.style.zIndex = 9999;
+  document.body.appendChild(t);
+  setTimeout(()=>{ t.style.opacity = 0; t.addEventListener("transitionend", ()=>t.remove()); }, time);
 }
 
+/* Simple spinner element (injected as needed) */
+function makeSpinner() {
+  const s = document.createElement("div");
+  s.innerHTML = `<div style="display:inline-block;padding:6px">
+    <svg width="20" height="20" viewBox="0 0 50 50" style="display:block">
+      <circle cx="25" cy="25" r="20" stroke="#006b3f" stroke-width="5" fill="none" stroke-linecap="round" stroke-dasharray="31.4 31.4">
+        <animateTransform attributeName="transform" type="rotate" from="0 25 25" to="360 25 25" dur="0.9s" repeatCount="indefinite"/>
+      </circle>
+    </svg>
+  </div>`;
+  return s;
+}
+
+/* ---------- DEVICE-BASED USER ID & REFS ---------- */
+let userId = localStorage.getItem("nbvs_userId");
+if (!userId) {
+  userId = "guest_" + Math.random().toString(36).slice(2, 12);
+  localStorage.setItem("nbvs_userId", userId);
+}
 const userRef = doc(db, "users", userId);
 const walletRef = doc(db, "wallet", userId);
 
-/* ---------------------------------------------
-   ✅ Initialize user + wallet documents
---------------------------------------------- */
-async function initUser() {
-  const snap = await getDoc(userRef);
-  if (!snap.exists()) {
+/* ---------- INITIALIZE USER & WALLET, HANDLE REFERRAL ------------ */
+async function initUserAndWallet() {
+  // create user doc if not exists
+  const uSnap = await getDoc(userRef);
+  if (!uSnap.exists()) {
     await setDoc(userRef, {
       freeSearches: 3,
       plan: "free",
       planExpires: null,
-      monthlyRemaining: 0
+      monthlyRemaining: 0,
+      referralCredited: false // prevents double-credit
     });
   }
-
+  // create wallet doc if not exists
   const wSnap = await getDoc(walletRef);
   if (!wSnap.exists()) {
     await setDoc(walletRef, { balance: 0 });
   }
-}
-await initUser();
 
-/* ---------------------------------------------
-   ✅ Load user
---------------------------------------------- */
+  // referral: if page opened with ?ref=<code> and it's not you, credit both once
+  try {
+    const url = new URL(window.location.href);
+    const refCode = url.searchParams.get("ref");
+    if (refCode && refCode !== userId) {
+      // credit this new user if not already credited
+      const mySnap = await getDoc(userRef);
+      const myData = mySnap.data();
+      if (!myData.referralCredited) {
+        await updateDoc(userRef, { freeSearches: (myData.freeSearches || 0) + 1, referralCredited: true });
+        // also credit referrer (if exists)
+        const refDoc = doc(db, "users", refCode);
+        const refSnap = await getDoc(refDoc);
+        if (refSnap.exists()) {
+          await updateDoc(refDoc, { freeSearches: (refSnap.data().freeSearches || 0) + 1 });
+        }
+        createToast("Referral applied — both users received +1 free search!");
+      }
+    }
+  } catch (e) {
+    console.warn("referral check failed", e);
+  }
+}
+
+await initUserAndWallet();
+
+/* ---------- LOAD USER / UI ---------- */
 async function loadUser() {
   const snap = await getDoc(userRef);
-  return snap.data();
+  return snap.exists() ? snap.data() : null;
 }
 
-/* ---------------------------------------------
-   ✅ Update UI (free, plan, etc.)
---------------------------------------------- */
-function updateUI(data) {
-  document.getElementById("freeCountDisplay").innerText = `Free: ${data.freeSearches}`;
-  document.getElementById("planDisplay").innerText = `Plan: ${data.plan}`;
-  document.getElementById("userPlan").innerText = data.plan;
-}
+/* top banner element injection (we're allowed small non-layout changes) */
+const topBannerEl = document.getElementById("userPlan");
+const planDisplayEl = document.getElementById("planDisplay");
+const freeCountEl = document.getElementById("freeCountDisplay");
 
-/* ---------------------------------------------
-   ✅ Wallet Deduction (¢30)
---------------------------------------------- */
-async function deductWallet() {
+/* Inject wallet display (small, non-disruptive) */
+function ensureWalletDisplay() {
+  if (!document.getElementById("walletMini")) {
+    const container = document.createElement("div");
+    container.style.display = "inline-block";
+    container.style.marginLeft = "12px";
+    container.innerHTML = `<span id="walletMini" style="font-weight:700">Wallet: ¢<span id="walletMiniAmt">0</span></span>`;
+    // append next to planDisplay if exists
+    const parent = document.querySelector(".panel");
+    if (parent) parent.querySelector("div")?.appendChild(container);
+  }
+}
+ensureWalletDisplay();
+
+async function loadWalletBalanceUI() {
   const snap = await getDoc(walletRef);
+  const bal = snap.exists() ? (snap.data().balance || 0) : 0;
+  document.getElementById("walletMiniAmt").innerText = bal;
+}
 
-  if (!snap.exists()) {
-    alert("Your wallet is empty. Please top up.");
-    return false;
+/* Enhanced updateUI including badge, progress, top banner */
+function updateTopBannerAndBadge(data) {
+  // top banner (uses #userPlan)
+  const banner = document.getElementById("topBannerText") || (() => {
+    // If not present, create one under the muted p
+    const p = document.querySelector(".muted");
+    if (!p) return null;
+    const el = document.createElement("p");
+    el.id = "topBannerText";
+    el.className = "muted";
+    p.parentNode.insertBefore(el, p.nextSibling);
+    return el;
+  })();
+
+  if (banner) {
+    if (data.plan === "pro") {
+      banner.innerHTML = `✅ You have <b>Unlimited Searches</b> — ${data.planExpires ? "expires " + new Date(data.planExpires).toLocaleDateString() : ""}`;
+    } else if (data.plan === "basic") {
+      banner.innerHTML = `✅ You have <b>${data.monthlyRemaining}</b> searches left this month${data.planExpires ? " — expires " + new Date(data.planExpires).toLocaleDateString() : ""}.`;
+    } else {
+      banner.innerHTML = `✅ You have <b>${data.freeSearches}</b> free searches remaining.`;
+    }
   }
 
-  const balance = Number(snap.data().balance || 0);
-
-  if (balance < 30) {
-    alert("Not enough wallet balance (needs ¢30).");
-    return false;
+  // badge
+  let badge = document.getElementById("planBadge");
+  if (!badge) {
+    const p = document.querySelector(".muted");
+    if (p) {
+      badge = document.createElement("div");
+      badge.id = "planBadge";
+      badge.style.display = "inline-block";
+      badge.style.marginLeft = "10px";
+      badge.style.padding = "6px 10px";
+      badge.style.borderRadius = "8px";
+      badge.style.fontWeight = "700";
+      p.parentNode.insertBefore(badge, p.nextSibling);
+    }
+  }
+  if (badge) {
+    if (data.plan === "pro") {
+      badge.innerText = "PRO MEMBER";
+      badge.style.background = "#4CAF50";
+      badge.style.color = "#fff";
+      badge.style.animation = "proGlow 2.5s infinite";
+    } else if (data.plan === "basic") {
+      badge.innerText = `BASIC (${data.monthlyRemaining} left)`;
+      badge.style.background = "#fcd116";
+      badge.style.color = "#111";
+      badge.style.animation = "none";
+    } else {
+      badge.innerText = `FREE`;
+      badge.style.background = "#ce1126";
+      badge.style.color = "#fff";
+      badge.style.animation = "none";
+    }
   }
 
-  await updateDoc(walletRef, { balance: balance - 30 });
+  // progress bar for BASIC
+  let progress = document.getElementById("basicProgress");
+  if (!progress) {
+    const panel = document.querySelector(".panel");
+    if (panel) {
+      const el = document.createElement("div");
+      el.id = "basicProgress";
+      el.style.height = "10px";
+      el.style.background = "#eee";
+      el.style.borderRadius = "8px";
+      el.style.marginTop = "8px";
+      el.style.overflow = "hidden";
+      el.innerHTML = `<div id="basicProgressFill" style="height:100%;width:0;background:#006b3f;transition:width .35s"></div>`;
+      panel.appendChild(el);
+      progress = el;
+    }
+  }
+  if (progress) {
+    const fill = document.getElementById("basicProgressFill");
+    if (data.plan === "basic") {
+      const pct = Math.max(0, Math.min(100, (data.monthlyRemaining / 10) * 100));
+      fill.style.width = pct + "%";
+      fill.style.background = pct <= 20 ? "#ce1126" : "#006b3f"; // red when almost out
+      progress.style.display = "";
+    } else {
+      progress.style.display = "none";
+    }
+  }
 
+  // top plan header text
+  if (topBannerEl) topBannerEl.innerText = data.plan;
+  if (planDisplayEl) planDisplayEl.innerText = `${data.plan}${data.planExpires ? " (exp " + new Date(data.planExpires).toLocaleDateString() + ")" : ""}`;
+  if (freeCountEl) freeCountEl.innerText = `Free: ${data.freeSearches}`;
+
+  // wallet mini
+  await loadWalletBalanceUI();
+}
+
+/* Add Pro glow CSS */
+const style = document.createElement("style");
+style.innerHTML = `
+@keyframes proGlow {
+  0%{ box-shadow:0 0 0px rgba(76,175,80,0.4); }
+  50%{ box-shadow:0 0 12px rgba(76,175,80,0.8); }
+  100%{ box-shadow:0 0 0px rgba(76,175,80,0.4); }
+}
+`;
+document.head.appendChild(style);
+
+/* ---------- DEDUCTION / WALLET / SEARCH LOGGING ---------- */
+async function deductWallet() {
+  const wSnap = await getDoc(walletRef);
+  const bal = (wSnap.exists() && Number(wSnap.data().balance || 0)) || 0;
+  if (bal < 30) {
+    return false;
+  }
+  await updateDoc(walletRef, { balance: bal - 30 });
   await addDoc(collection(db, "wallet_transactions"), {
     user: userId,
     type: "verify_search",
     amount: -30,
     timestamp: new Date()
   });
-
+  await loadWalletBalanceUI();
   return true;
 }
 
-/* ---------------------------------------------
-   ✅ Full Deduction Logic (Free → Basic → Pro → Wallet)
---------------------------------------------- */
 async function attemptSearchDeduction() {
   const user = await loadUser();
 
-  // ✅ PRO plan: unlimited
-  if (user.plan === "pro") {
+  // auto-expire check
+  if (user.planExpires) {
+    const now = new Date();
+    const exp = new Date(user.planExpires);
+    if (exp < now) {
+      await updateDoc(userRef, { plan: "free", planExpires: null, monthlyRemaining: 0 });
+    }
+  }
+
+  const fresh = await loadUser();
+
+  if (fresh.plan === "pro") return true;
+
+  if (fresh.plan === "basic" && (fresh.monthlyRemaining || 0) > 0) {
+    await updateDoc(userRef, { monthlyRemaining: (fresh.monthlyRemaining || 0) - 1 });
     return true;
   }
 
-  // ✅ BASIC monthly quota
-  if (user.plan === "basic" && user.monthlyRemaining > 0) {
-    await updateDoc(userRef, {
-      monthlyRemaining: user.monthlyRemaining - 1
-    });
+  if ((fresh.freeSearches || 0) > 0) {
+    await updateDoc(userRef, { freeSearches: (fresh.freeSearches || 0) - 1 });
     return true;
   }
 
-  // ✅ Free searches
-  if (user.freeSearches > 0) {
-    await updateDoc(userRef, {
-      freeSearches: user.freeSearches - 1
-    });
-    return true;
-  }
-
-  // ✅ Wallet payment
-  return await deductWallet();
+  // No credits left, attempt wallet -> if fails return false
+  const walletOk = await deductWallet();
+  return walletOk;
 }
 
-/* ---------------------------------------------
-   ✅ Initial UI Load
---------------------------------------------- */
-updateUI(await loadUser());
+/* ---------- UPGRADE MODAL (BASIC / PRO) + BUTTON HOOKS ---------- */
+/* Create a simple upgrade modal (keeps layout unchanged) */
+function createUpgradeModal() {
+  if (document.getElementById("upgradeModal")) return;
+  const modal = document.createElement("div");
+  modal.id = "upgradeModal";
+  modal.className = "modal";
+  modal.style.display = "none";
+  modal.style.justifyContent = "center";
+  modal.style.alignItems = "center";
+  modal.style.background = "rgba(0,0,0,0.45)";
+  modal.innerHTML = `
+    <div style="background:white;padding:18px;border-radius:10px;max-width:340px;width:92%;">
+      <h3 style="margin:0 0 10px 0;color:#004f2e">Upgrade</h3>
+      <p style="color:#333;margin-bottom:8px">Choose a plan to continue</p>
+      <div style="display:flex;gap:8px;margin-bottom:10px">
+        <button id="modalBuyBasic" style="flex:1;padding:10px;background:#fcd116;border:none;border-radius:8px;font-weight:700">BASIC — $3.99</button>
+        <button id="modalBuyPro" style="flex:1;padding:10px;background:#4CAF50;border:none;border-radius:8px;color:white;font-weight:700">PRO — $14.99</button>
+      </div>
+      <div style="display:flex;gap:8px;justify-content:flex-end">
+        <button id="modalCancel" style="padding:8px 12px;background:#eee;border-radius:8px;border:none">Cancel</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(modal);
 
-/* ---------------------------------------------
-   ✅ Wallet page button
---------------------------------------------- */
-document.getElementById("walletPageBtn").onclick = () => {
-  window.location.href = "wallet.html";
+  document.getElementById("modalCancel").onclick = () => (modal.style.display = "none");
+  document.getElementById("modalBuyBasic").onclick = async () => {
+    if (!confirm("Purchase BASIC plan (10 searches for $3.99)?")) return;
+    await updateDoc(userRef, { plan: "basic", monthlyRemaining: 10, planExpires: new Date(Date.now() + 30*24*60*60*1000) });
+    modal.style.display = "none";
+    createToast("BASIC activated: 10 searches added");
+    updateTopBannerAndBadge(await loadUser());
+  };
+  document.getElementById("modalBuyPro").onclick = async () => {
+    if (!confirm("Purchase PRO plan — unlimited for 30 days ($14.99)?")) return;
+    await updateDoc(userRef, { plan: "pro", planExpires: new Date(Date.now() + 30*24*60*60*1000) });
+    modal.style.display = "none";
+    createToast("PRO activated for 30 days");
+    updateTopBannerAndBadge(await loadUser());
+  };
+}
+createUpgradeModal();
+
+/* Hook existing buttons (buyBasicBtn, buyProBtn, useWalletBtn) if they exist */
+const buyBasicBtn = document.getElementById("buyBasicBtn");
+const buyProBtn = document.getElementById("buyProBtn");
+const useWalletBtn = document.getElementById("useWalletBtn");
+const openUpgradeModal = () => { const m = document.getElementById("upgradeModal"); if (m) m.style.display = "flex"; };
+
+if (buyBasicBtn) buyBasicBtn.onclick = () => openUpgradeModal();
+if (buyProBtn) buyProBtn.onclick = () => openUpgradeModal();
+if (useWalletBtn) useWalletBtn.onclick = async () => {
+  const ok = await deductWallet();
+  if (ok) createToast("¢30 deducted from wallet");
+  else {
+    createToast("Not enough balance. Please top-up.");
+    openUpgradeModal();
+  }
 };
 
-/* ---------------------------------------------
-   ✅ SEARCH FUNCTION
---------------------------------------------- */
-document.getElementById("searchBtn").addEventListener("click", async () => {
-  const text = document.getElementById("searchInput").value.trim().toLowerCase();
-  const resultsDiv = document.getElementById("resultsArea");
+/* Also attach modal open to "Buy" buttons (if you added earlier) */
+const buyBasicInline = document.getElementById("buyBasicBtn");
+const buyProInline = document.getElementById("buyProBtn");
+if (buyBasicInline) buyBasicInline.onclick = () => openUpgradeModal();
+if (buyProInline) buyProInline.onclick = () => openUpgradeModal();
 
+/* ---------- REFERRAL: "Invite" button (copy link) ---------- */
+/* We'll create a small invite button that copies a referral link */
+function ensureInviteButton() {
+  if (document.getElementById("inviteBtn")) return;
+  const el = document.createElement("div");
+  el.style.marginTop = "8px";
+  el.innerHTML = `<button id="inviteBtn" style="padding:8px 12px;border-radius:8px;border:none;background:#004f2e;color:white;font-weight:700">Invite & Earn +1</button>`;
+  const panel = document.querySelector(".panel");
+  if (panel) panel.appendChild(el);
+  document.getElementById("inviteBtn").onclick = () => {
+    const link = `${location.origin}${location.pathname}?ref=${encodeURIComponent(userId)}`;
+    navigator.clipboard?.writeText(link).then(()=>createToast("Invite link copied!")).catch(()=>{prompt("Copy invite link:", link);});
+  };
+}
+ensureInviteButton();
+
+/* ---------- SEARCH HANDLER (with loading animation, PRO tag on results) ---------- */
+const searchBtn = document.getElementById("searchBtn");
+const searchInput = document.getElementById("searchInput");
+const resultsArea = document.getElementById("resultsArea");
+
+async function runSearch() {
+  const textRaw = (searchInput.value || "").trim();
+  const text = textRaw.toLowerCase();
   if (!text) {
-    resultsDiv.innerHTML = "<p class='muted'>Enter a name or NIA.</p>";
+    resultsArea.innerHTML = "<p class='muted'>Enter a name or NIA.</p>";
     return;
   }
 
-  resultsDiv.innerHTML = "<p class='muted'>Searching...</p>";
+  // show spinner
+  resultsArea.innerHTML = "";
+  const spinner = makeSpinner();
+  resultsArea.appendChild(spinner);
 
-  /* ✅ Deduction Logic */
+  // Deduction and checks
   const allowed = await attemptSearchDeduction();
+  updateTopBannerAndBadge(await loadUser());
   if (!allowed) {
-    resultsDiv.innerHTML = "<p class='muted'>Please upgrade or top-up your wallet.</p>";
+    resultsArea.innerHTML = "<p class='muted'>No credits — please upgrade or top-up your wallet.</p>";
+    // auto-popup upgrade modal
+    const modal = document.getElementById("upgradeModal");
+    if (modal) modal.style.display = "flex";
     return;
   }
 
-  /* ✅ Refresh UI */
-  updateUI(await loadUser());
-
-  /* ✅ Search Records */
-  const docs = await getDocs(collection(db, "records"));
-  let found = [];
-
-  docs.forEach(docSnap => {
-    const r = docSnap.data();
-    if (r.name?.toLowerCase() === text || r.nia?.toLowerCase() === text) {
-      found.push(r);
-    }
-  });
-
-  if (found.length === 0) {
-    resultsDiv.innerHTML = "❌ No record found.";
-  } else {
-    resultsDiv.innerHTML = "";
-    found.forEach(r => {
-      resultsDiv.innerHTML += `
-        <div class="record">
-          <h3>${r.name}</h3>
-          <p><b>NIA:</b> ${r.nia}</p>
-          <p><b>DOB:</b> ${r.dob}</p>
-          <p><b>Region:</b> ${r.region}</p>
-          <p><b>Address:</b> ${r.address}</p>
-          <p><b>Criminal:</b> ${r.criminal}</p>
-          <p><b>Driving:</b> ${r.driving}</p>
-          <p><b>Credit:</b> ${r.credit}</p>
-          <p><b>Status:</b> ${r.status}</p>
-        </div>
-      `;
+  // perform search
+  try {
+    const docsSnap = await getDocs(collection(db, "records"));
+    const found = [];
+    docsSnap.forEach(snap => {
+      const r = snap.data();
+      if ((r.name && r.name.toLowerCase() === text) || (r.nia && r.nia.toLowerCase() === text)) {
+        found.push({ id: snap.id, ...r });
+      }
     });
+
+    // render results
+    resultsArea.innerHTML = "";
+    if (found.length === 0) {
+      resultsArea.innerHTML = "❌ No record found.";
+    } else {
+      for (const r of found) {
+        // PRO badge for this user
+        const user = await loadUser();
+        const proTag = (user && user.plan === "pro") ? `<span style="background:#4CAF50;color:#fff;padding:4px 8px;border-radius:8px;font-weight:700;margin-left:8px">PRO</span>` : "";
+        const html = `
+          <div class="record">
+            <h3>${escapeHtml(r.name)} ${proTag}</h3>
+            <p><b>NIA:</b> ${escapeHtml(r.nia || "—")}</p>
+            <p><b>DOB:</b> ${escapeHtml(r.dob || "—")}</p>
+            <p><b>Region:</b> ${escapeHtml(r.region || "—")}</p>
+            <p><b>Address:</b> ${escapeHtml(r.address || "—")}</p>
+            <p><b>Criminal:</b> ${escapeHtml(r.criminal || "—")}</p>
+            <p><b>Driving:</b> ${escapeHtml(r.driving || "—")}</p>
+            <p><b>Credit:</b> ${escapeHtml(r.credit || "—")}</p>
+            <p><b>Status:</b> ${escapeHtml(r.status || "—")}</p>
+          </div>
+        `;
+        resultsArea.innerHTML += html;
+      }
+    }
+
+    // log search
+    await addDoc(collection(db, "search_logs"), {
+      user: userId,
+      query: textRaw,
+      resultCount: found.length,
+      result: found.length ? found : null,
+      timestamp: new Date()
+    });
+
+    // success toast
+    createToast("Search complete");
+
+  } catch (err) {
+    console.error("search error", err);
+    resultsArea.innerHTML = "<p class='muted'>Error searching — try again later.</p>";
+  } finally {
+    await loadWalletBalanceUI();
+    updateTopBannerAndBadge(await loadUser());
   }
+}
 
-  /* ✅ Log Search */
-  await addDoc(collection(db, "search_logs"), {
-    user: userId,
-    query: text,
-    result: found,
-    timestamp: new Date()
-  });
-});
+/* Hook search button and Enter key */
+if (searchBtn) searchBtn.addEventListener("click", runSearch);
+if (searchInput) searchInput.addEventListener("keypress", (e) => { if (e.key === "Enter") runSearch(); });
+
+/* ---------- AUTO POPUP WHEN OUT OF SEARCHES (on page load) ---------- */
+(async function autoPopupIfLow() {
+  const user = await loadUser();
+  if (!user) return;
+  if (user.plan === "free" && (user.freeSearches || 0) <= 0) {
+    // show upgrade modal after small delay
+    setTimeout(()=>{ const m = document.getElementById("upgradeModal"); if (m) m.style.display = "flex"; }, 800);
+  }
+})();
+
+/* ---------- INITIAL UI LOAD ---------- */
+(async function initUI() {
+  await loadWalletBalanceUI();
+  const user = await loadUser();
+  if (user) updateTopBannerAndBadge(user);
+})();
+
+/* ---------- SAFE ESCAPE (for results rendering) ---------- */
+function escapeHtml(s = "") {
+  return String(s)
+    .replaceAll("&","&amp;").replaceAll("<","&lt;")
+    .replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'", "&#039;");
+}
+
+/* ---------- END OF SCRIPT ---------- */
 </script>
-
 
 </body>
 </html>
