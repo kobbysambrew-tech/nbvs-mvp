@@ -1,142 +1,113 @@
-<!-- Updated ADMIN.HTML with role-based classes -->
 <!DOCTYPE html>
 <html lang="en" data-admin-page>
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Admin Panel</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Dashboard</title>
   <style>
-    body { margin: 0; font-family: Arial, sans-serif; background: #f7f7f7; }
-    header { background: #111; color: #fff; padding: 14px 18px; font-size: 20px; font-weight: bold; }
-    nav { display: flex; background: #222; overflow-x: auto; }
-    nav button { flex: 1; padding: 14px; border: none; background: #222; color: #fff; font-size: 15px; cursor: pointer; border-right: 1px solid #333; }
-    nav button:hover { background: #333; }
-    section { display: none; padding: 20px; }
-    .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
-    .stat-card { background: #fff; padding: 18px; border-radius: 10px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
-    .stat-number { font-size: 28px; font-weight: bold; }
-    table { width: 100%; border-collapse: collapse; background: #fff; }
-    th, td { border: 1px solid #eee; padding: 10px; font-size: 15px; }
-    th { background: #fafafa; }
-    #verify-card input { width: 100%; padding: 12px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 6px; }
-    #verify-buttons button { width: 100%; padding: 12px; margin-top: 6px; background: #111; color: #fff; border: none; border-radius: 6px; cursor: pointer; }
+    body { font-family: Arial, sans-serif; margin:0; padding:0; background:#f5f5f5; }
+    header { background:#111; color:#fff; padding:10px 20px; display:flex; justify-content:space-between; align-items:center; }
+    header h1 { margin:0; font-size:1.2em; }
+    header .role { font-weight:bold; }
+    header button { padding:5px 12px; background:#b00020; color:#fff; border:none; border-radius:4px; cursor:pointer; }
+    nav { display:flex; background:#222; }
+    nav button { flex:1; padding:10px; border:none; background:#222; color:#fff; cursor:pointer; font-weight:bold; }
+    nav button.active { background:#444; }
+    section { display:none; padding:20px; }
+    section table { width:100%; border-collapse:collapse; background:#fff; box-shadow:0 2px 4px rgba(0,0,0,0.1); }
+    table th, table td { padding:10px; border-bottom:1px solid #ddd; text-align:left; font-size:14px; }
+    .verify-card { background:#fff; padding:15px; box-shadow:0 2px 4px rgba(0,0,0,0.1); margin-top:10px; }
+    .loader-sm { font-size:14px; color:#555; }
+    @media(max-width:600px){ table th, table td { font-size:12px; padding:6px; } nav button { font-size:12px; padding:8px; } }
   </style>
 </head>
+<body>
 
-<body data-admin-page>
-  <header>Admin Dashboard</header>
-
-  <div style="position:absolute;right:16px;top:12px;">
-    <span id="admin-role" style="margin-right:10px"></span>
+<header>
+  <h1>Admin Dashboard</h1>
+  <div>
+    Role: <span id="admin-role">—</span>
     <button id="btn-logout">Logout</button>
   </div>
+</header>
 
-  <nav>
-    <button id="tab-dashboard">Dashboard</button>
-    <button id="tab-verify">Verify</button>
-    <button id="tab-users">Users</button>
-    <button id="tab-logs">Search Logs</button>
-    <button id="tab-wallet" class="admin-only">Wallet</button>
-  </nav>
+<nav>
+  <button id="tab-dashboard" class="active">Dashboard</button>
+  <button id="tab-verify">Verify</button>
+  <button id="tab-users">Users</button>
+  <button id="tab-logs">Search Logs</button>
+  <button id="tab-wallet">Wallet</button>
+  <button id="tab-audit">Audit Logs</button>
+</nav>
 
-  <!-- DASHBOARD SECTION -->
-  <section id="section-dashboard" style="display:block;">
-    <div class="stat-grid">
-      <div class="stat-card">
-        <div>Users</div>
-        <div id="stat-users" class="stat-number">0</div>
-      </div>
-      <div class="stat-card">
-        <div>Searches</div>
-        <div id="stat-searches" class="stat-number">0</div>
-      </div>
-      <div class="stat-card admin-only">
-        <div>Wallet Total</div>
-        <div id="stat-wallet" class="stat-number">$0.00</div>
-      </div>
-      <div class="stat-card admin-only">
-        <div>Transactions</div>
-        <div id="stat-transactions" class="stat-number">0</div>
-      </div>
-    </div>
+<section id="section-dashboard" style="display:block;">
+  <h2>Stats</h2>
+  <table>
+    <tr><th>Users</th><td id="stat-users">—</td></tr>
+    <tr><th>Searches</th><td id="stat-searches">—</td></tr>
+    <tr><th>Wallet Balance</th><td id="stat-wallet">—</td></tr>
+    <tr><th>Transactions</th><td id="stat-transactions">—</td></tr>
+    <tr><th>Analytics</th><td id="analytics-status">—</td></tr>
+  </table>
+</section>
 
-    <div style="margin-top:20px;">
-      <strong>Analytics:</strong> <span id="analytics-status">Loading…</span>
-    </div>
-  </section>
+<section id="section-verify">
+  <h2>Verify User</h2>
+  <input id="verify-input" type="text" placeholder="Enter name, ID, phone or email">
+  <button id="btn-verify-name">By Name</button>
+  <button id="btn-verify-id">By ID</button>
+  <button id="btn-verify-phone">By Phone</button>
+  <button id="btn-verify-email">By Email</button>
+  <div id="verify-output"></div>
+</section>
 
-  <!-- VERIFY SECTION -->
-  <section id="section-verify">
-    <div id="verify-card">
-      <input id="verify-input" placeholder="Phone, Email, or ID" />
+<section id="section-users">
+  <h2>Users</h2>
+  <table>
+    <thead>
+      <tr><th>ID</th><th>Name</th><th>Email</th><th>Role</th></tr>
+    </thead>
+    <tbody id="users-body"><tr><td colspan="4">Loading…</td></tr></tbody>
+  </table>
+</section>
 
-      <div id="verify-buttons">
-        <button id="btn-verify-phone">Verify by Phone</button>
-        <button id="btn-verify-email">Verify by Email</button>
-        <button id="btn-verify-id">Verify by ID</button>
-      </div>
+<section id="section-logs">
+  <h2>Search Logs</h2>
+  <table>
+    <thead>
+      <tr><th>Time</th><th>User</th><th>Query</th><th>Result</th></tr>
+    </thead>
+    <tbody id="searchlogs-body"><tr><td colspan="4">Loading…</td></tr></tbody>
+  </table>
+</section>
 
-      <div id="verify-output" style="margin-top:15px;background:#fff;padding:12px;border-radius:8px;"></div>
-    </div>
-  </section>
+<section id="section-wallet">
+  <h2>Wallet</h2>
+  <table>
+    <thead>
+      <tr><th>User</th><th>Balance</th></tr>
+    </thead>
+    <tbody id="wallet-body"><tr><td colspan="2">Loading…</td></tr></tbody>
+  </table>
+  <h3>Transactions</h3>
+  <table>
+    <thead>
+      <tr><th>Time</th><th>User</th><th>Type</th><th>Amount</th></tr>
+    </thead>
+    <tbody id="wallettx-body"><tr><td colspan="4">Loading…</td></tr></tbody>
+  </table>
+</section>
 
-  <!-- USERS SECTION -->
-  <section id="section-users">
-    <table>
-      <thead>
-        <tr>
-          <th>UID</th>
-          <th>Name</th>
-          <th>Email</th>
-          <th>Role</th>
-        </tr>
-      </thead>
-      <tbody id="users-body"></tbody>
-    </table>
-  </section>
+<section id="section-audit">
+  <h2>Audit Logs</h2>
+  <table>
+    <thead>
+      <tr><th>Time</th><th>User</th><th>Action</th><th>Meta</th></tr>
+    </thead>
+    <tbody id="audit-logs-body"><tr><td colspan="4">Loading…</td></tr></tbody>
+  </table>
+</section>
 
-  <!-- SEARCH LOGS SECTION -->
-  <section id="section-searchlogs">
-    <table>
-      <thead>
-        <tr>
-          <th>Time</th>
-          <th>User</th>
-          <th>Query</th>
-          <th>Result</th>
-        </tr>
-      </thead>
-      <tbody id="searchlogs-body"></tbody>
-    </table>
-  </section>
-
-  <!-- WALLET SECTION (HIDDEN FROM STAFF) -->
-  <section id="section-wallet" class="admin-only">
-    <h3>Wallet Accounts</h3>
-    <table>
-      <thead>
-        <tr>
-          <th>User</th>
-          <th>Balance</th>
-        </tr>
-      </thead>
-      <tbody id="wallet-body"></tbody>
-    </table>
-
-    <h3 style="margin-top:20px;" class="admin-only">Transactions</h3>
-    <table class="admin-only">
-      <thead>
-        <tr>
-          <th>Time</th>
-          <th>User</th>
-          <th>Type</th>
-          <th>Amount</th>
-        </tr>
-      </thead>
-      <tbody id="wallettx-body"></tbody>
-    </table>
-  </section>
-
-  <script type="module" src="./admin.js"></script>
+<script src="admin.js"></script>
 </body>
 </html>
