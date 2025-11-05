@@ -8,11 +8,13 @@ import {
   doc,
   getDoc,
   getDocs,
+  addDoc,
   query,
   orderBy,
   limit,
   startAfter,
-  where
+  where,
+  serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 import { getAnalytics, isSupported as analyticsSupported } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-analytics.js";
 
@@ -26,7 +28,6 @@ const firebaseConfig = {
   appId: "1:702636577113:web:8369b43a2aa43aeb95fc48",
   measurementId: "G-2FHFSQRMZX"
 };
-
 
 // -------------------- GLOBALS --------------------
 let app = null;
@@ -94,18 +95,16 @@ async function initFirebase() {
     onAuthStateChanged(auth, async (user) => {
       currentUser = user || null;
       if (!user) {
-        // If not signed in, redirect to login
         if (!location.pathname.endsWith("/dashboard.html")) {
           window.location.href = "/dashboard.html";
         }
         return;
       }
 
-      // Signed in -> check role in Firestore (collection: users, doc id = uid)
+      // Signed in -> check role in Firestore
       try {
         const uDoc = await getDoc(doc(db, "users", user.uid));
         if (!uDoc.exists()) {
-          // No role assigned: sign out and redirect
           await signOut(auth);
           showToast("No user record found. Contact owner.", { type: "error" });
           window.location.href = "/dashboard.html";
@@ -113,17 +112,14 @@ async function initFirebase() {
         }
         const role = (uDoc.data().role || "user").toLowerCase();
         currentUserRole = role;
-        // Allow only superadmin or staff
         if (role !== "superadmin" && role !== "staff") {
           await signOut(auth);
           showToast("Not authorized for admin.", { type: "error" });
           window.location.href = "/dashboard.html";
           return;
         }
-        // OK - allowed: show role and initialize UI
         const roleEl = $("#admin-role");
         if (roleEl) roleEl.textContent = role;
-        // Setup UI according to role and load data
         setupBindings();
         await loadInitialData();
       } catch (err) {
@@ -154,17 +150,38 @@ async function doSignOut() {
   }
 }
 
+// -------------------- WALLET ACTION LOGGING --------------------
+export async function logWalletAction(userId, action, result) {
+  if (!db) {
+    console.error("Firestore not initialized yet");
+    return;
+  }
+  if (!userId) {
+    console.error("Cannot log wallet action: missing userId");
+    return;
+  }
+
+  try {
+    await addDoc(collection(db, "wallet_transactions"), {
+      user: userId,
+      action: action ?? "",
+      result: result ?? "",
+      timestamp: serverTimestamp()
+    });
+    console.log("Wallet action logged:", { userId, action, result });
+  } catch (err) {
+    console.error("Error logging wallet action:", err);
+  }
+}
+
 // -------------------- ROLE-BASED BINDINGS & UI HIDING --------------------
 function setupBindings() {
-  // Logout button
-  const logoutBtn = document.getElementById("btn-logout");
+  const logoutBtn = $("#btn-logout");
   if (logoutBtn) logoutBtn.onclick = () => window.admin.doSignOut();
 
-  // Show role in UI
-  const roleEl = document.getElementById("admin-role");
+  const roleEl = $("#admin-role");
   if (roleEl) roleEl.textContent = currentUserRole || "";
 
-  // Tabs
   const tabDash = $("#tab-dashboard");
   const tabVerify = $("#tab-verify");
   const tabUsers = $("#tab-users");
@@ -190,18 +207,15 @@ function setupBindings() {
   if (tabLogs) tabLogs.onclick = () => { showSection(secLogs); loadSearchLogs(); };
   if (tabWallet) tabWallet.onclick = () => { showSection(secWallet); loadWallet(); };
 
-  // Verify buttons — your verify UI uses "name", "id" or phone/email modes
   const btnName = $("#btn-verify-name") || $("#btn-verify-phone") || $("#btn-verify-search");
   const btnID = $("#btn-verify-id");
   if (btnName) btnName.onclick = () => window.adminVerify("name");
   if (btnID) btnID.onclick = () => window.adminVerify("id");
-  // extra mapping
   const btnPhone = $("#btn-verify-phone");
   const btnEmail = $("#btn-verify-email");
   if (btnPhone) btnPhone.onclick = () => window.adminVerify("phone");
   if (btnEmail) btnEmail.onclick = () => window.adminVerify("email");
 
-  // Minor mobile fixes (inline)
   (function addMobileFixes() {
     const st = document.createElement("style");
     st.innerHTML = `
@@ -213,12 +227,10 @@ function setupBindings() {
     document.head.appendChild(st);
   })();
 
-  // STAFF UI RESTRICTIONS (hide admin-only elements)
   if (currentUserRole === "staff") {
     document.querySelectorAll(".admin-only").forEach(el => el.style.display = "none");
     document.querySelectorAll(".wallet-edit").forEach(el => el.style.display = "none");
     document.querySelectorAll(".delete-user").forEach(el => el.style.display = "none");
-    console.log("Staff mode: restricted UI loaded");
   }
 }
 
@@ -231,9 +243,8 @@ async function loadInitialData() {
   }
 }
 
-// -------------------- AUDIT LOGS (paginated) --------------------
+// -------------------- AUDIT LOGS --------------------
 const auditState = { pageSize: 50, lastSnapshot: null, loading: false, finished: false };
-
 async function loadAuditLogs(reset = false) {
   if (!db) return;
   if (auditState.loading) return;
@@ -276,7 +287,7 @@ function renderAuditRows(rows) {
   });
 }
 
-// -------------------- VERIFY — uses collection "records" --------------------
+// -------------------- VERIFY --------------------
 window.adminVerify = async function verifyUser(mode) {
   const input = $("#verify-input");
   const output = $("#verify-output");
@@ -433,15 +444,18 @@ async function loadWallet() {
     });
 
     txBody.innerHTML = "";
+    txSnap
     txSnap.forEach((t) => {
       const x = t.data();
-      const date = x.timestamp?.seconds ? new Date(x.timestamp.seconds * 1000).toLocaleString() : (x.timestamp || "");
+      const date = x.timestamp?.seconds
+        ? new Date(x.timestamp.seconds * 1000).toLocaleString()
+        : (x.timestamp || "");
       const tr = document.createElement("tr");
       tr.innerHTML = `
         <td>${escapeHtml(date)}</td>
         <td>${escapeHtml(x.user || "—")}</td>
-        <td>${escapeHtml(x.type || "—")}</td>
-        <td>$${Number(x.amount || 0).toFixed(2)}</td>
+        <td>${escapeHtml(x.action || "—")}</td>
+        <td>${escapeHtml(x.result ?? "0")}</td>
       `;
       txBody.appendChild(tr);
     });
@@ -469,22 +483,15 @@ async function loadAnalyticsUI() {
 
 // -------------------- DOM ready binding and init --------------------
 document.addEventListener("DOMContentLoaded", () => {
-  // Setup static bindings that don't rely on auth-role yet (e.g., tab clicks)
-  // But full UI will only be loaded after role check in initFirebase
-  // Keep minimal bindings so page is interactive even if not authed
-  const minimalTabs = {
-    "#tab-dashboard": () => { $("#section-dashboard").style.display = "block"; },
-  };
+  const minimalTabs = { "#tab-dashboard": () => { $("#section-dashboard").style.display = "block"; } };
   Object.keys(minimalTabs).forEach(k=>{
     const el = $(k);
     if (el) el.onclick = minimalTabs[k];
   });
 
-  // Auto init if page has the attribute
   if (document.body.matches("[data-admin-page]")) {
     initFirebase().catch((e) => console.error("initFirebase failed", e));
   } else {
-    // If someone opens admin.html without the marker, still init to redirect if needed
     initFirebase().catch(()=>{});
   }
 });
@@ -499,5 +506,6 @@ window.admin = {
   loadWallet,
   loadAuditLogs,
   loadAnalyticsUI,
-  verifyUser: window.adminVerify
+  verifyUser: window.adminVerify,
+  logWalletAction
 };
