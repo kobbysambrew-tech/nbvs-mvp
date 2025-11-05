@@ -1,0 +1,56 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // -------------------- USERS --------------------
+    match /users/{userId} {
+      allow read, write: if request.auth != null &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['superadmin', 'staff'];
+    }
+
+    // -------------------- RECORDS (verify users) --------------------
+    match /records/{recordId} {
+      allow read: if request.auth != null &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['superadmin', 'staff'];
+      allow write: if false;
+    }
+
+    // -------------------- SEARCH LOGS --------------------
+    match /search_logs/{logId} {
+      allow read: if request.auth != null &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['superadmin', 'staff'];
+      allow write: if false;
+    }
+
+    // -------------------- AUDIT LOGS --------------------
+    match /audit_logs/{logId} {
+      allow read: if request.auth != null &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['superadmin', 'staff'];
+      allow write: if request.auth != null &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'superadmin';
+    }
+
+    // -------------------- WALLET --------------------
+    match /wallet/{walletId} {
+      allow read: if request.auth != null &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['superadmin', 'staff'];
+      allow write: if request.auth != null &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'superadmin';
+    }
+
+    // -------------------- WALLET TRANSACTIONS --------------------
+    match /wallet_transactions/{txId} {
+      allow read: if request.auth != null &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['superadmin', 'staff'];
+      allow write: if request.auth != null &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['superadmin', 'staff'];
+    }
+
+    // -------------------- STATS --------------------
+    match /stats/{statId} {
+      allow read: if request.auth != null &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['superadmin', 'staff'];
+      allow write: if false;
+    }
+  }
+}
