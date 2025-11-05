@@ -1,30 +1,79 @@
 <!DOCTYPE html>
 <html lang="en" data-admin-page>
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Admin Dashboard</title>
-  <style>
-    body { font-family: Arial, sans-serif; margin:0; padding:0; background:#f5f5f5; }
-    header { background:#111; color:#fff; padding:10px 20px; display:flex; justify-content:space-between; align-items:center; }
-    header h1 { margin:0; font-size:1.2em; }
-    header .role { font-weight:bold; }
-    header button { padding:5px 12px; background:#b00020; color:#fff; border:none; border-radius:4px; cursor:pointer; }
-    nav { display:flex; background:#222; }
-    nav button { flex:1; padding:10px; border:none; background:#222; color:#fff; cursor:pointer; font-weight:bold; }
-    nav button.active { background:#444; }
-    section { display:none; padding:20px; }
-    section table { width:100%; border-collapse:collapse; background:#fff; box-shadow:0 2px 4px rgba(0,0,0,0.1); }
-    table th, table td { padding:10px; border-bottom:1px solid #ddd; text-align:left; font-size:14px; }
-    .verify-card { background:#fff; padding:15px; box-shadow:0 2px 4px rgba(0,0,0,0.1); margin-top:10px; }
-    .loader-sm { font-size:14px; color:#555; }
-    @media(max-width:600px){ table th, table td { font-size:12px; padding:6px; } nav button { font-size:12px; padding:8px; } }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Dashboard</title>
+<style>
+  /* -------------------- General -------------------- */
+  body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin:0; background:#f0f2f5; }
+  h2 { margin-top:0; }
+  button { cursor:pointer; }
+
+  /* -------------------- Header -------------------- */
+  header {
+    display:flex; justify-content:space-between; align-items:center;
+    padding:12px 20px; background:#1f2937; color:#fff; box-shadow:0 2px 5px rgba(0,0,0,0.1);
+  }
+  header h1 { font-size:1.4em; margin:0; }
+  header .role { font-weight:bold; margin-right:20px; }
+  header button { background:#ef4444; color:#fff; border:none; padding:6px 14px; border-radius:5px; transition:.2s; }
+  header button:hover { background:#dc2626; }
+
+  /* -------------------- Sidebar Tabs -------------------- */
+  nav {
+    display:flex; flex-wrap:wrap; background:#111827;
+  }
+  nav button {
+    flex:1; padding:12px; border:none; background:#111827; color:#fff; font-weight:bold;
+    transition:.2s; border-bottom:3px solid transparent;
+  }
+  nav button:hover, nav button.active { background:#1e40af; border-bottom:3px solid #2563eb; }
+
+  /* -------------------- Sections -------------------- */
+  section { display:none; padding:20px; }
+  section.active { display:block; }
+
+  /* -------------------- Cards -------------------- */
+  .stats-cards { display:flex; flex-wrap:wrap; gap:15px; margin-bottom:20px; }
+  .card { flex:1; min-width:150px; background:#fff; padding:15px 20px; border-radius:10px;
+          box-shadow:0 2px 6px rgba(0,0,0,0.1); }
+  .card h3 { margin:0; font-size:1em; color:#555; }
+  .card p { margin:5px 0 0 0; font-size:1.2em; font-weight:bold; }
+
+  /* -------------------- Tables -------------------- */
+  table { width:100%; border-collapse:collapse; background:#fff; box-shadow:0 2px 5px rgba(0,0,0,0.05); margin-bottom:20px; border-radius:6px; overflow:hidden; }
+  th, td { padding:10px; text-align:left; font-size:14px; }
+  th { background:#2563eb; color:#fff; font-weight:600; }
+  tr:nth-child(even){ background:#f3f4f6; }
+  tr:hover{ background:#e0e7ff; }
+
+  /* -------------------- Buttons -------------------- */
+  .btn { padding:5px 12px; border:none; border-radius:5px; color:#fff; transition:.2s; }
+  .btn.add { background:#10b981; }
+  .btn.add:hover { background:#059669; }
+  .btn.delete { background:#ef4444; }
+  .btn.delete:hover { background:#dc2626; }
+
+  /* -------------------- Verify Card -------------------- */
+  .verify-card { background:#fff; padding:15px 20px; border-radius:10px; box-shadow:0 2px 5px rgba(0,0,0,0.1); margin-top:15px; }
+
+  /* -------------------- Modal -------------------- */
+  .modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.4);
+           justify-content:center; align-items:center; z-index:9999; }
+  .modal-content { background:#fff; padding:20px 25px; border-radius:10px; width:90%; max-width:500px; box-shadow:0 2px 10px rgba(0,0,0,0.2); }
+  .modal-content h3 { margin-top:0; }
+  .modal-content input, .modal-content select { width:100%; padding:8px 10px; margin:8px 0; border:1px solid #ccc; border-radius:6px; }
+  .modal-content .btn { width:48%; margin-top:10px; }
+
+  /* -------------------- Responsive -------------------- */
+  @media(max-width:600px){ .stats-cards { flex-direction:column; } table th, table td{ font-size:12px; padding:6px; } nav button{ font-size:12px; padding:10px; } }
+</style>
 </head>
 <body>
 
 <header>
-  <h1>Admin Dashboard</h1>
+  <h1>NBVS Admin</h1>
   <div>
     Role: <span id="admin-role">—</span>
     <button id="btn-logout">Logout</button>
@@ -40,43 +89,40 @@
   <button id="tab-audit">Audit Logs</button>
 </nav>
 
-<section id="section-dashboard" style="display:block;">
+<section id="section-dashboard" class="active">
   <h2>Stats</h2>
-  <table>
-    <tr><th>Users</th><td id="stat-users">—</td></tr>
-    <tr><th>Searches</th><td id="stat-searches">—</td></tr>
-    <tr><th>Wallet Balance</th><td id="stat-wallet">—</td></tr>
-    <tr><th>Transactions</th><td id="stat-transactions">—</td></tr>
-    <tr><th>Analytics</th><td id="analytics-status">—</td></tr>
-  </table>
+  <div class="stats-cards">
+    <div class="card"><h3>Users</h3><p id="stat-users">—</p></div>
+    <div class="card"><h3>Searches</h3><p id="stat-searches">—</p></div>
+    <div class="card"><h3>Wallet Balance</h3><p id="stat-wallet">—</p></div>
+    <div class="card"><h3>Transactions</h3><p id="stat-transactions">—</p></div>
+    <div class="card"><h3>Analytics</h3><p id="analytics-status">—</p></div>
+  </div>
 </section>
 
 <section id="section-verify">
   <h2>Verify User</h2>
-  <input id="verify-input" type="text" placeholder="Enter name, ID, phone or email">
-  <button id="btn-verify-name">By Name</button>
-  <button id="btn-verify-id">By ID</button>
-  <button id="btn-verify-phone">By Phone</button>
-  <button id="btn-verify-email">By Email</button>
+  <input id="verify-input" type="text" placeholder="Enter name, ID, phone, or email">
+  <button class="btn add" id="btn-verify-name">By Name</button>
+  <button class="btn add" id="btn-verify-id">By ID</button>
+  <button class="btn add" id="btn-verify-phone">By Phone</button>
+  <button class="btn add" id="btn-verify-email">By Email</button>
   <div id="verify-output"></div>
 </section>
 
 <section id="section-users">
   <h2>Users</h2>
+  <button class="btn add" id="btn-add-user">Add Record</button>
   <table>
-    <thead>
-      <tr><th>ID</th><th>Name</th><th>Email</th><th>Role</th></tr>
-    </thead>
-    <tbody id="users-body"><tr><td colspan="4">Loading…</td></tr></tbody>
+    <thead><tr><th>ID</th><th>Name</th><th>Email</th><th>Role</th><th>Actions</th></tr></thead>
+    <tbody id="users-body"><tr><td colspan="5">Loading…</td></tr></tbody>
   </table>
 </section>
 
 <section id="section-logs">
   <h2>Search Logs</h2>
   <table>
-    <thead>
-      <tr><th>Time</th><th>User</th><th>Query</th><th>Result</th></tr>
-    </thead>
+    <thead><tr><th>Time</th><th>User</th><th>Query</th><th>Result</th></tr></thead>
     <tbody id="searchlogs-body"><tr><td colspan="4">Loading…</td></tr></tbody>
   </table>
 </section>
@@ -84,16 +130,12 @@
 <section id="section-wallet">
   <h2>Wallet</h2>
   <table>
-    <thead>
-      <tr><th>User</th><th>Balance</th></tr>
-    </thead>
-    <tbody id="wallet-body"><tr><td colspan="2">Loading…</td></tr></tbody>
+    <thead><tr><th>User</th><th>Balance</th><th>Actions</th></tr></thead>
+    <tbody id="wallet-body"><tr><td colspan="3">Loading…</td></tr></tbody>
   </table>
   <h3>Transactions</h3>
   <table>
-    <thead>
-      <tr><th>Time</th><th>User</th><th>Type</th><th>Amount</th></tr>
-    </thead>
+    <thead><tr><th>Time</th><th>User</th><th>Type</th><th>Amount</th></tr></thead>
     <tbody id="wallettx-body"><tr><td colspan="4">Loading…</td></tr></tbody>
   </table>
 </section>
@@ -101,13 +143,44 @@
 <section id="section-audit">
   <h2>Audit Logs</h2>
   <table>
-    <thead>
-      <tr><th>Time</th><th>User</th><th>Action</th><th>Meta</th></tr>
-    </thead>
+    <thead><tr><th>Time</th><th>User</th><th>Action</th><th>Meta</th></tr></thead>
     <tbody id="audit-logs-body"><tr><td colspan="4">Loading…</td></tr></tbody>
   </table>
 </section>
 
-<script src="admin.js"></script>
+<!-- Add Record Modal -->
+<div class="modal" id="modal-add-user">
+  <div class="modal-content">
+    <h3>Add New Record</h3>
+    <input type="text" id="add-name" placeholder="Name">
+    <input type="text" id="add-nia" placeholder="NIA / ID">
+    <input type="date" id="add-dob" placeholder="Date of Birth">
+    <input type="text" id="add-region" placeholder="Region">
+    <select id="add-status">
+      <option value="">Select Status</option>
+      <option value="active">Active</option>
+      <option value="inactive">Inactive</option>
+    </select>
+    <input type="text" id="add-criminal" placeholder="Criminal Record">
+    <div style="display:flex; justify-content:space-between;">
+      <button class="btn add" id="btn-save-user">Save</button>
+      <button class="btn delete" id="btn-cancel-user">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<script type="module" src="admin.js"></script>
+<script>
+  // -------------------- Modal Logic --------------------
+  const modal = document.getElementById("modal-add-user");
+  const btnAdd = document.getElementById("btn-add-user");
+  const btnCancel = document.getElementById("btn-cancel-user");
+
+  btnAdd.onclick = () => { modal.style.display = "flex"; };
+  btnCancel.onclick = () => { modal.style.display = "none"; };
+
+  window.onclick = (e) => { if(e.target===modal) modal.style.display="none"; };
+</script>
+
 </body>
 </html>
