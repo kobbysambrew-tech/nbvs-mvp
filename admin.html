@@ -1,150 +1,255 @@
 <!DOCTYPE html>
-<html lang="en" data-admin-page>
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>NBVS Admin Dashboard</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
-  <style>
-    /* Reset & base */
-    * { margin:0; padding:0; box-sizing:border-box; font-family: 'Inter', sans-serif; }
-    body { background:#f4f6f9; color:#333; }
-    button { cursor:pointer; border:none; border-radius:5px; padding:6px 12px; font-weight:500; }
-    table { width:100%; border-collapse:collapse; margin-top:10px; }
-    th, td { text-align:left; padding:10px; }
-    th { background:#eee; }
-    tr:nth-child(even) { background:#fafafa; }
-    tr:hover { background:#f0f0f0; }
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>NBVS Admin Dashboard</title>
 
-    /* Header */
-    header { display:flex; justify-content:space-between; align-items:center; padding:15px 20px; background:#fff; border-bottom:1px solid #ddd; }
-    header h1 { font-size:1.5rem; color:#111; }
-    #admin-role { font-weight:600; color:#555; }
-
-    /* Tabs */
-    .tabs { display:flex; background:#fff; padding:10px 20px; border-bottom:1px solid #ddd; }
-    .tabs button { margin-right:10px; background:#f0f0f0; transition:0.2s; }
-    .tabs button.active, .tabs button:hover { background:#d0e0ff; }
-
-    /* Sections */
-    section { padding:20px; display:none; }
-    section.active { display:block; }
-
-    /* Stats cards */
-    .stats { display:flex; flex-wrap:wrap; gap:15px; margin-bottom:20px; }
-    .card { background:#fff; flex:1; min-width:150px; padding:15px; border-radius:8px; box-shadow:0 2px 5px rgba(0,0,0,0.05); }
-    .card h3 { font-size:1rem; color:#777; margin-bottom:5px; }
-    .card p { font-size:1.2rem; font-weight:600; }
-
-    /* Buttons */
-    .btn-primary { background:#4a90e2; color:#fff; }
-    .btn-danger { background:#e24a4a; color:#fff; }
-    .btn-small { padding:4px 8px; font-size:.9rem; }
-
-    /* Verify card */
-    .verify-card { background:#fff; padding:15px; border-radius:8px; box-shadow:0 2px 5px rgba(0,0,0,0.05); margin-top:10px; }
-
-    /* Modal */
-    .modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); justify-content:center; align-items:center; z-index:1000; }
-    .modal-content { background:#fff; padding:20px; border-radius:8px; width:300px; max-width:90%; }
-    .modal-content h3 { margin-bottom:10px; }
-    .modal-content input { width:100%; margin-bottom:10px; padding:8px; border:1px solid #ccc; border-radius:5px; }
-
-    @media(max-width:600px) { .stats { flex-direction:column; } th, td { font-size:13px; padding:6px 8px; } }
-  </style>
+<style>
+:root{
+  --red:#ce1126; --yellow:#fcd116; --green:#006b3f;
+  --accent:#004f2e; --card:#ffffff; --bg:#f6f7f9; --muted:#555;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"Segoe UI",Arial,sans-serif;background:var(--bg);color:#222;}
+header{
+  background:linear-gradient(90deg,var(--red),var(--yellow),var(--green));
+  padding:1.6rem 1rem;text-align:center;color:white;font-weight:700;box-shadow:0 3px 12px rgba(0,0,0,0.15);
+}
+header h1{font-size:1.6rem;margin-bottom:4px;}
+main{max-width:1000px;margin:1.6rem auto;padding:0 1rem;}
+.tabs{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;}
+.tab-btn{
+  padding:10px 14px;border:none;border-radius:8px;cursor:pointer;font-weight:700;transition:.25s;
+  background:#ddd;color:#111;
+}
+.tab-btn.active{background:var(--green);color:white;}
+.tab-btn:hover{filter:brightness(.95);}
+.section{display:none;margin-top:1rem;}
+.card{background:var(--card);padding:1.2rem;border-radius:12px;box-shadow:0 6px 18px rgba(0,0,0,0.06);margin-bottom:1rem;}
+.pill{padding:6px 12px;border-radius:10px;background:var(--green);color:white;font-weight:600;}
+button{cursor:pointer;border:none;border-radius:10px;padding:8px 12px;font-weight:600;transition:.2s;}
+button:hover{filter:brightness(.95);}
+table{width:100%;border-collapse:collapse;}
+th,td{padding:10px;border-bottom:1px solid #eee;text-align:left;font-size:0.95rem;}
+th{color:var(--accent);}
+tr:hover{background:#f4f4f4;}
+</style>
 </head>
-<body>
 
+<body>
 <header>
-  <h1>NBVS Admin</h1>
-  <div>User Role: <span id="admin-role"></span> | <button id="btn-logout" class="btn-primary btn-small">Logout</button></div>
+  <h1>NBVS Admin Dashboard</h1>
+  <div id="admin-role" class="muted"></div>
 </header>
 
-<div class="tabs">
-  <button id="tab-dashboard" class="active">Dashboard</button>
-  <button id="tab-verify">Verify</button>
-  <button id="tab-users">Records</button>
-  <button id="tab-wallet">Wallet</button>
-  <button id="tab-logs">Search Logs</button>
-  <button id="tab-audit">Audit Logs</button>
-</div>
-
-<!-- Dashboard -->
-<section id="section-dashboard" class="active">
-  <div class="stats">
-    <div class="card"><h3>Total Users</h3><p id="stat-users">0</p></div>
-    <div class="card"><h3>Total Searches</h3><p id="stat-searches">0</p></div>
-    <div class="card"><h3>Total Wallet</h3><p id="stat-wallet">$0</p></div>
-    <div class="card"><h3>Transactions</h3><p id="stat-transactions">0</p></div>
+<main>
+  <div class="tabs">
+    <button class="tab-btn active" data-target="section-dashboard">Dashboard</button>
+    <button class="tab-btn" data-target="section-verify">Verify</button>
+    <button class="tab-btn" data-target="section-users">Users</button>
+    <button class="tab-btn" data-target="section-searchlogs">Search Logs</button>
+    <button class="tab-btn" data-target="section-auditlogs">Audit Logs</button>
+    <button class="tab-btn" data-target="section-wallet">Wallet</button>
   </div>
-</section>
 
-<!-- Verify -->
-<section id="section-verify">
-  <input type="text" id="verify-input" placeholder="Enter Name / ID / Phone / Email">
-  <div style="margin:10px 0;">
-    <button id="btn-verify-name" class="btn-primary btn-small">By Name</button>
-    <button id="btn-verify-id" class="btn-primary btn-small">By ID</button>
-    <button id="btn-verify-phone" class="btn-primary btn-small">By Phone</button>
-    <button id="btn-verify-email" class="btn-primary btn-small">By Email</button>
+  <!-- Dashboard -->
+  <div id="section-dashboard" class="section" style="display:block;">
+    <div class="card">Users: <span id="stat-users">—</span></div>
+    <div class="card">Searches: <span id="stat-searches">—</span></div>
+    <div class="card">Wallet Total: $<span id="stat-wallet">—</span></div>
+    <div class="card">Transactions: <span id="stat-transactions">—</span></div>
   </div>
-  <div id="verify-output"></div>
-</section>
 
-<!-- Records -->
-<section id="section-users">
-  <button id="btn-add-user" class="btn-primary btn-small admin-only">Add Record</button>
-  <table>
-    <thead>
-      <tr><th>ID</th><th>Name</th><th>NIA</th><th>Status</th><th>Actions</th></tr>
-    </thead>
-    <tbody id="users-body"></tbody>
-  </table>
-</section>
-
-<!-- Wallet -->
-<section id="section-wallet">
-  <table>
-    <thead><tr><th>User</th><th>Balance</th></tr></thead>
-    <tbody id="wallet-body"></tbody>
-  </table>
-  <h4>Transactions</h4>
-  <table>
-    <thead><tr><th>Time</th><th>User</th><th>Type</th><th>Amount</th></tr></thead>
-    <tbody id="wallettx-body"></tbody>
-  </table>
-</section>
-
-<!-- Search Logs -->
-<section id="section-logs">
-  <table>
-    <thead><tr><th>Time</th><th>User</th><th>Query</th><th>Result</th></tr></thead>
-    <tbody id="searchlogs-body"></tbody>
-  </table>
-</section>
-
-<!-- Audit Logs -->
-<section id="section-audit">
-  <table>
-    <thead><tr><th>Time</th><th>User</th><th>Action</th><th>Meta</th></tr></thead>
-    <tbody id="audit-logs-body"></tbody>
-  </table>
-</section>
-
-<!-- Add Record Modal -->
-<div id="modal-add-user" class="modal">
-  <div class="modal-content">
-    <h3>Add Record</h3>
-    <input id="add-name" placeholder="Name">
-    <input id="add-nia" placeholder="NIA">
-    <input id="add-status" placeholder="Status">
-    <div style="text-align:right;">
-      <button id="btn-cancel-user" class="btn-small">Cancel</button>
-      <button id="btn-save-user" class="btn-primary btn-small">Save</button>
+  <!-- Verify -->
+  <div id="section-verify" class="section">
+    <div class="card">
+      <input id="verify-input" placeholder="Name or NIA ID" />
+      <div style="display:flex;gap:10px;margin-top:10px">
+        <button id="btn-verify-name" class="btn-green">Verify Name</button>
+        <button id="btn-verify-id" class="btn-yellow">Verify NIA</button>
+      </div>
+      <div id="verify-output" style="margin-top:12px"></div>
     </div>
   </div>
-</div>
 
-<script type="module" src="admin.js"></script>
+  <!-- Users -->
+  <div id="section-users" class="section">
+    <table>
+      <thead><tr><th>ID</th><th>Name</th><th>Email</th><th>Role</th><th>Action</th></tr></thead>
+      <tbody id="users-body"></tbody>
+    </table>
+  </div>
+
+  <!-- Search Logs -->
+  <div id="section-searchlogs" class="section">
+    <table>
+      <thead><tr><th>Timestamp</th><th>User</th><th>Query</th><th>Result</th></tr></thead>
+      <tbody id="searchlogs-body"></tbody>
+    </table>
+  </div>
+
+  <!-- Audit Logs -->
+  <div id="section-auditlogs" class="section">
+    <table>
+      <thead><tr><th>Timestamp</th><th>User</th><th>Action</th><th>Meta</th></tr></thead>
+      <tbody id="audit-logs-body"></tbody>
+    </table>
+  </div>
+
+  <!-- Wallet -->
+  <div id="section-wallet" class="section">
+    <table>
+      <thead><tr><th>User</th><th>Balance</th><th>Action</th></tr></thead>
+      <tbody id="wallet-body"></tbody>
+    </table>
+    <h4>Transactions</h4>
+    <table>
+      <thead><tr><th>Timestamp</th><th>User</th><th>Type</th><th>Amount</th></tr></thead>
+      <tbody id="wallettx-body"></tbody>
+    </table>
+  </div>
+</main>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
+import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
+import { 
+  getFirestore, collection, doc, getDoc, getDocs, query, orderBy, limit, startAfter, where, updateDoc 
+} from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey:"AIzaSyCDh_qL3jiCMHROK0_Soul2Wsv3t3y4wv0",
+  authDomain:"nbvs-ghana.firebaseapp.com",
+  projectId:"nbvs-ghana",
+  storageBucket:"nbvs-ghana.firebasestorage.app",
+  messagingSenderId:"702636577113",
+  appId:"1:702636577113:web:8369b43a2aa43aeb95fc48"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+let currentUserRole = null;
+
+function $(sel){ return document.querySelector(sel);}
+function $$(sel){ return Array.from(document.querySelectorAll(sel));}
+function showSection(sec){
+  const sections = ["section-dashboard","section-verify","section-users","section-searchlogs","section-auditlogs","section-wallet"];
+  sections.forEach(s=>{ const el=$("#"+s); if(el) el.style.display = (s===sec)?"block":"none"; });
+  $$(".tab-btn").forEach(b=>b.classList.remove("active"));
+  $$(`.tab-btn[data-target='${sec}']`).forEach(b=>b.classList.add("active"));
+}
+
+// TAB CLICK
+$$(".tab-btn").forEach(b=>{
+  b.onclick=()=>showSection(b.dataset.target);
+});
+
+// AUTH
+onAuthStateChanged(auth, async user=>{
+  if(!user){ window.location.href="/dashboard.html"; return; }
+  const uDoc = await getDoc(doc(db,"users",user.uid));
+  if(!uDoc.exists()){ await signOut(auth); window.location.href="/dashboard.html"; return; }
+  currentUserRole = uDoc.data().role.toLowerCase();
+  $("#admin-role").innerText=currentUserRole;
+  if(currentUserRole==="staff"){
+    $$(".delete-user").forEach(el=>el.style.display="none");
+  }
+  loadStats(); loadUsers(); loadSearchLogs(); loadAuditLogs(); loadWallet();
+});
+
+// LOAD STATS
+async function loadStats(){
+  const [usersSnap,searchSnap,walletSnap,txSnap] = await Promise.all([
+    getDocs(collection(db,"users")),
+    getDocs(collection(db,"search_logs")),
+    getDocs(collection(db,"wallet")),
+    getDocs(collection(db,"wallet_transactions"))
+  ]);
+  $("#stat-users").innerText=usersSnap.size;
+  $("#stat-searches").innerText=searchSnap.size;
+  $("#stat-transactions").innerText=txSnap.size;
+  let total=0; walletSnap.forEach(d=>total+=Number(d.data()?.balance||0));
+  $("#stat-wallet").innerText=total.toFixed(2);
+}
+
+// LOAD USERS
+async function loadUsers(){
+  const tbody = $("#users-body");
+  const snap = await getDocs(collection(db,"users"));
+  tbody.innerHTML="";
+  snap.forEach(s=>{
+    const u=s.data();
+    tbody.innerHTML+=`<tr>
+      <td>${s.id}</td>
+      <td>${u.name||"—"}</td>
+      <td>${u.email||"—"}</td>
+      <td>${u.role||"user"}</td>
+      <td>${currentUserRole==="superadmin"?'<button class="delete-user" onclick="deleteUser(\''+s.id+'\')">Delete</button>':'—'}</td>
+    </tr>`;
+  });
+}
+
+// DELETE USER
+window.deleteUser = async (id)=>{
+  if(!confirm("Delete user "+id+"?"))return;
+  await updateDoc(doc(db,"users",id),{role:"deleted"});
+  loadUsers();
+};
+
+// SEARCH LOGS
+async function loadSearchLogs(){
+  const tbody=$("#searchlogs-body");
+  const snap=await getDocs(query(collection(db,"search_logs"),orderBy("timestamp","desc"),limit(100)));
+  tbody.innerHTML="";
+  snap.forEach(d=>{
+    const r=d.data();
+    const ts = r.timestamp?.seconds?new Date(r.timestamp.seconds*1000).toLocaleString():r.timestamp||"";
+    tbody.innerHTML+=`<tr>
+      <td>${ts}</td>
+      <td>${r.user||"—"}</td>
+      <td>${r.query||"—"}</td>
+      <td>${JSON.stringify(r.result||{})}</td>
+    </tr>`;
+  });
+}
+
+// AUDIT LOGS
+async function loadAuditLogs(){
+  const tbody=$("#audit-logs-body");
+  const snap=await getDocs(query(collection(db,"audit_logs"),orderBy("timestamp","desc"),limit(50)));
+  tbody.innerHTML="";
+  snap.forEach(d=>{
+    const r=d.data();
+    const ts=r.timestamp?.seconds?new Date(r.timestamp.seconds*1000).toLocaleString():r.timestamp||"";
+    tbody.innerHTML+=`<tr>
+      <td>${ts}</td>
+      <td>${r.user||"—"}</td>
+      <td>${r.action||"—"}</td>
+      <td>${JSON.stringify(r.meta||{})}</td>
+    </tr>`;
+  });
+}
+
+// WALLET
+async function loadWallet(){
+  const body=$("#wallet-body"), txBody=$("#wallettx-body");
+  const [walletSnap,txSnap]=await Promise.all([
+    getDocs(collection(db,"wallet")),
+    getDocs(query(collection(db,"wallet_transactions"),orderBy("timestamp","desc"),limit(200)))
+  ]);
+  body.innerHTML=""; walletSnap.forEach(s=>{
+    const d=s.data();
+    body.innerHTML+=`<tr><td>${s.id}</td><td>$${Number(d.balance||0).toFixed(2)}</td><td>—</td></tr>`;
+  });
+  txBody.innerHTML=""; txSnap.forEach(t=>{
+    const x=t.data();
+    const ts=x.timestamp?.seconds?new Date(x.timestamp.seconds*1000).toLocaleString():x.timestamp||"";
+    txBody.innerHTML+=`<tr><td>${ts}</td><td>${x.user||"—"}</td><td>${x.type||"—"}</td><td>$${Number(x.amount||0).toFixed(2)}</td></tr>`;
+  });
+}
+</script>
 </body>
 </html>
