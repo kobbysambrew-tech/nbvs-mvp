@@ -144,10 +144,10 @@
 </main>
 
 <script type="module">
-// 🔹 Firebase setup
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-app.js";
-import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, getDocs, addDoc, deleteDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-firestore.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
+import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, getDocs, addDoc, query, where } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 
+// ✅ Firebase config
 const firebaseConfig = {
   apiKey:"AIzaSyCDh_qL3jiCMHROK0_Soul2Wsv3t3y4wv0",
   authDomain:"nbvs-ghana.firebaseapp.com",
@@ -156,154 +156,140 @@ const firebaseConfig = {
   messagingSenderId:"702636577113",
   appId:"1:702636577113:web:8369b43a2aa43aeb95fc48"
 };
-
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-// 🔹 Public user
+// ✅ Public user
 const userId = "publicUser";
 const userRef = doc(db, "users", userId);
 
-// =================== INIT USER & DAILY RESET ===================
-async function initUser() {
+// ✅ Initialize user if missing
+async function initUser(){
   const snap = await getDoc(userRef);
-  const today = new Date().toDateString();
-
-  if (!snap.exists()) {
+  if(!snap.exists()){
     await setDoc(userRef, {
       freeSearches: 3,
       plan: "free",
       planExpires: null,
       monthlyRemaining: 0,
-      wallet: 50,
-      lastReset: today
+      wallet: 0
     });
-    return;
-  }
-
-  const data = snap.data();
-  if (data.lastReset !== today) {
-    await updateDoc(userRef, { freeSearches: 3, lastReset: today });
   }
 }
-
 await initUser();
 
-// =================== LOAD USER & UI ===================
-async function loadUser() {
+// ✅ Load user data
+async function loadUser(){
   const snap = await getDoc(userRef);
   return snap.data();
 }
 
-function updateVerifyUI(data) {
-  document.getElementById("freeCountDisplay").innerText = `Free: ${data.freeSearches}`;
-  document.getElementById("planDisplay").innerText = `Plan: ${data.plan}`;
-  document.getElementById("userPlan").innerText = data.plan;
+// ✅ Update UI
+async function updateUI(){
+  const user = await loadUser();
+  document.getElementById("freeCountDisplay").innerText = `Free: ${user.freeSearches}`;
+  document.getElementById("planDisplay").innerText = `Plan: ${user.plan}`;
+  document.getElementById("userPlan").innerText = user.plan;
 }
 
-// =================== DEDUCT SEARCH ===================
-async function deductSearch() {
+// ✅ Deduct search
+async function deductSearch(){
   const user = await loadUser();
+  
+  if(user.plan === "pro") return true;
 
-  if (user.plan === "pro") return true;
-
-  if (user.plan === "basic") {
-    if (user.monthlyRemaining > 0) {
-      await updateDoc(userRef, { monthlyRemaining: user.monthlyRemaining - 1 });
+  if(user.plan === "basic"){
+    if(user.monthlyRemaining > 0){
+      await updateDoc(userRef,{ monthlyRemaining: user.monthlyRemaining - 1 });
       return true;
-    } else {
-      alert("Your BASIC plan is out of searches.");
-      return false;
     }
+    alert("Your BASIC plan is out of searches.");
+    return false;
   }
 
-  if (user.freeSearches > 0) {
-    await updateDoc(userRef, { freeSearches: user.freeSearches - 1 });
+  if(user.freeSearches > 0){
+    await updateDoc(userRef,{ freeSearches: user.freeSearches - 1 });
     return true;
   }
 
-  if (user.wallet >= 30) {
-    await updateDoc(userRef, { wallet: user.wallet - 30 });
-    // Log wallet transaction
-    await addDoc(collection(db, "wallet_transactions"), {
+  // If wallet has ≥30, allow search and deduct
+  if(user.wallet >= 30){
+    await updateDoc(userRef,{ wallet: user.wallet - 30 });
+    // Log wallet deduction
+    await addDoc(collection(db,"wallet_transactions"),{
       user: userId,
+      type: "search deduction",
       amount: 30,
-      type: "deduct_search",
-      timestamp: serverTimestamp()
+      timestamp: new Date()
     });
     return true;
   }
 
-  alert("No available searches. Upgrade or fund wallet.");
+  alert("No free searches or enough balance in wallet.");
   return false;
 }
 
-// =================== SEARCH FUNCTION ===================
-const searchInput = document.getElementById("searchInput");
-const resultsArea = document.getElementById("resultsArea");
-
-document.getElementById("searchBtn").onclick = async () => {
-  const term = searchInput.value.trim().toLowerCase();
-  if (!term) {
-    resultsArea.innerHTML = "<p class='muted'>Enter a name or NIA.</p>";
-    return;
-  }
-
-  resultsArea.innerHTML = "<p class='muted'>Searching…</p>";
-
-  if (!(await deductSearch())) {
-    resultsArea.innerHTML = "<p class='muted'>No available searches. Upgrade or use wallet.</p>";
-    updateVerifyUI(await loadUser());
-    return;
-  }
-
-  const snap = await getDocs(collection(db, "records"));
-  const found = [];
-
-  snap.forEach(docSnap => {
-    const r = docSnap.data();
-    if (r.name?.toLowerCase() === term || r.nia?.toLowerCase() === term) found.push(r);
-  });
-
-  if (found.length === 0) {
-    resultsArea.innerHTML = "❌ No record found.";
-  } else {
-    resultsArea.innerHTML = "";
-    found.forEach(r => {
-      resultsArea.innerHTML += `
-        <div class="record">
-          <h3>${r.name}</h3>
-          <p><b>NIA:</b> ${r.nia}</p>
-          <p><b>DOB:</b> ${r.dob}</p>
-          <p><b>Region:</b> ${r.region}</p>
-          <p><b>Address:</b> ${r.address}</p>
-          <p><b>Criminal:</b> ${r.criminal}</p>
-          <p><b>Driving:</b> ${r.driving}</p>
-          <p><b>Credit:</b> ${r.credit}</p>
-          <p><b>Status:</b> ${r.status}</p>
-        </div>
-      `;
-    });
-  }
-
-  // Log search
-  await addDoc(collection(db, "search_logs"), {
-    user: userId,
-    term,
-    timestamp: serverTimestamp(),
-    found: found.length > 0
-  });
-
-  updateVerifyUI(await loadUser());
-};
-
-// Wallet button
+// ✅ Wallet page button
 document.getElementById("walletPageBtn").onclick = () => {
   window.location.href = "wallet.html";
 };
 
-// Initial load
-updateVerifyUI(await loadUser());
+// ✅ Initial UI load
+await updateUI();
+
+// ✅ Search button
+document.getElementById("searchBtn").onclick = async () => {
+  const text = document.getElementById("searchInput").value.trim().toLowerCase();
+  const resultsDiv = document.getElementById("resultsArea");
+
+  if(!text){
+    resultsDiv.innerHTML = "<p class='muted'>Enter a name or NIA.</p>";
+    return;
+  }
+
+  resultsDiv.innerHTML = "<p class='muted'>Searching…</p>";
+
+  if(!(await deductSearch())){
+    resultsDiv.innerHTML = "<p class='muted'>Please upgrade or add funds to wallet.</p>";
+    return;
+  }
+
+  await updateUI();
+
+  const q = query(collection(db,"records"), where("name","==",text));
+  const snap = await getDocs(q);
+  let found = [];
+  snap.forEach(docSnap => found.push(docSnap.data()));
+
+  resultsDiv.innerHTML = "";
+  if(found.length === 0){
+    resultsDiv.innerHTML = "❌ No record found.";
+  } else {
+    found.forEach(r => {
+      resultsDiv.innerHTML += `
+      <div class="record">
+        <h3>${r.name}</h3>
+        <p><b>NIA:</b> ${r.nia}</p>
+        <p><b>DOB:</b> ${r.dob}</p>
+        <p><b>Region:</b> ${r.region}</p>
+        <p><b>Address:</b> ${r.address}</p>
+        <p><b>Criminal:</b> ${r.criminal}</p>
+        <p><b>Driving:</b> ${r.driving}</p>
+        <p><b>Credit:</b> ${r.credit}</p>
+        <p><b>Status:</b> ${r.status}</p>
+      </div>`;
+    });
+  }
+
+  // ✅ Log search
+  await addDoc(collection(db,"search_logs"),{
+    term: text,
+    user: userId,
+    timestamp: new Date(),
+    found: found.length > 0,
+    platform: "web"
+  });
+};
 
 </script>
 
