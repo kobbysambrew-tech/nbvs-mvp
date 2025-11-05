@@ -3,393 +3,334 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>NBVS Admin Panel</title>
+<title>NBVS Admin Dashboard</title>
+
 <style>
-  :root{
-    --red:#ce1126;
-    --yellow:#fcd116;
-    --green:#006b3f;
-    --accent:#004f2e;
-    --card:#ffffff;
-    --bg:#f6f7f9;
-    --muted:#555;
-  }
-  *{box-sizing:border-box;margin:0;padding:0}
-  body{font-family:"Segoe UI",Arial,sans-serif;background:var(--bg);color:#222;}
-  header{background:linear-gradient(90deg,var(--red),var(--yellow),var(--green));padding:1.5rem;text-align:center;color:white;font-weight:700;box-shadow:0 3px 12px rgba(0,0,0,0.15);}
-  header h1{font-size:1.6rem;margin-bottom:4px;}
-  main{max-width:1200px;margin:1.6rem auto;padding:0 1rem;}
-  .tabs{display:flex;gap:10px;margin-bottom:1rem;flex-wrap:wrap;}
-  .tabs button{padding:10px 16px;border:none;border-radius:8px;cursor:pointer;font-weight:700;transition:.2s;}
-  .btn-green{background:var(--green);color:white;}
-  .btn-green:hover{background:var(--accent);}
-  .btn-yellow{background:var(--yellow);color:#111;}
-  .btn-yellow:hover{filter:brightness(.95);}
-  .btn-red{background:var(--red);color:white;}
-  .panel{background:var(--card);padding:1rem;border-radius:12px;box-shadow:0 6px 20px rgba(0,0,0,0.06);margin-bottom:1rem;}
-  h3{margin-bottom:10px;color:var(--accent);}
-  input{width:100%;padding:10px;border-radius:8px;border:1px solid #ccc;margin-bottom:10px;font-size:1rem;}
-  table{width:100%;border-collapse:collapse;}
-  th,td{padding:8px 10px;border-bottom:1px solid #ddd;text-align:left;}
-  .record{background:white;border-left:5px solid var(--green);padding:1rem;border-radius:10px;margin-top:1rem;box-shadow:0 6px 20px rgba(0,0,0,0.06);}
-  .muted{color:var(--muted);}
+:root{
+  --red:#ce1126;
+  --yellow:#fcd116;
+  --green:#006b3f;
+  --accent:#004f2e;
+  --card:#fff;
+  --bg:#f6f7f9;
+  --muted:#555;
+  --shadow: rgba(0,0,0,0.08);
+}
+
+*{box-sizing:border-box;margin:0;padding:0;font-family:"Segoe UI",Arial,sans-serif;}
+
+body{background:var(--bg);color:#222;}
+header{
+  background:linear-gradient(90deg,var(--red),var(--yellow),var(--green));
+  padding:1.5rem 1rem;
+  text-align:center;
+  color:white;
+  font-weight:700;
+  box-shadow:0 3px 12px rgba(0,0,0,0.15);
+}
+header h1{font-size:1.6rem;margin-bottom:4px;}
+header span{font-weight:400;font-size:0.9rem;}
+
+main{max-width:1000px;margin:1.5rem auto;padding:0 1rem;}
+
+.tabs{
+  display:flex;
+  gap:10px;
+  margin-bottom:1rem;
+}
+.tabs button{
+  flex:1;
+  padding:10px;
+  border:none;
+  border-radius:8px;
+  cursor:pointer;
+  font-weight:600;
+  background:white;
+  transition:.2s;
+}
+.tabs button.active{background:var(--green);color:white;}
+.tabs button:hover:not(.active){background:#ddd;}
+
+section{display:none;}
+section.active{display:block;}
+
+.panel{
+  background:var(--card);
+  padding:1.2rem;
+  border-radius:12px;
+  box-shadow:0 6px 20px var(--shadow);
+  margin-bottom:1.4rem;
+}
+
+input, select{padding:10px;border-radius:8px;border:1px solid #ccc;margin-bottom:10px;width:100%;}
+
+button.btn-green{background:var(--green);color:white;}
+button.btn-red{background:var(--red);color:white;}
+button.btn-yellow{background:var(--yellow);color:#111;}
+button{border:none;padding:10px;border-radius:8px;cursor:pointer;font-weight:600;transition:.2s;}
+button:hover{transform:translateY(-2px);}
+
+table{width:100%;border-collapse:collapse;margin-top:10px;}
+th, td{padding:8px;text-align:left;border-bottom:1px solid #ddd;}
+th{background:#f0f0f0;}
 </style>
 </head>
 <body>
+
 <header>
-  <h1>NBVS Admin Panel</h1>
-  <div>Role: <span id="admin-role">—</span></div>
-  <button id="btn-logout" class="btn-red" style="margin-top:8px;">Logout</button>
+  <h1>NBVS Admin Dashboard</h1>
+  <span id="admin-role">Loading role…</span>
+  <button id="btn-logout" style="float:right;margin-top:-24px;padding:6px 12px;">Logout</button>
 </header>
-<main data-admin-page>
 
-<!-- Tabs -->
-<div class="tabs">
-  <button id="tab-dashboard" class="btn-green">Dashboard</button>
-  <button id="tab-verify" class="btn-green">Verify</button>
-  <button id="tab-users" class="btn-green">Users</button>
-  <button id="tab-logs" class="btn-green">Search Logs</button>
-  <button id="tab-audit" class="btn-green">Audit Logs</button>
-  <button id="tab-wallet" class="btn-green">Wallet</button>
-</div>
-
-<!-- ================= Dashboard ================= -->
-<div id="section-dashboard" class="section panel">
-  <h3>Statistics</h3>
-  <p>Users: <span id="stat-users">—</span></p>
-  <p>Searches: <span id="stat-searches">—</span></p>
-  <p>Wallet Balance: <span id="stat-wallet">—</span></p>
-  <p>Transactions: <span id="stat-transactions">—</span></p>
-</div>
-
-<!-- ================= Verify ================= -->
-<div id="section-verify" class="section" style="display:none;">
-  <div class="panel">
-    <h3>Search / Manage Records</h3>
-    <input id="verify-input" placeholder="Name or NIA ID" />
-    <div style="display:flex;gap:10px;margin-top:10px">
-      <button id="btn-verify-search" class="btn-green">Search</button>
-      <button id="btn-add-record" class="btn-yellow">Add Record</button>
-    </div>
-    <div style="margin-top:10px">
-      <span class="pill" id="freeCountDisplay">Free: —</span>
-      <span class="muted" id="planDisplay">Plan: —</span>
-      <span class="muted" id="walletDisplay">Wallet: —</span>
-    </div>
-    <div id="verify-output" style="margin-top:12px"></div>
+<main>
+  <div class="tabs">
+    <button id="tab-dashboard" class="active">Dashboard</button>
+    <button id="tab-verify">Verify</button>
+    <button id="tab-users">Users</button>
+    <button id="tab-logs">Search Logs</button>
+    <button id="tab-wallet">Wallet</button>
+    <button id="tab-audit">Audit Logs</button>
   </div>
-</div>
 
-<!-- ================= Users ================= -->
-<div id="section-users" class="section panel" style="display:none;">
-  <h3>Users</h3>
-  <table><thead><tr><th>ID</th><th>Name</th><th>Email</th><th>Role</th></tr></thead><tbody id="users-body"></tbody></table>
-</div>
+  <!-- Dashboard -->
+  <section id="section-dashboard" class="active">
+    <div class="panel">
+      <h3>Stats</h3>
+      <p>Users: <span id="stat-users">—</span></p>
+      <p>Searches: <span id="stat-searches">—</span></p>
+      <p>Wallet Total: $<span id="stat-wallet">—</span></p>
+      <p>Transactions: <span id="stat-transactions">—</span></p>
+    </div>
+    <div class="panel" id="analytics-status">Loading Analytics…</div>
+  </section>
 
-<!-- ================= Search Logs ================= -->
-<div id="section-logs" class="section panel" style="display:none;">
-  <h3>Search Logs</h3>
-  <table><thead><tr><th>Time</th><th>User</th><th>Query</th><th>Result</th></tr></thead><tbody id="searchlogs-body"></tbody></table>
-</div>
+  <!-- Verify -->
+  <section id="section-verify">
+    <div class="panel">
+      <label>Search by name or NIA</label>
+      <input id="verify-input" placeholder="Enter name or NIA" />
+      <div style="display:flex;gap:10px;margin-top:8px;">
+        <button id="btn-verify-name" class="btn-green">Search</button>
+      </div>
+      <div id="verify-output" style="margin-top:12px;"></div>
+    </div>
+  </section>
 
-<!-- ================= Audit Logs ================= -->
-<div id="section-audit" class="section panel" style="display:none;">
-  <h3>Audit Logs</h3>
-  <table><thead><tr><th>Time</th><th>User</th><th>Action</th><th>Meta</th></tr></thead><tbody id="audit-logs-body"></tbody></table>
-</div>
+  <!-- Users -->
+  <section id="section-users">
+    <div class="panel">
+      <h3>Users</h3>
+      <table>
+        <thead><tr><th>ID</th><th>Name</th><th>Email</th><th>Role</th><th>Delete</th></tr></thead>
+        <tbody id="users-body"><tr><td colspan="5">Loading…</td></tr></tbody>
+      </table>
+    </div>
+  </section>
 
-<!-- ================= Wallet ================= -->
-<div id="section-wallet" class="section panel" style="display:none;">
-  <h3>Wallet</h3>
-  <table><thead><tr><th>User</th><th>Balance</th></tr></thead><tbody id="wallet-body"></tbody></table>
-  <h3>Transactions</h3>
-  <table><thead><tr><th>Time</th><th>User</th><th>Type</th><th>Amount</th></tr></thead><tbody id="wallettx-body"></tbody></table>
-</div>
+  <!-- Search Logs -->
+  <section id="section-searchlogs">
+    <div class="panel">
+      <h3>Search Logs</h3>
+      <table>
+        <thead><tr><th>Time</th><th>User</th><th>Query</th><th>Result</th></tr></thead>
+        <tbody id="searchlogs-body"><tr><td colspan="4">Loading…</td></tr></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Wallet -->
+  <section id="section-wallet">
+    <div class="panel">
+      <h3>Wallet</h3>
+      <table>
+        <thead><tr><th>User</th><th>Balance</th></tr></thead>
+        <tbody id="wallet-body"><tr><td colspan="2">Loading…</td></tr></tbody>
+      </table>
+      <h3>Transactions</h3>
+      <table>
+        <thead><tr><th>Time</th><th>User</th><th>Type</th><th>Amount</th></tr></thead>
+        <tbody id="wallettx-body"><tr><td colspan="4">Loading…</td></tr></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Audit Logs -->
+  <section id="section-audit">
+    <div class="panel">
+      <h3>Audit Logs</h3>
+      <table>
+        <thead><tr><th>Time</th><th>User</th><th>Action</th><th>Meta</th></tr></thead>
+        <tbody id="audit-logs-body"><tr><td colspan="4">Loading…</td></tr></tbody>
+      </table>
+    </div>
+  </section>
+
+</main>
 
 <script type="module">
-// ================= Firebase =================
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
 import {
-  getFirestore, collection, doc, getDoc, getDocs, query, where, limit, orderBy, addDoc, updateDoc, deleteDoc
+  getFirestore, collection, doc, getDoc, getDocs, query, orderBy, limit, startAfter, where, updateDoc, addDoc, deleteDoc
 } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
+import { getAnalytics, isSupported as analyticsSupported } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-analytics.js";
 
+// Firebase config
 const firebaseConfig = {
   apiKey:"AIzaSyCDh_qL3jiCMHROK0_Soul2Wsv3t3y4wv0",
   authDomain:"nbvs-ghana.firebaseapp.com",
   projectId:"nbvs-ghana",
   storageBucket:"nbvs-ghana.firebasestorage.app",
   messagingSenderId:"702636577113",
-  appId:"1:702636577113:web:8369b43a2aa43aeb95fc48"
+  appId:"1:702636577113:web:8369b43a2aa43aeb95fc48",
+  measurementId:"G-2FHFSQRMZX"
 };
 
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
+let app, auth, db, analytics, currentUser, currentUserRole;
+app = initializeApp(firebaseConfig);
+auth = getAuth(app);
+db = getFirestore(app);
 
-let currentUser=null;
-let currentUserRole=null;
+(async()=>{
+  if(await analyticsSupported()) analytics = getAnalytics(app);
+})();
 
-// ================= Helpers =================
-const $=(s)=>document.querySelector(s);
-
-function showToast(msg,type="info"){
-  const t=document.createElement("div");
-  t.textContent=msg;
-  t.style.position="fixed";
-  t.style.right="16px";
-  t.style.bottom="16px";
-  t.style.background=type==="error"?"#b00020":"#111";
-  t.style.color="#fff";
-  t.style.padding="10px 14px";
-  t.style.borderRadius="8px";
-  t.style.zIndex=9999;
-  t.style.opacity=0;
-  t.style.transition=".18s";
-  document.body.appendChild(t);
-  requestAnimationFrame(()=>t.style.opacity=1);
-  setTimeout(()=>{t.style.opacity=0; setTimeout(()=>t.remove(),220)},4000);
-}
-
-// ================= Firebase Auth =================
-onAuthStateChanged(auth, async user=>{
+// ----------------- Auth & Role -----------------
+onAuthStateChanged(auth, async (user)=>{
   currentUser=user;
-  if(!user){ window.location.href="/dashboard.html"; return; }
-  try{
-    const uDoc = await getDoc(doc(db,"users",user.uid));
-    if(!uDoc.exists()){ await signOut(auth); window.location.href="/dashboard.html"; return; }
-    currentUserRole=uDoc.data().role;
-    $("#admin-role").textContent=currentUserRole;
-    setupBindings();
-    await loadAllData();
-  }catch(e){ console.error(e); await signOut(auth); window.location.href="/dashboard.html";}
+  if(!user){window.location.href="/dashboard.html";return;}
+  const uDoc = await getDoc(doc(db,"users",user.uid));
+  if(!uDoc.exists()){await signOut(auth);window.location.href="/dashboard.html";return;}
+  currentUserRole=uDoc.data().role||"user";
+  if(currentUserRole!=="superadmin"&&currentUserRole!=="staff"){await signOut(auth);window.location.href="/dashboard.html";return;}
+  document.getElementById("admin-role").textContent=currentUserRole;
+  setupBindings(); await loadInitialData();
 });
 
-$("#btn-logout").onclick=()=>signOut(auth);
+// ----------------- Logout -----------------
+document.getElementById("btn-logout").onclick=async()=>{await signOut(auth);window.location.href="/dashboard.html";};
 
-// ================= Tabs =================
-const sections = {
-  "#tab-dashboard":"#section-dashboard",
-  "#tab-verify":"#section-verify",
-  "#tab-users":"#section-users",
-  "#tab-logs":"#section-logs",
-  "#tab-audit":"#section-audit",
-  "#tab-wallet":"#section-wallet"
-};
-
-function showSection(sec){
-  Object.values(sections).forEach(s=>$((s)).style.display="none");
-  if(sec) $(sec).style.display="block";
+// ----------------- Tabs -----------------
+function setupBindings(){
+  const tabs=["dashboard","verify","users","logs","wallet","audit"];
+  tabs.forEach(t=>{
+    const btn=document.getElementById("tab-"+t);
+    const sec=document.getElementById("section-"+(t==="logs"?"searchlogs":t));
+    if(btn&&sec){
+      btn.onclick=()=>{tabs.forEach(x=>document.getElementById("tab-"+x).classList.remove("active"));btn.classList.add("active");document.querySelectorAll("section").forEach(s=>s.classList.remove("active"));sec.classList.add("active");if(t==="dashboard"){loadStats();loadAnalyticsUI();}if(t==="verify"){}}};
+    }
+  });
+  // Verify
+  document.getElementById("btn-verify-name").onclick=async()=>{
+    const input=document.getElementById("verify-input").value.trim();
+    const output=document.getElementById("verify-output");
+    if(!input){output.innerHTML="Enter name or NIA";return;}
+    output.innerHTML="Loading…";
+    try{
+      const q=query(collection(db,"records"),where("name","==",input));
+      const snap=await getDocs(q);
+      if(snap.empty){output.innerHTML="No record";return;}
+      output.innerHTML="";
+      snap.forEach(docSnap=>{
+        const r=docSnap.data();
+        output.innerHTML+=`<div class="record"><h3>${r.name}</h3><p>NIA: ${r.nia}</p><p>DOB: ${r.dob}</p></div>`;
+      });
+    }catch(e){console.error(e);output.innerHTML="Error loading record";}
+  };
 }
 
-Object.keys(sections).forEach(tab=>{
-  const el=$(tab);
-  if(el) el.onclick=()=>showSection(sections[tab]);
-});
-
-// ================= Load All Data =================
-async function loadAllData(){
-  await Promise.all([loadStats(), loadUsers(), loadSearchLogs(), loadAuditLogs(), loadWallet()]);
+// ----------------- Load Initial Data -----------------
+async function loadInitialData(){
+  loadStats(); loadUsers(); loadSearchLogs(); loadWallet(); loadAuditLogs();
 }
 
-// ================= Stats =================
+// ----------------- Stats -----------------
 async function loadStats(){
-  try{
-    const [usersSnap,searchSnap,walletSnap,txSnap]=await Promise.all([
-      getDocs(collection(db,"users")),
-      getDocs(collection(db,"search_logs")),
-      getDocs(collection(db,"wallet")),
-      getDocs(collection(db,"wallet_transactions"))
-    ]);
-    $("#stat-users").textContent=usersSnap.size;
-    $("#stat-searches").textContent=searchSnap.size;
-    $("#stat-transactions").textContent=txSnap.size;
-    let total=0; walletSnap.forEach(d=>total+=Number(d.data().balance||0));
-    $("#stat-wallet").textContent=`$${total.toFixed(2)}`;
-  }catch(e){ console.error(e);}
+  const usersSnap=await getDocs(collection(db,"users"));
+  const searchSnap=await getDocs(collection(db,"search_logs"));
+  const walletSnap=await getDocs(collection(db,"wallet_transactions"));
+  document.getElementById("stat-users").textContent=usersSnap.size;
+  document.getElementById("stat-searches").textContent=searchSnap.size;
+  let totalWallet=0;
+  walletSnap.forEach(s=>totalWallet+=s.data().amount||0);
+  document.getElementById("stat-wallet").textContent=totalWallet;
+  document.getElementById("stat-transactions").textContent=walletSnap.size;
 }
 
-// ================= Users =================
+// ----------------- Users -----------------
 async function loadUsers(){
-  const tbody=$("#users-body");
-  if(!tbody) return;
-  tbody.innerHTML="<tr><td colspan='4'>Loading…</td></tr>";
-  try{
-    const snap=await getDocs(collection(db,"users"));
-    tbody.innerHTML="";
-    snap.forEach(s=>{
-      const u=s.data();
-      tbody.innerHTML+=`<tr><td>${s.id}</td><td>${u.name||"—"}</td><td>${u.email||"—"}</td><td>${u.role||"user"}</td></tr>`;
-    });
-  }catch(e){ console.error(e); tbody.innerHTML="<tr><td colspan='4'>Failed</td></tr>";}
-}
-
-// ================= Search Logs =================
-async function loadSearchLogs(){
-  const tbody=$("#searchlogs-body");
-  if(!tbody) return;
-  tbody.innerHTML="<tr><td colspan='4'>Loading…</td></tr>";
-  try{
-    const snap=await getDocs(query(collection(db,"search_logs"),orderBy("timestamp","desc"),limit(100)));
-    tbody.innerHTML="";
-    snap.forEach(d=>{
-      const row=d.data();
-      const date=row.timestamp?.seconds?new Date(row.timestamp.seconds*1000).toLocaleString():"";
-      tbody.innerHTML+=`<tr>
-        <td>${date}</td>
-        <td>${row.user||"—"}</td>
-        <td>${row.term||"—"}</td>
-        <td>${JSON.stringify(row.result||{})}</td>
-      </tr>`;
-    });
-  }catch(e){ console.error(e);}
-}
-
-// ================= Audit Logs =================
-async function loadAuditLogs(){
-  const tbody=$("#audit-logs-body");
-  if(!tbody) return;
-  tbody.innerHTML="<tr><td colspan='4'>Loading…</td></tr>";
-  try{
-    const snap=await getDocs(query(collection(db,"audit_logs"),orderBy("timestamp","desc"),limit(100)));
-    tbody.innerHTML="";
-    snap.forEach(d=>{
-      const row=d.data();
-      const date=row.timestamp?.seconds?new Date(row.timestamp.seconds*1000).toLocaleString():"";
-      tbody.innerHTML+=`<tr>
-        <td>${date}</td>
-        <td>${row.user||"—"}</td>
-        <td>${row.action||"—"}</td>
-        <td>${JSON.stringify(row.meta||{})}</td>
-      </tr>`;
-    });
-  }catch(e){ console.error(e);}
-}
-
-// ================= Wallet =================
-async function loadWallet(){
-  const body=$("#wallet-body"); const txBody=$("#wallettx-body");
-  if(!body||!txBody) return;
-  body.innerHTML="<tr><td colspan='2'>Loading…</td></tr>";
-  txBody.innerHTML="<tr><td colspan='4'>Loading…</td></tr>";
-  try{
-    const [walletSnap,txSnap]=await Promise.all([
-      getDocs(collection(db,"wallet")),
-      getDocs(query(collection(db,"wallet_transactions"),orderBy("timestamp","desc"),limit(200)))
-    ]);
-    body.innerHTML="";
-    walletSnap.forEach(s=>{
-      const d=s.data();
-      body.innerHTML+=`<tr><td>${s.id}</td><td>$${Number(d.balance||0).toFixed(2)}</td></tr>`;
-    });
-    txBody.innerHTML="";
-    txSnap.forEach(t=>{
-      const x=t.data();
-      const date=x.timestamp?.seconds?new Date(x.timestamp.seconds*1000).toLocaleString():"";
-      txBody.innerHTML+=`<tr><td>${date}</td><td>${x.user||"—"}</td><td>${x.type||"—"}</td><td>$${Number(x.amount||0).toFixed(2)}</td></tr>`;
-    });
-  }catch(e){ console.error(e);}
-}
-
-// ================= Verify =================
-const verifyInput=$("#verify-input");
-const verifyOutput=$("#verify-output");
-const freeDisplay=$("#freeCountDisplay");
-const planDisplay=$("#planDisplay");
-const walletDisplay=$("#walletDisplay");
-
-// Setup public user for demonstration
-const publicUser="publicUser";
-const userRef=doc(db,"users",publicUser);
-
-async function initUser(){
-  const snap=await getDoc(userRef);
-  if(!snap.exists()){
-    await setDoc(userRef,{freeSearches:3,plan:"free",planExpires:null,monthlyRemaining:0,wallet:50});
-  }
-}
-await initUser();
-
-async function loadUser(){
-  const snap=await getDoc(userRef); return snap.data();
-}
-
-function updateVerifyUI(data){
-  freeDisplay.innerText=`Free: ${data.freeSearches}`;
-  planDisplay.innerText=`Plan: ${data.plan}`;
-  walletDisplay.innerText=`Wallet: $${data.wallet||0}`;
-}
-
-async function deductSearch(){
-  const user=await loadUser();
-  if(user.plan==="pro") return true;
-  if(user.plan==="basic"){
-    if(user.monthlyRemaining>0){
-      await updateDoc(userRef,{monthlyRemaining:user.monthlyRemaining-1});
-      return true;
-    }else{ alert("BASIC plan out of searches"); return false;}
-  }
-  if(user.freeSearches>0){ await updateDoc(userRef,{freeSearches:user.freeSearches-1}); return true;}
-  if(user.wallet>=30){ await updateDoc(userRef,{wallet:user.wallet-30}); return true;}
-  alert("No searches available. Upgrade or fund wallet.");
-  return false;
-}
-
-updateVerifyUI(await loadUser());
-
-$("#btn-verify-search").onclick=async()=>{
-  const term=verifyInput.value.trim().toLowerCase();
-  if(!term){verifyOutput.innerHTML="<p class='muted'>Enter a search term.</p>"; return;}
-  verifyOutput.innerHTML="<p class='muted'>Searching…</p>";
-
-  if(!(await deductSearch())){
-    verifyOutput.innerHTML="<p class='muted'>No available searches.</p>"; updateVerifyUI(await loadUser()); return;
-  }
-
-  const snap=await getDocs(collection(db,"records"));
-  const results=[];
+  const tbody=document.getElementById("users-body");
+  const snap=await getDocs(collection(db,"users"));
+  tbody.innerHTML="";
   snap.forEach(docSnap=>{
-    const r=docSnap.data();
-    if(r.name?.toLowerCase()===term||r.nia?.toLowerCase()===term){results.push(r);}
+    const u=docSnap.data();
+    tbody.innerHTML+=`<tr>
+      <td>${docSnap.id}</td>
+      <td>${u.name||""}</td>
+      <td>${u.email||""}</td>
+      <td>${u.role||"user"}</td>
+      <td><button onclick="deleteUser('${docSnap.id}')" class="btn-red">Delete</button></td>
+    </tr>`;
+  });
+}
+
+window.deleteUser=async(id)=>{
+  if(!confirm("Delete user?")) return;
+  await deleteDoc(doc(db,"users",id));
+  loadUsers();
+};
+
+// ----------------- Search Logs -----------------
+async function loadSearchLogs(){
+  const tbody=document.getElementById("searchlogs-body");
+  const snap=await getDocs(collection(db,"search_logs"));
+  tbody.innerHTML="";
+  snap.forEach(d=>{
+    const s=d.data();
+    tbody.innerHTML+=`<tr>
+      <td>${s.timestamp?.toDate?.()?.toLocaleString()||""}</td>
+      <td>${s.user||""}</td>
+      <td>${s.term||""}</td>
+      <td>${s.found?"✔":"❌"}</td>
+    </tr>`;
+  });
+}
+
+// ----------------- Wallet -----------------
+async function loadWallet(){
+  const tbody=document.getElementById("wallet-body");
+  const snap=await getDocs(collection(db,"users"));
+  tbody.innerHTML="";
+  snap.forEach(u=>{
+    const d=u.data();
+    tbody.innerHTML+=`<tr><td>${u.id}</td><td>${d.wallet||0}</td></tr>`;
   });
 
-  if(results.length===0){ verifyOutput.innerHTML="❌ No record found."; updateVerifyUI(await loadUser()); return;}
-  verifyOutput.innerHTML="";
-  results.forEach(r=>{
-    verifyOutput.innerHTML+=`
-      <div class="record">
-        <h3>${r.name}</h3>
-        <p><b>NIA:</b> ${r.nia}</p>
-        <p><b>DOB:</b> ${r.dob}</p>
-        <p><b>Region:</b> ${r.region}</p>
-        <p><b>Address:</b> ${r.address}</p>
-        <p><b>Criminal:</b> ${r.criminal}</p>
-        <p><b>Driving:</b> ${r.driving}</p>
-        <p><b>Credit:</b> ${r.credit}</p>
-        <p><b>Status:</b> ${r.status}</p>
-        <button class="btn-red" onclick="deleteRecord('${r.nia}')">Delete</button>
-      </div>
-    `;
+  const txBody=document.getElementById("wallettx-body");
+  const txSnap=await getDocs(collection(db,"wallet_transactions"));
+  txBody.innerHTML="";
+  txSnap.forEach(t=>{
+    const tx=t.data();
+    txBody.innerHTML+=`<tr><td>${tx.timestamp?.toDate?.()?.toLocaleString()||""}</td><td>${tx.user||""}</td><td>${tx.type||""}</td><td>${tx.amount||0}</td></tr>`;
   });
-  updateVerifyUI(await loadUser());
-};
+}
 
-$("#btn-add-record").onclick=async()=>{
-  const name=prompt("Full Name:");
-  if(!name) return;
-  const nia=prompt("NIA ID:");
-  if(!nia) return;
-  await setDoc(doc(db,"records",nia),{name,nia,status:"new"});
-  showToast("Record added!","info");
-};
+// ----------------- Audit Logs -----------------
+async function loadAuditLogs(){
+  const tbody=document.getElementById("audit-logs-body");
+  const snap=await getDocs(collection(db,"audit_logs"));
+  tbody.innerHTML="";
+  snap.forEach(d=>{
+    const a=d.data();
+    tbody.innerHTML+=`<tr><td>${a.timestamp?.toDate?.()?.toLocaleString()||""}</td><td>${a.user||""}</td><td>${a.action||""}</td><td>${JSON.stringify(a.meta)||""}</td></tr>`;
+  });
+}
 
-// Delete record function
-window.deleteRecord=async(nia)=>{
-  if(!confirm("Delete this record?")) return;
-  await deleteDoc(doc(db,"records",nia));
-  showToast("Record deleted","info");
-};
+// ----------------- Analytics Placeholder -----------------
+function loadAnalyticsUI(){
+  document.getElementById("analytics-status").innerHTML="<p>Analytics coming soon…</p>";
+}
 </script>
-
 </body>
 </html>
