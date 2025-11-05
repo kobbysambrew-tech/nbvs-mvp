@@ -6,37 +6,92 @@
 <title>NBVS Ghana — Verify</title>
 
 <style>
-:root{
-  --red:#ce1126;
-  --yellow:#fcd116;
-  --green:#006b3f;
-  --accent:#004f2e;
-  --card:#ffffff;
-  --bg:#f6f7f9;
-  --muted:#555;
-}
-*{box-sizing:border-box;margin:0;padding:0}
-body{font-family:"Segoe UI",Arial,sans-serif;background:var(--bg);color:#222;}
-header{
-  background:linear-gradient(90deg,var(--red),var(--yellow),var(--green));
-  padding:1.8rem 1rem;text-align:center;color:white;font-weight:700;
-  box-shadow:0 3px 12px rgba(0,0,0,0.15);
-}
-header h1{font-size:1.6rem;margin-bottom:4px}
-main{max-width:800px;margin:1.6rem auto;padding:0 1rem;}
-.panel{background:var(--card);padding:1.4rem;border-radius:12px;
-box-shadow:0 8px 26px rgba(0,0,0,0.06);margin-bottom:1.4rem;}
-h3{margin-bottom:10px;color:var(--accent)}
-input{width:100%;padding:13px;border-radius:10px;border:1px solid #ccc;margin-bottom:12px;font-size:1rem;}
-button{width:100%;padding:12px;border:none;border-radius:10px;cursor:pointer;font-weight:700;font-size:1rem;transition:.25s;}
-.btn-green{background:var(--green);color:white;}
-.btn-green:hover{background:var(--accent);transform:translateY(-3px)}
-.btn-yellow{background:var(--yellow);color:#111}
-.btn-yellow:hover{filter:brightness(.93);transform:translateY(-3px)}
-.btn-red{background:var(--red);color:white}
-.pill{padding:6px 12px;border-radius:10px;background:var(--green);color:white;font-weight:600;}
-.record{background:white;border-left:5px solid var(--green);padding:1rem;border-radius:10px;margin-top:1rem;box-shadow:0 6px 20px rgba(0,0,0,0.06);}
-.muted{color:var(--muted)}
+  :root{
+    --red:#ce1126;
+    --yellow:#fcd116;
+    --green:#006b3f;
+    --accent:#004f2e;
+    --card:#ffffff;
+    --bg:#f6f7f9;
+    --muted:#555;
+  }
+
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    font-family:"Segoe UI",Arial,sans-serif;
+    background:var(--bg);
+    color:#222;
+  }
+
+  header{
+    background:linear-gradient(90deg,var(--red),var(--yellow),var(--green));
+    padding:1.8rem 1rem;
+    text-align:center;
+    color:white;
+    font-weight:700;
+    box-shadow:0 3px 12px rgba(0,0,0,0.15);
+  }
+  header h1{font-size:1.6rem;margin-bottom:4px}
+
+  main{
+    max-width:800px;
+    margin:1.6rem auto;
+    padding:0 1rem;
+  }
+
+  .panel{
+    background:var(--card);
+    padding:1.4rem;
+    border-radius:12px;
+    box-shadow:0 8px 26px rgba(0,0,0,0.06);
+    margin-bottom:1.4rem;
+  }
+
+  h3{margin-bottom:10px;color:var(--accent)}
+  input{
+    width:100%;
+    padding:13px;
+    border-radius:10px;
+    border:1px solid #ccc;
+    margin-bottom:12px;
+    font-size:1rem;
+  }
+  button{
+    width:100%;
+    padding:12px;
+    border:none;
+    border-radius:10px;
+    cursor:pointer;
+    font-weight:700;
+    font-size:1rem;
+    transition:.25s;
+  }
+
+  .btn-green{background:var(--green);color:white;}
+  .btn-green:hover{background:var(--accent);transform:translateY(-3px)}
+
+  .btn-yellow{background:var(--yellow);color:#111}
+  .btn-yellow:hover{filter:brightness(.93);transform:translateY(-3px)}
+
+  .btn-red{background:var(--red);color:white}
+
+  .pill{
+    padding:6px 12px;
+    border-radius:10px;
+    background:var(--green);
+    color:white;
+    font-weight:600;
+  }
+
+  .record{
+    background:white;
+    border-left:5px solid var(--green);
+    padding:1rem;
+    border-radius:10px;
+    margin-top:1rem;
+    box-shadow:0 6px 20px rgba(0,0,0,0.06);
+  }
+  .muted{color:var(--muted)}
 </style>
 </head>
 
@@ -51,10 +106,12 @@ button{width:100%;padding:12px;border:none;border-radius:10px;cursor:pointer;fon
   <div class="panel">
     <label class="muted">Search by full name or NIA ID</label>
     <input id="searchInput" placeholder="e.g. Kofi Mensah or GHA-2039485" />
+
     <div style="display:flex;gap:10px">
       <button id="searchBtn" class="btn-green">Search</button>
       <button id="walletPageBtn" class="btn-yellow">Open Wallet</button>
     </div>
+
     <div style="margin-top:12px">
       <span class="pill" id="freeCountDisplay">Free: —</span>
       <span class="muted" id="planDisplay">Plan: —</span>
@@ -65,20 +122,31 @@ button{width:100%;padding:12px;border:none;border-radius:10px;cursor:pointer;fon
 
   <div class="panel">
     <h3>Upgrade / Buy</h3>
-    <button id="buyBasicBtn" class="btn-green" style="margin-bottom:10px">BASIC — 10 searches — $3.99</button>
-    <button id="buyProBtn" class="btn-red" style="margin-bottom:10px">PRO — Unlimited 30 days — $14.99</button>
-    <button id="useWalletBtn" class="btn-yellow">Use Wallet (¢30)</button>
+
+    <button id="buyBasicBtn" class="btn-green" style="margin-bottom:10px">
+      BASIC — 10 searches — $3.99
+    </button>
+
+    <button id="buyProBtn" class="btn-red" style="margin-bottom:10px">
+      PRO — Unlimited 30 days — $14.99
+    </button>
+
+    <button id="useWalletBtn" class="btn-yellow">
+      Use Wallet (¢30)
+    </button>
   </div>
 
   <div style="text-align:center;margin-top:14px">
     <a href="index.html">← Back Home</a> • 
     <a href="wallet.html">Wallet</a>
   </div>
+
 </main>
 
 <script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
-import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, getDocs, addDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
+// 🔹 Firebase setup
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-app.js";
+import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, getDocs, addDoc, deleteDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey:"AIzaSyCDh_qL3jiCMHROK0_Soul2Wsv3t3y4wv0",
@@ -88,121 +156,156 @@ const firebaseConfig = {
   messagingSenderId:"702636577113",
   appId:"1:702636577113:web:8369b43a2aa43aeb95fc48"
 };
+
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-// Session-based user
-let sessionId = localStorage.getItem("sessionId");
-if(!sessionId){ sessionId = crypto.randomUUID(); localStorage.setItem("sessionId",sessionId);}
-const userRef = doc(db,"users",sessionId);
-const walletRef = doc(db,"wallet",sessionId);
+// 🔹 Public user
+const userId = "publicUser";
+const userRef = doc(db, "users", userId);
 
-async function initUser(){
+// =================== INIT USER & DAILY RESET ===================
+async function initUser() {
   const snap = await getDoc(userRef);
-  if(!snap.exists()){
-    await setDoc(userRef,{
+  const today = new Date().toDateString();
+
+  if (!snap.exists()) {
+    await setDoc(userRef, {
       freeSearches: 3,
       plan: "free",
       planExpires: null,
       monthlyRemaining: 0,
-      walletCredits:0
+      wallet: 50,
+      lastReset: today
     });
+    return;
   }
-  const walletSnap = await getDoc(walletRef);
-  if(!walletSnap.exists()){
-    await setDoc(walletRef,{balance:0});
+
+  const data = snap.data();
+  if (data.lastReset !== today) {
+    await updateDoc(userRef, { freeSearches: 3, lastReset: today });
   }
 }
+
 await initUser();
 
-async function loadUser(){ return (await getDoc(userRef)).data();}
-async function loadWallet(){ return (await getDoc(walletRef)).data(); }
-
-function updateUI(user){
-  document.getElementById("freeCountDisplay").innerText = `Free: ${user.freeSearches || 0} | Wallet: ${user.walletCredits || 0}`;
-  document.getElementById("planDisplay").innerText = user.plan;
-  document.getElementById("userPlan").innerText = user.plan;
+// =================== LOAD USER & UI ===================
+async function loadUser() {
+  const snap = await getDoc(userRef);
+  return snap.data();
 }
-function updateWalletUI(){ loadWallet().then(w=>console.log("Wallet:",w.balance)); }
 
-async function deductSearch(){
+function updateVerifyUI(data) {
+  document.getElementById("freeCountDisplay").innerText = `Free: ${data.freeSearches}`;
+  document.getElementById("planDisplay").innerText = `Plan: ${data.plan}`;
+  document.getElementById("userPlan").innerText = data.plan;
+}
+
+// =================== DEDUCT SEARCH ===================
+async function deductSearch() {
   const user = await loadUser();
-  if(user.plan==="pro") return true;
-  if(user.walletCredits>0){
-    await updateDoc(userRef,{walletCredits:user.walletCredits-1});
+
+  if (user.plan === "pro") return true;
+
+  if (user.plan === "basic") {
+    if (user.monthlyRemaining > 0) {
+      await updateDoc(userRef, { monthlyRemaining: user.monthlyRemaining - 1 });
+      return true;
+    } else {
+      alert("Your BASIC plan is out of searches.");
+      return false;
+    }
+  }
+
+  if (user.freeSearches > 0) {
+    await updateDoc(userRef, { freeSearches: user.freeSearches - 1 });
     return true;
   }
-  if(user.plan==="basic" && user.monthlyRemaining>0){
-    await updateDoc(userRef,{monthlyRemaining:user.monthlyRemaining-1});
+
+  if (user.wallet >= 30) {
+    await updateDoc(userRef, { wallet: user.wallet - 30 });
+    // Log wallet transaction
+    await addDoc(collection(db, "wallet_transactions"), {
+      user: userId,
+      amount: 30,
+      type: "deduct_search",
+      timestamp: serverTimestamp()
+    });
     return true;
   }
-  if(user.freeSearches>0){
-    await updateDoc(userRef,{freeSearches:user.freeSearches-1});
-    return true;
-  }
-  alert("No searches remaining. Upgrade or use wallet.");
+
+  alert("No available searches. Upgrade or fund wallet.");
   return false;
 }
 
-// Wallet
-document.getElementById("walletPageBtn").onclick = ()=>{ window.location.href="wallet.html"; }
+// =================== SEARCH FUNCTION ===================
+const searchInput = document.getElementById("searchInput");
+const resultsArea = document.getElementById("resultsArea");
 
-// Use wallet to gain 1 search credit
-document.getElementById("useWalletBtn").onclick = async ()=>{
-  const wallet = await loadWallet();
-  if(wallet.balance<30){ alert("Not enough balance in wallet."); return; }
-  await updateDoc(walletRef,{balance:wallet.balance-30});
-  const user = await loadUser();
-  await updateDoc(userRef,{walletCredits:(user.walletCredits||0)+1});
-  alert("¢30 deducted from wallet. You can now search once.");
-}
+document.getElementById("searchBtn").onclick = async () => {
+  const term = searchInput.value.trim().toLowerCase();
+  if (!term) {
+    resultsArea.innerHTML = "<p class='muted'>Enter a name or NIA.</p>";
+    return;
+  }
 
-// Search button
-document.getElementById("searchBtn").onclick = async ()=>{
-  const text = document.getElementById("searchInput").value.trim().toLowerCase();
-  const resultsDiv = document.getElementById("resultsArea");
-  if(!text){ resultsDiv.innerHTML="<p class='muted'>Enter a name or NIA.</p>"; return;}
-  resultsDiv.innerHTML="<p class='muted'>Searching…</p>";
+  resultsArea.innerHTML = "<p class='muted'>Searching…</p>";
 
-  if(!(await deductSearch())){ resultsDiv.innerHTML="<p class='muted'>Please upgrade or use wallet.</p>"; return;}
-  updateUI(await loadUser());
+  if (!(await deductSearch())) {
+    resultsArea.innerHTML = "<p class='muted'>No available searches. Upgrade or use wallet.</p>";
+    updateVerifyUI(await loadUser());
+    return;
+  }
 
-  const docs = await getDocs(collection(db,"records"));
+  const snap = await getDocs(collection(db, "records"));
   const found = [];
-  docs.forEach(d=>{ const r=d.data(); if(r.name?.toLowerCase()===text || r.nia?.toLowerCase()===text) found.push(r); });
 
-  if(found.length===0){ resultsDiv.innerHTML="❌ No record found."; return; }
-
-  resultsDiv.innerHTML="";
-  found.forEach(r=>{
-    resultsDiv.innerHTML+=`
-      <div class="record">
-        <h3>${r.name}</h3>
-        <p><b>NIA:</b> ${r.nia}</p>
-        <p><b>DOB:</b> ${r.dob}</p>
-        <p><b>Region:</b> ${r.region}</p>
-        <p><b>Address:</b> ${r.address}</p>
-        <p><b>Criminal:</b> ${r.criminal}</p>
-        <p><b>Driving:</b> ${r.driving}</p>
-        <p><b>Credit:</b> ${r.credit}</p>
-        <p><b>Status:</b> ${r.status}</p>
-      </div>
-    `;
+  snap.forEach(docSnap => {
+    const r = docSnap.data();
+    if (r.name?.toLowerCase() === term || r.nia?.toLowerCase() === term) found.push(r);
   });
 
-  await addDoc(collection(db,"search_logs"),{
-    term:text,
-    timestamp:new Date(),
-    platform:"web",
-    user:sessionId
+  if (found.length === 0) {
+    resultsArea.innerHTML = "❌ No record found.";
+  } else {
+    resultsArea.innerHTML = "";
+    found.forEach(r => {
+      resultsArea.innerHTML += `
+        <div class="record">
+          <h3>${r.name}</h3>
+          <p><b>NIA:</b> ${r.nia}</p>
+          <p><b>DOB:</b> ${r.dob}</p>
+          <p><b>Region:</b> ${r.region}</p>
+          <p><b>Address:</b> ${r.address}</p>
+          <p><b>Criminal:</b> ${r.criminal}</p>
+          <p><b>Driving:</b> ${r.driving}</p>
+          <p><b>Credit:</b> ${r.credit}</p>
+          <p><b>Status:</b> ${r.status}</p>
+        </div>
+      `;
+    });
+  }
+
+  // Log search
+  await addDoc(collection(db, "search_logs"), {
+    user: userId,
+    term,
+    timestamp: serverTimestamp(),
+    found: found.length > 0
   });
-}
 
-// Live updates
-onSnapshot(userRef,snap=>updateUI(snap.data()));
-onSnapshot(walletRef,snap=>updateWalletUI());
+  updateVerifyUI(await loadUser());
+};
 
-updateUI(await loadUser());
+// Wallet button
+document.getElementById("walletPageBtn").onclick = () => {
+  window.location.href = "wallet.html";
+};
+
+// Initial load
+updateVerifyUI(await loadUser());
+
 </script>
+
 </body>
 </html>
