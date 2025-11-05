@@ -18,7 +18,7 @@ import { getAnalytics, isSupported as analyticsSupported } from "https://www.gst
 
 // -------------------- CONFIG --------------------
 const firebaseConfig = {
-  apiKey: "AIzaSyCDh_qL3jicMHROK0_Soul2Wsv3t3y4wv0",
+  apiKey: "AIzaSyCDh_qL3jiCMHROK0_Soul2Wsv3t3y4wv0",
   authDomain: "nbvs-ghana.firebaseapp.com",
   projectId: "nbvs-ghana",
   storageBucket: "nbvs-ghana.firebasestorage.app",
@@ -26,6 +26,7 @@ const firebaseConfig = {
   appId: "1:702636577113:web:8369b43a2aa43aeb95fc48",
   measurementId: "G-2FHFSQRMZX"
 };
+
 
 // -------------------- GLOBALS --------------------
 let app = null;
