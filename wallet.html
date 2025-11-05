@@ -1,44 +1,141 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>NBVS Wallet</title>
-  <style>
-    body{font-family:Arial;background:#f8f9fa;padding:20px}
-    h1{color:#006b3f}
-    .panel{background:#fff;padding:15px;border-radius:8px;box-shadow:0 2px 6px rgba(0,0,0,0.1);margin-top:15px}
-    table{width:100%;margin-top:15px;border-collapse:collapse}
-    th,td{border:1px solid #ccc;padding:10px}
-    th{background:#006b3f;color:#fff}
-    button{background:#006b3f;color:#fff;padding:10px 15px;border:none;border-radius:6px;cursor:pointer;width:100%}
-  </style>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>NBVS Ghana — Wallet</title>
+
+<style>
+  :root{
+    --red:#ce1126;
+    --yellow:#fcd116;
+    --green:#006b3f;
+    --accent:#004f2e;
+    --card:#ffffff;
+    --bg:#f6f7f9;
+    --muted:#555;
+  }
+
+  body{
+    font-family:"Segoe UI",Arial,sans-serif;
+    background:var(--bg);
+    margin:0;
+  }
+
+  header{
+    background:linear-gradient(90deg,var(--red),var(--yellow),var(--green));
+    padding:1.8rem 1rem;
+    text-align:center;
+    color:white;
+    font-weight:700;
+    box-shadow:0 3px 12px rgba(0,0,0,0.15);
+  }
+
+  main{
+    max-width:800px;
+    margin:1.6rem auto;
+    padding:0 1rem;
+  }
+
+  .panel{
+    background:white;
+    padding:1.4rem;
+    border-radius:12px;
+    box-shadow:0 8px 26px rgba(0,0,0,0.06);
+    margin-bottom:1.4rem;
+  }
+
+  .btn{
+    padding:12px;
+    border:none;
+    border-radius:10px;
+    cursor:pointer;
+    font-weight:700;
+    width:100%;
+    font-size:1rem;
+    margin-top:10px;
+  }
+
+  .btn-green{background:var(--green);color:white;}
+  .btn-green:hover{background:var(--accent);transform:translateY(-3px)}
+  .btn-yellow{background:var(--yellow);color:#111;}
+  .btn-red{background:var(--red);color:white;}
+
+  table{
+    width:100%;
+    border-collapse:collapse;
+    margin-top:10px;
+    background:white;
+    border-radius:10px;
+    overflow:hidden;
+    box-shadow:0 6px 20px rgba(0,0,0,0.05);
+  }
+  th,td{
+    padding:12px;
+    border-bottom:1px solid #eee;
+    font-size:0.95rem;
+  }
+  th{
+    background:#f7f7f7;
+    text-align:left;
+    color:#333;
+  }
+</style>
 </head>
 
 <body>
-<h1>Wallet</h1>
 
-<div class="panel">
-  <p><b>Balance:</b> ¢<span id="balance">0</span></p>
-  <button id="addCreditBtn">Add ¢30 Credit</button>
-</div>
+<header>
+  <h1>NBVS — Wallet</h1>
+</header>
 
-<div class="panel">
-  <h3>Transactions</h3>
-  <table>
-    <thead>
-      <tr><th>Amount</th><th>Type</th><th>Time</th></tr>
-    </thead>
-    <tbody id="walletLogs"></tbody>
-  </table>
-</div>
+<main>
+
+  <!-- BALANCE PANEL -->
+  <div class="panel" id="walletPanel">
+    <h2 style="margin-bottom:10px;color:var(--accent)">Your Wallet</h2>
+    <p style="font-size:1.6rem;font-weight:700;margin-bottom:6px">
+      ¢<span id="walletBalance">0</span>
+    </p>
+    <p class="muted">You need ¢30 to run one verification.</p>
+
+    <button class="btn btn-green" id="add10">Add ¢10</button>
+    <button class="btn btn-green" id="add30">Add ¢30</button>
+    <button class="btn btn-green" id="add100">Add ¢100</button>
+
+    <button class="btn btn-yellow" id="backBtn">← Back to Verify Page</button>
+  </div>
+
+  <!-- TRANSACTIONS -->
+  <div class="panel">
+    <h3 style="color:var(--accent)">Transaction History</h3>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Time</th>
+          <th>Type</th>
+          <th>Amount</th>
+        </tr>
+      </thead>
+      <tbody id="txBody">
+        <tr><td colspan="3">Loading…</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+</main>
 
 <script type="module">
+/* ---------------------------------------------
+   ✅ Firebase Setup
+--------------------------------------------- */
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-app.js";
 import { 
   getFirestore, doc, getDoc, setDoc, updateDoc,
-  collection, addDoc, getDocs 
+  collection, addDoc, getDocs, query, orderBy
 } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-firestore.js";
 
-/* ✅ FIREBASE CONFIG */
 const firebaseConfig = {
   apiKey:"AIzaSyCDh_qL3jiCMHROK0_Soul2Wsv3t3y4wv0",
   authDomain:"nbvs-ghana.firebaseapp.com",
@@ -51,68 +148,106 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-/* ✅ REFERENCES */
-const walletRef = doc(db,"wallet","publicUser");
-const logsRef = collection(db,"wallet_transactions");
+/* ---------------------------------------------
+   ✅ Device-based user (same as verify page)
+--------------------------------------------- */
+let userId = localStorage.getItem("nbvs_userId");
+if (!userId){
+  userId = "guest_" + Math.random().toString(36).substring(2,12);
+  localStorage.setItem("nbvs_userId", userId);
+}
 
-/* ✅ AUTO-CREATE WALLET */
-async function ensureWalletExists() {
+const walletRef = doc(db, "wallet", userId);
+
+/* ---------------------------------------------
+   ✅ Ensure wallet exists
+--------------------------------------------- */
+async function initWallet(){
   const snap = await getDoc(walletRef);
-  if (!snap.exists()) {
-    await setDoc(walletRef, {
-      balance: 0,
-      createdAt: new Date()
-    });
+  if (!snap.exists()){
+    await setDoc(walletRef,{ balance: 0 });
   }
 }
-await ensureWalletExists();
+await initWallet();
 
-/* ✅ LOAD BALANCE */
-async function loadWallet() {
+/* ---------------------------------------------
+   ✅ Load wallet & update UI
+--------------------------------------------- */
+async function loadBalance(){
   const snap = await getDoc(walletRef);
-  document.getElementById("balance").textContent = snap.data().balance;
+  const bal = snap.data().balance || 0;
+  document.getElementById("walletBalance").innerText = bal;
 }
 
-/* ✅ LOAD TRANSACTIONS */
-async function loadLogs() {
-  const snap = await getDocs(logsRef);
-  const table = document.getElementById("walletLogs");
-  table.innerHTML = "";
+await loadBalance();
 
-  snap.forEach(docSnap => {
-    const d = docSnap.data();
-    table.innerHTML += `
+/* ---------------------------------------------
+   ✅ Load Transactions
+--------------------------------------------- */
+async function loadTransactions(){
+  const txBody = document.getElementById("txBody");
+  txBody.innerHTML = "<tr><td colspan='3'>Loading…</td></tr>";
+
+  const q = query(
+    collection(db,"wallet_transactions"),
+    orderBy("timestamp","desc")
+  );
+
+  const snap = await getDocs(q);
+  txBody.innerHTML = "";
+
+  if (snap.empty){
+    txBody.innerHTML = "<tr><td colspan='3'>No transactions yet.</td></tr>";
+    return;
+  }
+
+  snap.forEach(t=>{
+    const d = t.data();
+    const time = d.timestamp?.seconds ? 
+      new Date(d.timestamp.seconds*1000).toLocaleString() :
+      "—";
+
+    txBody.innerHTML += `
       <tr>
-        <td>${d.amount}</td>
+        <td>${time}</td>
         <td>${d.type}</td>
-        <td>${new Date(d.time.toMillis()).toLocaleString()}</td>
+        <td>¢${d.amount}</td>
       </tr>
     `;
   });
 }
+await loadTransactions();
 
-/* ✅ ADD CREDIT BUTTON */
-document.getElementById("addCreditBtn").addEventListener("click", async () => {
+/* ---------------------------------------------
+   ✅ Add Money Buttons
+--------------------------------------------- */
+async function addMoney(amount){
   const snap = await getDoc(walletRef);
-  const newBalance = snap.data().balance + 30;
+  const bal = Number(snap.data().balance || 0);
 
-  await updateDoc(walletRef, { balance: newBalance });
+  await updateDoc(walletRef,{ balance: bal + amount });
 
-  await addDoc(logsRef, {
-    amount: "+30",
-    type: "credit",
-    time: new Date()
+  await addDoc(collection(db,"wallet_transactions"), {
+    user: userId,
+    type: "top_up",
+    amount: amount,
+    timestamp: new Date()
   });
 
-  loadWallet();
-  loadLogs();
-  alert("✅ ¢30 added to your wallet.");
-});
+  await loadBalance();
+  await loadTransactions();
+}
 
-/* ✅ INITIAL LOAD */
-loadWallet();
-loadLogs();
+document.getElementById("add10").onclick  = ()=>addMoney(10);
+document.getElementById("add30").onclick  = ()=>addMoney(30);
+document.getElementById("add100").onclick = ()=>addMoney(100);
 
+/* ---------------------------------------------
+   ✅ Back Button
+--------------------------------------------- */
+document.getElementById("backBtn").onclick = ()=>{
+  window.location.href = "verify.html";
+};
 </script>
 
 </body>
