@@ -172,11 +172,11 @@ th{background:#f0f0f0;}
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
 import {
-  getFirestore, collection, doc, getDoc, getDocs, query, orderBy, limit, startAfter, where, updateDoc, addDoc, deleteDoc
+  getFirestore, collection, doc, getDoc, getDocs, query, where, updateDoc, addDoc, deleteDoc
 } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 import { getAnalytics, isSupported as analyticsSupported } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-analytics.js";
 
-// Firebase config
+// ------------------ Firebase Config ------------------
 const firebaseConfig = {
   apiKey:"AIzaSyCDh_qL3jiCMHROK0_Soul2Wsv3t3y4wv0",
   authDomain:"nbvs-ghana.firebaseapp.com",
@@ -187,104 +187,179 @@ const firebaseConfig = {
   measurementId:"G-2FHFSQRMZX"
 };
 
-let app, auth, db, analytics, currentUser, currentUserRole;
-app = initializeApp(firebaseConfig);
-auth = getAuth(app);
-db = getFirestore(app);
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+let analytics;
+(async()=>{ if(await analyticsSupported()) analytics=getAnalytics(app); })();
 
-(async()=>{
-  if(await analyticsSupported()) analytics = getAnalytics(app);
-})();
+let currentUser, currentUserRole;
 
-// ----------------- Auth & Role -----------------
-onAuthStateChanged(auth, async (user)=>{
-  currentUser=user;
-  if(!user){window.location.href="/dashboard.html";return;}
+// ------------------ Auth & Role ------------------
+onAuthStateChanged(auth, async(user)=>{
+  currentUser = user;
+  if(!user) return window.location.href="/dashboard.html";
   const uDoc = await getDoc(doc(db,"users",user.uid));
-  if(!uDoc.exists()){await signOut(auth);window.location.href="/dashboard.html";return;}
-  currentUserRole=uDoc.data().role||"user";
-  if(currentUserRole!=="superadmin"&&currentUserRole!=="staff"){await signOut(auth);window.location.href="/dashboard.html";return;}
-  document.getElementById("admin-role").textContent=currentUserRole;
-  setupBindings(); await loadInitialData();
+  if(!uDoc.exists()){ await signOut(auth); return window.location.href="/dashboard.html"; }
+  currentUserRole = uDoc.data().role || "user";
+  if(!["superadmin","staff"].includes(currentUserRole)){ await signOut(auth); return window.location.href="/dashboard.html"; }
+  document.getElementById("admin-role").textContent = currentUserRole;
+  setupBindings(); 
+  await loadInitialData();
 });
 
-// ----------------- Logout -----------------
-document.getElementById("btn-logout").onclick=async()=>{await signOut(auth);window.location.href="/dashboard.html";};
+// ------------------ Logout ------------------
+document.getElementById("btn-logout").onclick = async()=>{ await signOut(auth); window.location.href="/dashboard.html"; };
 
-// ----------------- Tabs -----------------
+// ------------------ Tabs ------------------
 function setupBindings(){
   const tabs=["dashboard","verify","users","logs","wallet","audit"];
   tabs.forEach(t=>{
-    const btn=document.getElementById("tab-"+t);
-    const sec=document.getElementById("section-"+(t==="logs"?"searchlogs":t));
-    if(btn&&sec){
-      btn.onclick=()=>{tabs.forEach(x=>document.getElementById("tab-"+x).classList.remove("active"));btn.classList.add("active");document.querySelectorAll("section").forEach(s=>s.classList.remove("active"));sec.classList.add("active");if(t==="dashboard"){loadStats();loadAnalyticsUI();}if(t==="verify"){}}};
+    const btn = document.getElementById("tab-"+t);
+    const sec = document.getElementById("section-"+(t==="logs"?"searchlogs":t));
+    if(btn && sec){
+      btn.onclick = ()=>{
+        tabs.forEach(x=>document.getElementById("tab-"+x).classList.remove("active"));
+        btn.classList.add("active");
+        document.querySelectorAll("section").forEach(s=>s.classList.remove("active"));
+        sec.classList.add("active");
+        if(t==="dashboard"){ loadStats(); loadAnalyticsUI(); }
+        if(t==="verify"){ /* nothing extra */ }
+      }
     }
   });
-  // Verify
-  document.getElementById("btn-verify-name").onclick=async()=>{
-    const input=document.getElementById("verify-input").value.trim();
-    const output=document.getElementById("verify-output");
-    if(!input){output.innerHTML="Enter name or NIA";return;}
+
+  // ------------------ Verify Search ------------------
+  document.getElementById("btn-verify-name").onclick = async()=>{
+    const input = document.getElementById("verify-input").value.trim();
+    const output = document.getElementById("verify-output");
+    if(!input){ output.innerHTML="Enter name or NIA"; return; }
     output.innerHTML="Loading…";
+
     try{
-      const q=query(collection(db,"records"),where("name","==",input));
-      const snap=await getDocs(q);
-      if(snap.empty){output.innerHTML="No record";return;}
+      const userDoc = await getDoc(doc(db,"users",currentUser.uid));
+      const userData = userDoc.data();
+      const free = userData.freeSearchesRemaining || 0;
+      const wallet = userData.wallet || 0;
+      const searchCost = 1; // cost per search if using wallet
+
+      if(free <= 0 && wallet < searchCost){
+        output.innerHTML = "No free searches remaining and wallet too low.";
+        return;
+      }
+
+      // Deduct free search or wallet
+      if(free > 0){
+        await updateDoc(doc(db,"users",currentUser.uid), { freeSearchesRemaining: free-1 });
+      } else {
+        await updateDoc(doc(db,"users",currentUser.uid), { wallet: wallet-searchCost });
+        await addDoc(collection(db,"wallet_transactions"),{
+          user: currentUser.uid,
+          type: "search deduction",
+          amount: -searchCost,
+          timestamp: new Date()
+        });
+      }
+
+      // Perform search
+      const q = query(collection(db,"records"), where("name","==",input));
+      const snap = await getDocs(q);
+      if(snap.empty){ output.innerHTML="No record"; return; }
       output.innerHTML="";
       snap.forEach(docSnap=>{
-        const r=docSnap.data();
-        output.innerHTML+=`<div class="record"><h3>${r.name}</h3><p>NIA: ${r.nia}</p><p>DOB: ${r.dob}</p></div>`;
+        const r = docSnap.data();
+        output.innerHTML += `<div class="record"><h3>${r.name}</h3><p>NIA: ${r.nia}</p><p>DOB: ${r.dob}</p></div>`;
       });
-    }catch(e){console.error(e);output.innerHTML="Error loading record";}
+
+    } catch(e){ console.error(e); output.innerHTML="Error loading record"; }
   };
 }
 
-// ----------------- Load Initial Data -----------------
+// ------------------ Load Initial Data ------------------
 async function loadInitialData(){
-  loadStats(); loadUsers(); loadSearchLogs(); loadWallet(); loadAuditLogs();
+  await loadStats(); 
+  await loadUsers(); 
+  await loadSearchLogs(); 
+  await loadWallet(); 
+  await loadAuditLogs();
 }
 
-// ----------------- Stats -----------------
+// ------------------ Stats ------------------
 async function loadStats(){
-  const usersSnap=await getDocs(collection(db,"users"));
-  const searchSnap=await getDocs(collection(db,"search_logs"));
-  const walletSnap=await getDocs(collection(db,"wallet_transactions"));
-  document.getElementById("stat-users").textContent=usersSnap.size;
-  document.getElementById("stat-searches").textContent=searchSnap.size;
-  let totalWallet=0;
-  walletSnap.forEach(s=>totalWallet+=s.data().amount||0);
-  document.getElementById("stat-wallet").textContent=totalWallet;
-  document.getElementById("stat-transactions").textContent=walletSnap.size;
+  const usersSnap = await getDocs(collection(db,"users"));
+  const searchSnap = await getDocs(collection(db,"search_logs"));
+  const walletSnap = await getDocs(collection(db,"wallet_transactions"));
+
+  document.getElementById("stat-users").textContent = usersSnap.size;
+  document.getElementById("stat-searches").textContent = searchSnap.size;
+
+  let totalWallet = 0;
+  walletSnap.forEach(s => totalWallet += s.data().amount || 0);
+  document.getElementById("stat-wallet").textContent = totalWallet;
+  document.getElementById("stat-transactions").textContent = walletSnap.size;
 }
 
-// ----------------- Users -----------------
+// ------------------ Users ------------------
 async function loadUsers(){
-  const tbody=document.getElementById("users-body");
-  const snap=await getDocs(collection(db,"users"));
+  const tbody = document.getElementById("users-body");
+  const snap = await getDocs(collection(db,"users"));
   tbody.innerHTML="";
-  snap.forEach(docSnap=>{
-    const u=docSnap.data();
-    tbody.innerHTML+=`<tr>
-      <td>${docSnap.id}</td>
-      <td>${u.name||""}</td>
-      <td>${u.email||""}</td>
-      <td>${u.role||"user"}</td>
-      <td><button onclick="deleteUser('${docSnap.id}')" class="btn-red">Delete</button></td>
-    </tr>`;
+  snap.forEach(u=>{
+    const d = u.data();
+    const free = d.freeSearchesRemaining || 3;
+    tbody.innerHTML+=`
+      <tr>
+        <td>${u.id}</td>
+        <td>${d.name||""}</td>
+        <td>${d.email||""}</td>
+        <td>${d.role||"user"}</td>
+        <td>
+          <button onclick="deleteUser('${u.id}')" class="btn-red">Delete</button>
+          <button onclick="grantBasicPlan('${u.id}')" class="btn-green">Basic</button>
+          <button onclick="grantProPlan('${u.id}')" class="btn-yellow">Pro</button>
+          <button onclick="useWallet('${u.id}')" class="btn-green">Use Wallet</button>
+          <span>Free: ${free}</span>
+        </td>
+      </tr>`;
   });
 }
 
-window.deleteUser=async(id)=>{
+// ------------------ Admin Actions ------------------
+window.deleteUser = async(id)=>{
   if(!confirm("Delete user?")) return;
   await deleteDoc(doc(db,"users",id));
   loadUsers();
 };
 
-// ----------------- Search Logs -----------------
+window.grantBasicPlan = async(uid)=>{
+  await updateDoc(doc(db,"users",uid), { plan:"basic", freeSearchesRemaining:3 });
+  loadUsers();
+};
+
+window.grantProPlan = async(uid)=>{
+  await updateDoc(doc(db,"users",uid), { plan:"pro", freeSearchesRemaining:10 });
+  loadUsers();
+};
+
+window.useWallet = async(uid)=>{
+  const uDoc = await getDoc(doc(db,"users",uid));
+  const u = uDoc.data();
+  const addSearches = Math.floor(u.wallet || 0); // 1$ = 1 search
+  if(addSearches <= 0){ alert("Wallet empty"); return; }
+  await updateDoc(doc(db,"users",uid), {
+    freeSearchesRemaining: (u.freeSearchesRemaining||0) + addSearches,
+    wallet: 0
+  });
+  await addDoc(collection(db,"wallet_transactions"),{
+    user: uid, type:"wallet converted to searches", amount: -addSearches, timestamp:new Date()
+  });
+  loadUsers(); loadWallet();
+};
+
+// ------------------ Search Logs ------------------
 async function loadSearchLogs(){
-  const tbody=document.getElementById("searchlogs-body");
-  const snap=await getDocs(collection(db,"search_logs"));
+  const tbody = document.getElementById("searchlogs-body");
+  const snap = await getDocs(collection(db,"search_logs"));
   tbody.innerHTML="";
   snap.forEach(d=>{
     const s=d.data();
@@ -297,18 +372,18 @@ async function loadSearchLogs(){
   });
 }
 
-// ----------------- Wallet -----------------
+// ------------------ Wallet ------------------
 async function loadWallet(){
-  const tbody=document.getElementById("wallet-body");
-  const snap=await getDocs(collection(db,"users"));
+  const tbody = document.getElementById("wallet-body");
+  const snap = await getDocs(collection(db,"users"));
   tbody.innerHTML="";
   snap.forEach(u=>{
     const d=u.data();
     tbody.innerHTML+=`<tr><td>${u.id}</td><td>${d.wallet||0}</td></tr>`;
   });
 
-  const txBody=document.getElementById("wallettx-body");
-  const txSnap=await getDocs(collection(db,"wallet_transactions"));
+  const txBody = document.getElementById("wallettx-body");
+  const txSnap = await getDocs(collection(db,"wallet_transactions"));
   txBody.innerHTML="";
   txSnap.forEach(t=>{
     const tx=t.data();
@@ -316,10 +391,10 @@ async function loadWallet(){
   });
 }
 
-// ----------------- Audit Logs -----------------
+// ------------------ Audit Logs ------------------
 async function loadAuditLogs(){
-  const tbody=document.getElementById("audit-logs-body");
-  const snap=await getDocs(collection(db,"audit_logs"));
+  const tbody = document.getElementById("audit-logs-body");
+  const snap = await getDocs(collection(db,"audit_logs"));
   tbody.innerHTML="";
   snap.forEach(d=>{
     const a=d.data();
@@ -327,10 +402,11 @@ async function loadAuditLogs(){
   });
 }
 
-// ----------------- Analytics Placeholder -----------------
+// ------------------ Analytics Placeholder ------------------
 function loadAnalyticsUI(){
   document.getElementById("analytics-status").innerHTML="<p>Analytics coming soon…</p>";
 }
 </script>
+
 </body>
 </html>
