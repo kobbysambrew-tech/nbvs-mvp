@@ -224,7 +224,6 @@ function setupBindings(){
         document.querySelectorAll("section").forEach(s=>s.classList.remove("active"));
         sec.classList.add("active");
         if(t==="dashboard"){ loadStats(); loadAnalyticsUI(); }
-        if(t==="verify"){ /* nothing extra */ }
       }
     }
   });
@@ -237,28 +236,33 @@ function setupBindings(){
     output.innerHTML="Loading…";
 
     try{
-      const userDoc = await getDoc(doc(db,"users",currentUser.uid));
-      const userData = userDoc.data();
-      const free = userData.freeSearchesRemaining || 0;
-      const wallet = userData.wallet || 0;
-      const searchCost = 1; // cost per search if using wallet
+      const isAdmin = ["superadmin","staff"].includes(currentUserRole);
 
-      if(free <= 0 && wallet < searchCost){
-        output.innerHTML = "No free searches remaining and wallet too low.";
-        return;
-      }
+      // Only deduct for non-admin users
+      if(!isAdmin){
+        const userDoc = await getDoc(doc(db,"users",currentUser.uid));
+        const userData = userDoc.data();
+        const free = userData.freeSearchesRemaining || 0;
+        const wallet = userData.wallet || 0;
+        const searchCost = 1;
 
-      // Deduct free search or wallet
-      if(free > 0){
-        await updateDoc(doc(db,"users",currentUser.uid), { freeSearchesRemaining: free-1 });
-      } else {
-        await updateDoc(doc(db,"users",currentUser.uid), { wallet: wallet-searchCost });
-        await addDoc(collection(db,"wallet_transactions"),{
-          user: currentUser.uid,
-          type: "search deduction",
-          amount: -searchCost,
-          timestamp: new Date()
-        });
+        if(free <= 0 && wallet < searchCost){
+          output.innerHTML = "No free searches remaining and wallet too low.";
+          return;
+        }
+
+        // Deduct free search or wallet
+        if(free > 0){
+          await updateDoc(doc(db,"users",currentUser.uid), { freeSearchesRemaining: free-1 });
+        } else {
+          await updateDoc(doc(db,"users",currentUser.uid), { wallet: wallet-searchCost });
+          await addDoc(collection(db,"wallet_transactions"),{
+            user: currentUser.uid,
+            type: "search deduction",
+            amount: -searchCost,
+            timestamp: new Date()
+          });
+        }
       }
 
       // Perform search
@@ -344,7 +348,7 @@ window.grantProPlan = async(uid)=>{
 window.useWallet = async(uid)=>{
   const uDoc = await getDoc(doc(db,"users",uid));
   const u = uDoc.data();
-  const addSearches = Math.floor(u.wallet || 0); // 1$ = 1 search
+  const addSearches = Math.floor(u.wallet || 0);
   if(addSearches <= 0){ alert("Wallet empty"); return; }
   await updateDoc(doc(db,"users",uid), {
     freeSearchesRemaining: (u.freeSearchesRemaining||0) + addSearches,
@@ -407,6 +411,7 @@ function loadAnalyticsUI(){
   document.getElementById("analytics-status").innerHTML="<p>Analytics coming soon…</p>";
 }
 </script>
+
 
 </body>
 </html>
