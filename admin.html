@@ -73,7 +73,9 @@ button:hover{transform:translateY(-2px);}
 table{width:100%;border-collapse:collapse;margin-top:10px;}
 th, td{padding:8px;text-align:left;border-bottom:1px solid #ddd;}
 th{background:#f0f0f0;}
+.record{border:1px solid #ddd;padding:10px;border-radius:8px;margin-bottom:10px;}
 </style>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
 
@@ -108,6 +110,13 @@ th{background:#f0f0f0;}
   <!-- Verify -->
   <section id="section-verify">
     <div class="panel">
+      <h3>Add Record</h3>
+      <input id="add-name" placeholder="Name" />
+      <input id="add-nia" placeholder="NIA" />
+      <input id="add-dob" placeholder="DOB (YYYY-MM-DD)" />
+      <button id="btn-add-record" class="btn-green">Add Record</button>
+    </div>
+    <div class="panel">
       <label>Search by name or NIA</label>
       <input id="verify-input" placeholder="Enter name or NIA" />
       <div style="display:flex;gap:10px;margin-top:8px;">
@@ -122,7 +131,7 @@ th{background:#f0f0f0;}
     <div class="panel">
       <h3>Users</h3>
       <table>
-        <thead><tr><th>ID</th><th>Name</th><th>Email</th><th>Role</th><th>Delete</th></tr></thead>
+        <thead><tr><th>ID</th><th>Name</th><th>Email</th><th>Role</th><th>Actions</th></tr></thead>
         <tbody id="users-body"><tr><td colspan="5">Loading…</td></tr></tbody>
       </table>
     </div>
@@ -165,15 +174,12 @@ th{background:#f0f0f0;}
       </table>
     </div>
   </section>
-
 </main>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
-import {
-  getFirestore, collection, doc, getDoc, getDocs, query, where, updateDoc, addDoc, deleteDoc
-} from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
+import { getFirestore, collection, doc, getDoc, getDocs, query, where, updateDoc, addDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 import { getAnalytics, isSupported as analyticsSupported } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-analytics.js";
 
 // ------------------ Firebase Config ------------------
@@ -195,6 +201,17 @@ let analytics;
 
 let currentUser, currentUserRole;
 
+// ------------------ Audit Logger ------------------
+async function logAudit(action, meta={}) {
+  if(!currentUser) return;
+  await addDoc(collection(db,"audit_logs"),{
+    user: currentUser.uid,
+    action,
+    meta,
+    timestamp: new Date()
+  });
+}
+
 // ------------------ Auth & Role ------------------
 onAuthStateChanged(auth, async(user)=>{
   currentUser = user;
@@ -204,7 +221,7 @@ onAuthStateChanged(auth, async(user)=>{
   currentUserRole = uDoc.data().role || "user";
   if(!["superadmin","staff"].includes(currentUserRole)){ await signOut(auth); return window.location.href="/dashboard.html"; }
   document.getElementById("admin-role").textContent = currentUserRole;
-  setupBindings(); 
+  setupBindings();
   await loadInitialData();
 });
 
@@ -228,6 +245,22 @@ function setupBindings(){
     }
   });
 
+  // ------------------ Add Record ------------------
+  document.getElementById("btn-add-record").onclick = async()=>{
+    const name = document.getElementById("add-name").value.trim();
+    const nia = document.getElementById("add-nia").value.trim();
+    const dob = document.getElementById("add-dob").value.trim();
+    if(!name || !nia || !dob){ alert("Fill all fields"); return; }
+    try{
+      await addDoc(collection(db,"records"), { name, nia, dob });
+      await logAudit("Added record", {name, nia, dob});
+      alert("Record added!");
+      document.getElementById("add-name").value="";
+      document.getElementById("add-nia").value="";
+      document.getElementById("add-dob").value="";
+    }catch(e){ console.error(e); alert("Error adding record"); }
+  };
+
   // ------------------ Verify Search ------------------
   document.getElementById("btn-verify-name").onclick = async()=>{
     const input = document.getElementById("verify-input").value.trim();
@@ -236,66 +269,39 @@ function setupBindings(){
     output.innerHTML="Loading…";
 
     try{
-      const isAdmin = ["superadmin","staff"].includes(currentUserRole);
-
-      // Deduct freeSearches/wallet ONLY if NOT admin
-      if(!isAdmin){
-        const userDoc = await getDoc(doc(db,"users",currentUser.uid));
-        const userData = userDoc.data();
-        const free = userData.freeSearchesRemaining || 0;
-        const wallet = userData.wallet || 0;
-        const searchCost = 1;
-
-        if(free <= 0 && wallet < searchCost){
-          output.innerHTML = "No free searches remaining and wallet too low.";
-          return;
-        }
-
-        if(free > 0){
-          await updateDoc(doc(db,"users",currentUser.uid), { freeSearchesRemaining: free-1 });
-        } else {
-          await updateDoc(doc(db,"users",currentUser.uid), { wallet: wallet-searchCost });
-          await addDoc(collection(db,"wallet_transactions"),{
-            user: currentUser.uid,
-            type: "search deduction",
-            amount: -searchCost,
-            timestamp: new Date()
-          });
-        }
-      }
-
-      // ------------------ Perform Search ------------------
-      const recordsRef = collection(db,"records");
-      let recordSnap;
-
-      // Search by name first
-      let q = query(recordsRef, where("name","==",input));
-      recordSnap = await getDocs(q);
-
-      // If no results, try searching by NIA
-      if(recordSnap.empty){
-        q = query(recordsRef, where("nia","==",input));
-        recordSnap = await getDocs(q);
-      }
-
+      const q = query(collection(db,"records"), where("name","==",input));
+      const snap = await getDocs(q);
+      if(snap.empty){ output.innerHTML="No record"; return; }
       output.innerHTML="";
-      if(recordSnap.empty){ output.innerHTML="No record"; return; }
-
-      recordSnap.forEach(docSnap=>{
+      snap.forEach(docSnap=>{
         const r = docSnap.data();
-        output.innerHTML += `<div class="record"><h3>${r.name}</h3><p>NIA: ${r.nia}</p><p>DOB: ${r.dob}</p></div>`;
+        output.innerHTML += `
+          <div class="record">
+            <h3>${r.name}</h3>
+            <p>NIA: ${r.nia}</p>
+            <p>DOB: ${r.dob}</p>
+            <button class="btn-red" onclick="deleteRecord('${docSnap.id}')">Delete</button>
+          </div>`;
       });
-
     } catch(e){ console.error(e); output.innerHTML="Error loading record"; }
   };
 }
 
+// ------------------ Delete Record ------------------
+window.deleteRecord = async(id)=>{
+  if(!confirm("Delete this record?")) return;
+  await deleteDoc(doc(db,"records",id));
+  await logAudit("Deleted record", {recordId:id});
+  alert("Record deleted!");
+  document.getElementById("verify-output").innerHTML="";
+};
+
 // ------------------ Load Initial Data ------------------
 async function loadInitialData(){
-  await loadStats(); 
-  await loadUsers(); 
-  await loadSearchLogs(); 
-  await loadWallet(); 
+  await loadStats();
+  await loadUsers();
+  await loadSearchLogs();
+  await loadWallet();
   await loadAuditLogs();
 }
 
@@ -309,7 +315,7 @@ async function loadStats(){
   document.getElementById("stat-searches").textContent = searchSnap.size;
 
   let totalWallet = 0;
-  usersSnap.forEach(u => totalWallet += u.data().wallet || 0);
+  walletSnap.forEach(s => totalWallet += s.data().amount || 0);
   document.getElementById("stat-wallet").textContent = totalWallet;
   document.getElementById("stat-transactions").textContent = walletSnap.size;
 }
@@ -343,16 +349,19 @@ async function loadUsers(){
 window.deleteUser = async(id)=>{
   if(!confirm("Delete user?")) return;
   await deleteDoc(doc(db,"users",id));
+  await logAudit("Deleted user", {userId: id});
   loadUsers();
 };
 
 window.grantBasicPlan = async(uid)=>{
   await updateDoc(doc(db,"users",uid), { plan:"basic", freeSearchesRemaining:3 });
+  await logAudit("Granted Basic Plan", {userId: uid});
   loadUsers();
 };
 
 window.grantProPlan = async(uid)=>{
   await updateDoc(doc(db,"users",uid), { plan:"pro", freeSearchesRemaining:10 });
+  await logAudit("Granted Pro Plan", {userId: uid});
   loadUsers();
 };
 
@@ -368,7 +377,9 @@ window.useWallet = async(uid)=>{
   await addDoc(collection(db,"wallet_transactions"),{
     user: uid, type:"wallet converted to searches", amount: -addSearches, timestamp:new Date()
   });
-  loadUsers(); loadWallet();
+  await logAudit("Used wallet for searches", {userId: uid, addedSearches: addSearches});
+  loadUsers(); 
+  loadWallet();
 };
 
 // ------------------ Search Logs ------------------
@@ -393,7 +404,7 @@ async function loadWallet(){
   const snap = await getDocs(collection(db,"users"));
   tbody.innerHTML="";
   snap.forEach(u=>{
-    const d = u.data();
+    const d=u.data();
     tbody.innerHTML+=`<tr><td>${u.id}</td><td>${d.wallet||0}</td></tr>`;
   });
 
@@ -422,8 +433,6 @@ function loadAnalyticsUI(){
   document.getElementById("analytics-status").innerHTML="<p>Analytics coming soon…</p>";
 }
 </script>
-
-
 
 </body>
 </html>
