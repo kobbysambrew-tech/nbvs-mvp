@@ -145,9 +145,10 @@
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
-import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, getDocs, addDoc, query, where } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
+import { getFirestore, doc, getDoc, updateDoc, collection, getDocs, addDoc, query, where } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
 
-// ✅ Firebase config
+// Firebase config
 const firebaseConfig = {
   apiKey:"AIzaSyCDh_qL3jiCMHROK0_Soul2Wsv3t3y4wv0",
   authDomain:"nbvs-ghana.firebaseapp.com",
@@ -158,66 +159,49 @@ const firebaseConfig = {
 };
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
+const auth = getAuth(app);
 
-// ✅ Public user
-const userId = "publicUser";
-const userRef = doc(db, "users", userId);
+let currentUserId;
 
-// ✅ Initialize user if missing
-async function initUser(){
-  const snap = await getDoc(userRef);
-  if(!snap.exists()){
-    await setDoc(userRef, {
-      freeSearches: 3,
-      plan: "free",
-      planExpires: null,
-      monthlyRemaining: 0,
-      wallet: 0
-    });
-  }
-}
-await initUser();
+// ✅ Get logged-in user
+onAuthStateChanged(auth, async(user) => {
+  if(!user) return window.location.href = "/dashboard.html";
+  currentUserId = user.uid;
+  await updateUI();
+});
 
 // ✅ Load user data
-async function loadUser(){
-  const snap = await getDoc(userRef);
-  return snap.data();
+async function loadUser() {
+  const snap = await getDoc(doc(db,"users",currentUserId));
+  return snap.exists() ? snap.data() : null;
 }
 
 // ✅ Update UI
-async function updateUI(){
+async function updateUI() {
   const user = await loadUser();
-  document.getElementById("freeCountDisplay").innerText = `Free: ${user.freeSearches}`;
-  document.getElementById("planDisplay").innerText = `Plan: ${user.plan}`;
-  document.getElementById("userPlan").innerText = user.plan;
+  if(!user) return;
+  document.getElementById("freeCountDisplay").innerText = `Free: ${user.freeSearchesRemaining || 0}`;
+  document.getElementById("planDisplay").innerText = `Plan: ${user.plan || 'free'}`;
+  document.getElementById("userPlan").innerText = user.plan || 'free';
 }
 
 // ✅ Deduct search
-async function deductSearch(){
+async function deductSearch() {
   const user = await loadUser();
-  
-  if(user.plan === "pro") return true;
+  if(!user) return false;
 
-  if(user.plan === "basic"){
-    if(user.monthlyRemaining > 0){
-      await updateDoc(userRef,{ monthlyRemaining: user.monthlyRemaining - 1 });
-      return true;
-    }
-    alert("Your BASIC plan is out of searches.");
-    return false;
-  }
+  // Admin bypass
+  if(user.role === "superadmin" || user.role === "staff") return true;
 
-  if(user.freeSearches > 0){
-    await updateDoc(userRef,{ freeSearches: user.freeSearches - 1 });
+  if(user.freeSearchesRemaining > 0){
+    await updateDoc(doc(db,"users",currentUserId), { freeSearchesRemaining: user.freeSearchesRemaining - 1 });
     return true;
   }
 
-  // If wallet has ≥30, allow search and deduct
   if(user.wallet >= 30){
-    await updateDoc(userRef,{ wallet: user.wallet - 30 });
-    // Log wallet deduction
-    await addDoc(collection(db,"wallet_transactions"),{
-      user: userId,
+    await updateDoc(doc(db,"users",currentUserId), { wallet: user.wallet - 30 });
+    await addDoc(collection(db,"wallet_transactions"), {
+      user: currentUserId,
       type: "search deduction",
       amount: 30,
       timestamp: new Date()
@@ -225,72 +209,90 @@ async function deductSearch(){
     return true;
   }
 
-  alert("No free searches or enough balance in wallet.");
+  alert("No free searches or enough wallet balance.");
   return false;
 }
 
-// ✅ Wallet page button
-document.getElementById("walletPageBtn").onclick = () => {
-  window.location.href = "wallet.html";
-};
-
-// ✅ Initial UI load
-await updateUI();
+// ✅ Wallet button
+document.getElementById("walletPageBtn").onclick = () => window.location.href = "wallet.html";
 
 // ✅ Search button
 document.getElementById("searchBtn").onclick = async () => {
-  const text = document.getElementById("searchInput").value.trim().toLowerCase();
+  const text = document.getElementById("searchInput").value.trim();
   const resultsDiv = document.getElementById("resultsArea");
-
-  if(!text){
-    resultsDiv.innerHTML = "<p class='muted'>Enter a name or NIA.</p>";
-    return;
-  }
+  if(!text) { resultsDiv.innerHTML = "<p class='muted'>Enter a name or NIA.</p>"; return; }
 
   resultsDiv.innerHTML = "<p class='muted'>Searching…</p>";
 
   if(!(await deductSearch())){
-    resultsDiv.innerHTML = "<p class='muted'>Please upgrade or add funds to wallet.</p>";
+    resultsDiv.innerHTML = "<p class='muted'>Upgrade or add funds to wallet.</p>";
     return;
   }
 
   await updateUI();
 
-  const q = query(collection(db,"records"), where("name","==",text));
-  const snap = await getDocs(q);
-  let found = [];
-  snap.forEach(docSnap => found.push(docSnap.data()));
+  // Search by name OR NIA
+  const qName = query(collection(db,"records"), where("name","==",text));
+  const qNIA = query(collection(db,"records"), where("nia","==",text));
+  const snapName = await getDocs(qName);
+  const snapNIA = await getDocs(qNIA);
+  const results = [...snapName.docs, ...snapNIA.docs];
 
   resultsDiv.innerHTML = "";
-  if(found.length === 0){
+  if(!results.length) {
     resultsDiv.innerHTML = "❌ No record found.";
   } else {
-    found.forEach(r => {
+    results.forEach(docSnap => {
+      const r = docSnap.data();
       resultsDiv.innerHTML += `
-      <div class="record">
-        <h3>${r.name}</h3>
-        <p><b>NIA:</b> ${r.nia}</p>
-        <p><b>DOB:</b> ${r.dob}</p>
-        <p><b>Region:</b> ${r.region}</p>
-        <p><b>Address:</b> ${r.address}</p>
-        <p><b>Criminal:</b> ${r.criminal}</p>
-        <p><b>Driving:</b> ${r.driving}</p>
-        <p><b>Credit:</b> ${r.credit}</p>
-        <p><b>Status:</b> ${r.status}</p>
-      </div>`;
+        <div class="record">
+          <p><b>Name:</b> ${r.name}</p>
+          <p><b>NIA:</b> ${r.nia}</p>
+          <p><b>DOB:</b> ${r.dob}</p>
+          <p><b>Region:</b> ${r.region}</p>
+          <p><b>Address:</b> ${r.address}</p>
+          <p><b>Criminal:</b> ${r.criminal}</p>
+          <p><b>Driving:</b> ${r.driving}</p>
+          <p><b>Credit:</b> ${r.credit}</p>
+          <p><b>Status:</b> ${r.status}</p>
+        </div>`;
     });
   }
 
-  // ✅ Log search
+  // Log search
   await addDoc(collection(db,"search_logs"),{
     term: text,
-    user: userId,
+    user: currentUserId,
+    found: results.length > 0,
     timestamp: new Date(),
-    found: found.length > 0,
     platform: "web"
   });
 };
 
+// ✅ Buy/Plan buttons
+document.getElementById("buyBasicBtn").onclick = async() => {
+  await updateDoc(doc(db,"users",currentUserId), { plan:"basic", freeSearchesRemaining: 10 });
+  await updateUI();
+};
+document.getElementById("buyProBtn").onclick = async() => {
+  await updateDoc(doc(db,"users",currentUserId), { plan:"pro", freeSearchesRemaining: 999 });
+  await updateUI();
+};
+document.getElementById("useWalletBtn").onclick = async() => {
+  const user = await loadUser();
+  if(user.wallet <= 0){ alert("Wallet empty."); return; }
+  await updateDoc(doc(db,"users",currentUserId), {
+    freeSearchesRemaining: (user.freeSearchesRemaining||0) + user.wallet,
+    wallet: 0
+  });
+  await addDoc(collection(db,"wallet_transactions"), {
+    user: currentUserId,
+    type: "wallet converted to searches",
+    amount: -user.wallet,
+    timestamp: new Date()
+  });
+  await updateUI();
+};
 </script>
 
 </body>
