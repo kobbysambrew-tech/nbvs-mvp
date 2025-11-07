@@ -73,9 +73,7 @@ button:hover{transform:translateY(-2px);}
 table{width:100%;border-collapse:collapse;margin-top:10px;}
 th, td{padding:8px;text-align:left;border-bottom:1px solid #ddd;}
 th{background:#f0f0f0;}
-.record{border:1px solid #ddd;padding:10px;border-radius:8px;margin-bottom:10px;}
 </style>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
 
@@ -107,22 +105,31 @@ th{background:#f0f0f0;}
     <div class="panel" id="analytics-status">Loading Analytics…</div>
   </section>
 
-  <!-- Verify -->
+  <!-- Verify & Add Record -->
   <section id="section-verify">
     <div class="panel">
-      <h3>Add Record</h3>
-      <input id="add-name" placeholder="Name" />
-      <input id="add-nia" placeholder="NIA" />
-      <input id="add-dob" placeholder="DOB (YYYY-MM-DD)" />
-      <button id="btn-add-record" class="btn-green">Add Record</button>
-    </div>
-    <div class="panel">
-      <label>Search by name or NIA</label>
-      <input id="verify-input" placeholder="Enter name or NIA" />
+      <h3>Search Records</h3>
+      <label>Search by Name or NIA</label>
+      <input id="verify-input" placeholder="Enter Name or NIA" />
       <div style="display:flex;gap:10px;margin-top:8px;">
         <button id="btn-verify-name" class="btn-green">Search</button>
       </div>
       <div id="verify-output" style="margin-top:12px;"></div>
+    </div>
+
+    <div class="panel">
+      <h3>Add New Record</h3>
+      <input id="add-name" placeholder="Name" />
+      <input id="add-nia" placeholder="NIA" />
+      <input id="add-dob" placeholder="DOB (YYYY-MM-DD)" />
+      <input id="add-address" placeholder="Address" />
+      <input id="add-credit" placeholder="Credit Score" />
+      <input id="add-criminal" placeholder="Criminal Status" />
+      <input id="add-driving" placeholder="Driving License Status" />
+      <input id="add-region" placeholder="Region" />
+      <input id="add-status" placeholder="Verification Status" />
+      <button id="btn-add-record" class="btn-green">Add Record</button>
+      <div id="add-output" style="margin-top:12px;"></div>
     </div>
   </section>
 
@@ -174,12 +181,15 @@ th{background:#f0f0f0;}
       </table>
     </div>
   </section>
+
 </main>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
-import { getFirestore, collection, doc, getDoc, getDocs, query, where, updateDoc, addDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
+import {
+  getFirestore, collection, doc, getDoc, getDocs, query, where, addDoc, updateDoc, deleteDoc
+} from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 import { getAnalytics, isSupported as analyticsSupported } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-analytics.js";
 
 // ------------------ Firebase Config ------------------
@@ -201,17 +211,6 @@ let analytics;
 
 let currentUser, currentUserRole;
 
-// ------------------ Audit Logger ------------------
-async function logAudit(action, meta={}) {
-  if(!currentUser) return;
-  await addDoc(collection(db,"audit_logs"),{
-    user: currentUser.uid,
-    action,
-    meta,
-    timestamp: new Date()
-  });
-}
-
 // ------------------ Auth & Role ------------------
 onAuthStateChanged(auth, async(user)=>{
   currentUser = user;
@@ -221,7 +220,7 @@ onAuthStateChanged(auth, async(user)=>{
   currentUserRole = uDoc.data().role || "user";
   if(!["superadmin","staff"].includes(currentUserRole)){ await signOut(auth); return window.location.href="/dashboard.html"; }
   document.getElementById("admin-role").textContent = currentUserRole;
-  setupBindings();
+  setupBindings(); 
   await loadInitialData();
 });
 
@@ -245,63 +244,97 @@ function setupBindings(){
     }
   });
 
-  // ------------------ Add Record ------------------
-  document.getElementById("btn-add-record").onclick = async()=>{
-    const name = document.getElementById("add-name").value.trim();
-    const nia = document.getElementById("add-nia").value.trim();
-    const dob = document.getElementById("add-dob").value.trim();
-    if(!name || !nia || !dob){ alert("Fill all fields"); return; }
-    try{
-      await addDoc(collection(db,"records"), { name, nia, dob });
-      await logAudit("Added record", {name, nia, dob});
-      alert("Record added!");
-      document.getElementById("add-name").value="";
-      document.getElementById("add-nia").value="";
-      document.getElementById("add-dob").value="";
-    }catch(e){ console.error(e); alert("Error adding record"); }
-  };
-
-  // ------------------ Verify Search ------------------
-  document.getElementById("btn-verify-name").onclick = async()=>{
+  // ------------------ Verify/Search ------------------
+  document.getElementById("btn-verify-name").onclick = async () => {
     const input = document.getElementById("verify-input").value.trim();
     const output = document.getElementById("verify-output");
-    if(!input){ output.innerHTML="Enter name or NIA"; return; }
-    output.innerHTML="Loading…";
+    if (!input) { output.innerHTML = "Enter Name or NIA"; return; }
+    output.innerHTML = "Loading…";
 
-    try{
-      const q = query(collection(db,"records"), where("name","==",input));
-      const snap = await getDocs(q);
-      if(snap.empty){ output.innerHTML="No record"; return; }
-      output.innerHTML="";
-      snap.forEach(docSnap=>{
+    try {
+      const qName = query(collection(db, "records"), where("name", "==", input));
+      const qNIA = query(collection(db, "records"), where("nia", "==", input));
+      const snapName = await getDocs(qName);
+      const snapNIA = await getDocs(qNIA);
+      const results = [...snapName.docs, ...snapNIA.docs];
+
+      if (!results.length) { output.innerHTML = "No record found"; return; }
+      output.innerHTML = "";
+
+      results.forEach(docSnap => {
         const r = docSnap.data();
+        let fields = "";
+        for (const key in r) {
+          fields += `<p><strong>${key}:</strong> ${r[key]}</p>`;
+        }
         output.innerHTML += `
-          <div class="record">
-            <h3>${r.name}</h3>
-            <p>NIA: ${r.nia}</p>
-            <p>DOB: ${r.dob}</p>
+          <div class="record" style="border:1px solid #ccc;padding:8px;margin-bottom:8px;border-radius:8px;">
+            ${fields}
             <button class="btn-red" onclick="deleteRecord('${docSnap.id}')">Delete</button>
           </div>`;
       });
-    } catch(e){ console.error(e); output.innerHTML="Error loading record"; }
+
+    } catch (e) { console.error(e); output.innerHTML = "Error loading record"; }
+  };
+
+  // ------------------ Add Record ------------------
+  document.getElementById("btn-add-record").onclick = async () => {
+    const record = {
+      name: document.getElementById("add-name").value.trim(),
+      nia: document.getElementById("add-nia").value.trim(),
+      dob: document.getElementById("add-dob").value.trim(),
+      address: document.getElementById("add-address").value.trim(),
+      credit: document.getElementById("add-credit").value.trim(),
+      criminal: document.getElementById("add-criminal").value.trim(),
+      driving: document.getElementById("add-driving").value.trim(),
+      region: document.getElementById("add-region").value.trim(),
+      status: document.getElementById("add-status").value.trim(),
+      createdAt: new Date()
+    };
+
+    const output = document.getElementById("add-output");
+    if (!record.name || !record.nia) { output.innerHTML = "Name and NIA are required"; return; }
+
+    try {
+      const docRef = await addDoc(collection(db, "records"), record);
+      output.innerHTML = `Record added (ID: ${docRef.id})`;
+      await addDoc(collection(db, "audit_logs"), {
+        timestamp: new Date(),
+        user: currentUser.uid,
+        action: "add_record",
+        meta: record
+      });
+      loadStats();
+    } catch (e) { console.error(e); output.innerHTML = "Error adding record"; }
+  };
+
+  // ------------------ Delete Record ------------------
+  window.deleteRecord = async (id) => {
+    if (!confirm("Delete this record?")) return;
+    try {
+      const docRef = doc(db, "records", id);
+      const docSnap = await getDoc(docRef);
+      const recordData = docSnap.data();
+      await deleteDoc(docRef);
+      await addDoc(collection(db, "audit_logs"), {
+        timestamp: new Date(),
+        user: currentUser.uid,
+        action: "delete_record",
+        meta: recordData
+      });
+      alert("Record deleted");
+      document.getElementById("verify-output").innerHTML = "";
+      loadStats();
+    } catch (e) { console.error(e); alert("Error deleting record"); }
   };
 }
 
-// ------------------ Delete Record ------------------
-window.deleteRecord = async(id)=>{
-  if(!confirm("Delete this record?")) return;
-  await deleteDoc(doc(db,"records",id));
-  await logAudit("Deleted record", {recordId:id});
-  alert("Record deleted!");
-  document.getElementById("verify-output").innerHTML="";
-};
-
 // ------------------ Load Initial Data ------------------
 async function loadInitialData(){
-  await loadStats();
-  await loadUsers();
-  await loadSearchLogs();
-  await loadWallet();
+  await loadStats(); 
+  await loadUsers(); 
+  await loadSearchLogs(); 
+  await loadWallet(); 
   await loadAuditLogs();
 }
 
@@ -349,26 +382,23 @@ async function loadUsers(){
 window.deleteUser = async(id)=>{
   if(!confirm("Delete user?")) return;
   await deleteDoc(doc(db,"users",id));
-  await logAudit("Deleted user", {userId: id});
   loadUsers();
 };
 
 window.grantBasicPlan = async(uid)=>{
   await updateDoc(doc(db,"users",uid), { plan:"basic", freeSearchesRemaining:3 });
-  await logAudit("Granted Basic Plan", {userId: uid});
   loadUsers();
 };
 
 window.grantProPlan = async(uid)=>{
   await updateDoc(doc(db,"users",uid), { plan:"pro", freeSearchesRemaining:10 });
-  await logAudit("Granted Pro Plan", {userId: uid});
   loadUsers();
 };
 
 window.useWallet = async(uid)=>{
   const uDoc = await getDoc(doc(db,"users",uid));
   const u = uDoc.data();
-  const addSearches = Math.floor(u.wallet || 0);
+  const addSearches = Math.floor(u.wallet || 0); // 1$ = 1 search
   if(addSearches <= 0){ alert("Wallet empty"); return; }
   await updateDoc(doc(db,"users",uid), {
     freeSearchesRemaining: (u.freeSearchesRemaining||0) + addSearches,
@@ -377,9 +407,7 @@ window.useWallet = async(uid)=>{
   await addDoc(collection(db,"wallet_transactions"),{
     user: uid, type:"wallet converted to searches", amount: -addSearches, timestamp:new Date()
   });
-  await logAudit("Used wallet for searches", {userId: uid, addedSearches: addSearches});
-  loadUsers(); 
-  loadWallet();
+  loadUsers(); loadWallet();
 };
 
 // ------------------ Search Logs ------------------
