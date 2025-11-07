@@ -238,7 +238,7 @@ function setupBindings(){
     try{
       const isAdmin = ["superadmin","staff"].includes(currentUserRole);
 
-      // Only deduct for non-admin users
+      // Deduct freeSearches/wallet ONLY if NOT admin
       if(!isAdmin){
         const userDoc = await getDoc(doc(db,"users",currentUser.uid));
         const userData = userDoc.data();
@@ -251,7 +251,6 @@ function setupBindings(){
           return;
         }
 
-        // Deduct free search or wallet
         if(free > 0){
           await updateDoc(doc(db,"users",currentUser.uid), { freeSearchesRemaining: free-1 });
         } else {
@@ -265,12 +264,24 @@ function setupBindings(){
         }
       }
 
-      // Perform search
-      const q = query(collection(db,"records"), where("name","==",input));
-      const snap = await getDocs(q);
-      if(snap.empty){ output.innerHTML="No record"; return; }
+      // ------------------ Perform Search ------------------
+      const recordsRef = collection(db,"records");
+      let recordSnap;
+
+      // Search by name first
+      let q = query(recordsRef, where("name","==",input));
+      recordSnap = await getDocs(q);
+
+      // If no results, try searching by NIA
+      if(recordSnap.empty){
+        q = query(recordsRef, where("nia","==",input));
+        recordSnap = await getDocs(q);
+      }
+
       output.innerHTML="";
-      snap.forEach(docSnap=>{
+      if(recordSnap.empty){ output.innerHTML="No record"; return; }
+
+      recordSnap.forEach(docSnap=>{
         const r = docSnap.data();
         output.innerHTML += `<div class="record"><h3>${r.name}</h3><p>NIA: ${r.nia}</p><p>DOB: ${r.dob}</p></div>`;
       });
@@ -298,7 +309,7 @@ async function loadStats(){
   document.getElementById("stat-searches").textContent = searchSnap.size;
 
   let totalWallet = 0;
-  walletSnap.forEach(s => totalWallet += s.data().amount || 0);
+  usersSnap.forEach(u => totalWallet += u.data().wallet || 0);
   document.getElementById("stat-wallet").textContent = totalWallet;
   document.getElementById("stat-transactions").textContent = walletSnap.size;
 }
@@ -382,7 +393,7 @@ async function loadWallet(){
   const snap = await getDocs(collection(db,"users"));
   tbody.innerHTML="";
   snap.forEach(u=>{
-    const d=u.data();
+    const d = u.data();
     tbody.innerHTML+=`<tr><td>${u.id}</td><td>${d.wallet||0}</td></tr>`;
   });
 
@@ -411,6 +422,7 @@ function loadAnalyticsUI(){
   document.getElementById("analytics-status").innerHTML="<p>Analytics coming soon…</p>";
 }
 </script>
+
 
 
 </body>
