@@ -82,8 +82,8 @@ th{background:#f0f0f0;}
   margin-top:1rem;
   box-shadow:0 6px 20px rgba(0,0,0,0.06);
 }
+
 .muted{color:var(--muted);}
-.pill{padding:6px 12px;border-radius:10px;background:var(--green);color:white;font-weight:600;}
 </style>
 </head>
 <body>
@@ -119,16 +119,12 @@ th{background:#f0f0f0;}
   <!-- Verify -->
   <section id="section-verify">
     <div class="panel">
-      <label class="muted">Search by full name or NIA ID</label>
-      <input id="verify-input" placeholder="e.g. Ama Serwaa or GHA-2039485" />
+      <label>Search by name or NIA</label>
+      <input id="verify-input" placeholder="Enter name or NIA" />
       <div style="display:flex;gap:10px;margin-top:8px;">
-        <button id="btn-verify-search" class="btn-green">Search</button>
+        <button id="btn-verify-name" class="btn-green">Search</button>
       </div>
-      <div style="margin-top:12px">
-        <span class="pill" id="freeCountDisplay">Free: —</span>
-        <span class="muted" id="planDisplay">Plan: —</span>
-      </div>
-      <div id="verify-output"></div>
+      <div id="verify-output" style="margin-top:12px;"></div>
     </div>
   </section>
 
@@ -180,40 +176,48 @@ th{background:#f0f0f0;}
       </table>
     </div>
   </section>
+
 </main>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
 import { getFirestore, collection, doc, getDoc, getDocs, query, where, updateDoc, addDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
+import { getAnalytics, isSupported as analyticsSupported } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-analytics.js";
 
+// ------------------ Firebase Config ------------------
 const firebaseConfig = {
   apiKey:"AIzaSyCDh_qL3jiCMHROK0_Soul2Wsv3t3y4wv0",
   authDomain:"nbvs-ghana.firebaseapp.com",
   projectId:"nbvs-ghana",
   storageBucket:"nbvs-ghana.firebasestorage.app",
   messagingSenderId:"702636577113",
-  appId:"1:702636577113:web:8369b43a2aa43aeb95fc48"
+  appId:"1:702636577113:web:8369b43a2aa43aeb95fc48",
+  measurementId:"G-2FHFSQRMZX"
 };
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
+let analytics;
+(async()=>{ if(await analyticsSupported()) analytics=getAnalytics(app); })();
 
 let currentUser, currentUserRole;
 
-// ------------------ Auth ------------------
+// ------------------ Auth & Role ------------------
 onAuthStateChanged(auth, async(user)=>{
   currentUser = user;
   if(!user) return window.location.href="/dashboard.html";
   const uDoc = await getDoc(doc(db,"users",user.uid));
   if(!uDoc.exists()){ await signOut(auth); return window.location.href="/dashboard.html"; }
   currentUserRole = uDoc.data().role || "user";
+  if(!["superadmin","staff"].includes(currentUserRole)){ await signOut(auth); return window.location.href="/dashboard.html"; }
   document.getElementById("admin-role").textContent = currentUserRole;
-  setupBindings();
+  setupBindings(); 
   await loadInitialData();
 });
 
+// ------------------ Logout ------------------
 document.getElementById("btn-logout").onclick = async()=>{ await signOut(auth); window.location.href="/dashboard.html"; };
 
 // ------------------ Tabs ------------------
@@ -233,89 +237,171 @@ function setupBindings(){
     }
   });
 
-  // ------------------ Verify ------------------
-  const output = document.getElementById("verify-output");
-  const freeDisplay = document.getElementById("freeCountDisplay");
-  const planDisplay = document.getElementById("planDisplay");
+  // ------------------ VERIFY FOR ADMINS ------------------
+  const verifyInput = document.getElementById("verify-input");
+  const verifyBtn = document.getElementById("btn-verify-name");
+  const verifyOutput = document.getElementById("verify-output");
 
-  document.getElementById("btn-verify-search").onclick = async()=>{
-    const input = document.getElementById("verify-input").value.trim();
-    if(!input){ output.innerHTML="Enter name or NIA"; return; }
-    output.innerHTML="Loading…";
+  verifyBtn.onclick = async () => {
+    const text = verifyInput.value.trim();
+    verifyOutput.innerHTML = "";
 
-    const userDoc = await getDoc(doc(db,"users",currentUser.uid));
-    const userData = userDoc.data();
-    const free = userData.freeSearchesRemaining || 0;
-    const wallet = userData.wallet || 0;
-
-    // Admin bypass
-    if(!["superadmin","staff"].includes(currentUserRole)){
-      if(free <=0 && wallet <30){ output.innerHTML="No free searches or wallet too low."; return; }
-      if(free>0){ await updateDoc(doc(db,"users",currentUser.uid), { freeSearchesRemaining: free-1 }); }
-      else{ 
-        await updateDoc(doc(db,"users",currentUser.uid), { wallet: wallet-30 });
-        await addDoc(collection(db,"wallet_transactions"),{
-          user: currentUser.uid,
-          type:"search deduction",
-          amount: -30,
-          timestamp:new Date()
-        });
-      }
+    if(!text){
+      verifyOutput.innerHTML = "<p style='color:red'>Enter name or NIA</p>";
+      return;
     }
 
-    // Update UI
-    const updatedUser = await getDoc(doc(db,"users",currentUser.uid));
-    freeDisplay.innerText = `Free: ${updatedUser.data().freeSearchesRemaining||0}`;
-    planDisplay.innerText = `Plan: ${updatedUser.data().plan||'free'}`;
+    verifyOutput.innerHTML = "<p>Loading…</p>";
 
-    // Search
-    const qName = query(collection(db,"records"), where("name","==",input));
-    const qNIA = query(collection(db,"records"), where("nia","==",input));
-    const snapName = await getDocs(qName);
-    const snapNIA = await getDocs(qNIA);
-    const results = [...snapName.docs, ...snapNIA.docs];
+    try{
+      const q = query(collection(db,"records"), where("name","==",text));
+      const snap = await getDocs(q);
 
-    output.innerHTML = "";
-    if(!results.length) output.innerHTML="❌ No record found.";
-    else results.forEach(docSnap=>{
-      const r = docSnap.data();
-      output.innerHTML += `
-        <div class="record">
-          <p><b>Name:</b> ${r.name}</p>
-          <p><b>NIA:</b> ${r.nia}</p>
-          <p><b>DOB:</b> ${r.dob}</p>
-          <p><b>Region:</b> ${r.region}</p>
-          <p><b>Address:</b> ${r.address}</p>
-          <p><b>Criminal:</b> ${r.criminal}</p>
-          <p><b>Driving:</b> ${r.driving}</p>
-          <p><b>Credit:</b> ${r.credit}</p>
-          <p><b>Status:</b> ${r.status}</p>
-        </div>`;
-    });
+      if(snap.empty){
+        verifyOutput.innerHTML = "<p>❌ No record found.</p>";
+        await addDoc(collection(db,"search_logs"),{
+          term: text,
+          user: currentUser.uid,
+          timestamp: new Date(),
+          found: false
+        });
+        return;
+      }
 
-    // Log search
-    await addDoc(collection(db,"search_logs"),{
-      term: input,
-      user: currentUser.uid,
-      timestamp: new Date(),
-      found: results.length>0,
-      platform:"web"
-    });
+      verifyOutput.innerHTML = "";
+      snap.forEach(docSnap => {
+        const r = docSnap.data();
+        verifyOutput.innerHTML += `
+          <div class="record">
+            <h3>${r.name}</h3>
+            <p><b>NIA:</b> ${r.nia}</p>
+            <p><b>DOB:</b> ${r.dob}</p>
+            <p><b>Region:</b> ${r.region}</p>
+            <p><b>Address:</b> ${r.address}</p>
+            <p><b>Criminal:</b> ${r.criminal}</p>
+            <p><b>Driving:</b> ${r.driving}</p>
+            <p><b>Credit:</b> ${r.credit}</p>
+            <p><b>Status:</b> ${r.status}</p>
+          </div>
+        `;
+      });
+
+      // Log search
+      await addDoc(collection(db,"search_logs"),{
+        term: text,
+        user: currentUser.uid,
+        timestamp: new Date(),
+        found: true
+      });
+
+    } catch(e){
+      console.error(e);
+      verifyOutput.innerHTML = "<p style='color:red'>Error loading record</p>";
+    }
   };
 }
 
 // ------------------ Load Initial Data ------------------
 async function loadInitialData(){
-  await loadStats();
-  await loadUsers();
-  await loadSearchLogs();
-  await loadWallet();
+  await loadStats(); 
+  await loadUsers(); 
+  await loadSearchLogs(); 
+  await loadWallet(); 
   await loadAuditLogs();
 }
 
-// ... [Keep your existing loadStats, loadUsers, loadSearchLogs, loadWallet, loadAuditLogs, loadAnalyticsUI functions unchanged]
-</script>
+// ------------------ Stats ------------------
+async function loadStats(){
+  const usersSnap = await getDocs(collection(db,"users"));
+  const searchSnap = await getDocs(collection(db,"search_logs"));
+  const walletSnap = await getDocs(collection(db,"wallet_transactions"));
 
+  document.getElementById("stat-users").textContent = usersSnap.size;
+  document.getElementById("stat-searches").textContent = searchSnap.size;
+
+  let totalWallet = 0;
+  walletSnap.forEach(s => totalWallet += s.data().amount || 0);
+  document.getElementById("stat-wallet").textContent = totalWallet;
+  document.getElementById("stat-transactions").textContent = walletSnap.size;
+}
+
+// ------------------ Users ------------------
+async function loadUsers(){
+  const tbody = document.getElementById("users-body");
+  const snap = await getDocs(collection(db,"users"));
+  tbody.innerHTML="";
+  snap.forEach(u=>{
+    const d = u.data();
+    tbody.innerHTML+=`
+      <tr>
+        <td>${u.id}</td>
+        <td>${d.name||""}</td>
+        <td>${d.email||""}</td>
+        <td>${d.role||"user"}</td>
+        <td>
+          <button onclick="deleteUser('${u.id}')" class="btn-red">Delete</button>
+        </td>
+      </tr>`;
+  });
+}
+
+// ------------------ Admin Actions ------------------
+window.deleteUser = async(id)=>{
+  if(!confirm("Delete user?")) return;
+  await deleteDoc(doc(db,"users",id));
+  loadUsers();
+};
+
+// ------------------ Search Logs ------------------
+async function loadSearchLogs(){
+  const tbody = document.getElementById("searchlogs-body");
+  const snap = await getDocs(collection(db,"search_logs"));
+  tbody.innerHTML="";
+  snap.forEach(d=>{
+    const s=d.data();
+    tbody.innerHTML+=`<tr>
+      <td>${s.timestamp?.toDate?.()?.toLocaleString()||""}</td>
+      <td>${s.user||""}</td>
+      <td>${s.term||""}</td>
+      <td>${s.found?"✔":"❌"}</td>
+    </tr>`;
+  });
+}
+
+// ------------------ Wallet ------------------
+async function loadWallet(){
+  const tbody = document.getElementById("wallet-body");
+  const snap = await getDocs(collection(db,"users"));
+  tbody.innerHTML="";
+  snap.forEach(u=>{
+    const d=u.data();
+    tbody.innerHTML+=`<tr><td>${u.id}</td><td>${d.wallet||0}</td></tr>`;
+  });
+
+  const txBody = document.getElementById("wallettx-body");
+  const txSnap = await getDocs(collection(db,"wallet_transactions"));
+  txBody.innerHTML="";
+  txSnap.forEach(t=>{
+    const tx=t.data();
+    txBody.innerHTML+=`<tr><td>${tx.timestamp?.toDate?.()?.toLocaleString()||""}</td><td>${tx.user||""}</td><td>${tx.type||""}</td><td>${tx.amount||0}</td></tr>`;
+  });
+}
+
+// ------------------ Audit Logs ------------------
+async function loadAuditLogs(){
+  const tbody = document.getElementById("audit-logs-body");
+  const snap = await getDocs(collection(db,"audit_logs"));
+  tbody.innerHTML="";
+  snap.forEach(d=>{
+    const a=d.data();
+    tbody.innerHTML+=`<tr><td>${a.timestamp?.toDate?.()?.toLocaleString()||""}</td><td>${a.user||""}</td><td>${a.action||""}</td><td>${JSON.stringify(a.meta)||""}</td></tr>`;
+  });
+}
+
+// ------------------ Analytics Placeholder ------------------
+function loadAnalyticsUI(){
+  document.getElementById("analytics-status").innerHTML="<p>Analytics coming soon…</p>";
+}
+</script>
 </body>
 </html>
-
