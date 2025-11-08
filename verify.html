@@ -132,7 +132,7 @@
     </button>
 
     <button id="useWalletBtn" class="btn-yellow">
-      Use Wallet (¢30)
+      Use Wallet (¢30 per search)
     </button>
   </div>
 
@@ -162,14 +162,21 @@ const db = getFirestore(app);
 const auth = getAuth(app);
 
 let currentUserId;
-let currentUserRole;
 
-// Load user and update UI
+// ✅ Get logged-in user
+onAuthStateChanged(auth, async(user) => {
+  if(!user) return window.location.href = "/index.html";
+  currentUserId = user.uid;
+  await updateUI();
+});
+
+// ✅ Load user data
 async function loadUser() {
   const snap = await getDoc(doc(db,"users",currentUserId));
   return snap.exists() ? snap.data() : null;
 }
 
+// ✅ Update UI
 async function updateUI() {
   const user = await loadUser();
   if(!user) return;
@@ -178,7 +185,7 @@ async function updateUI() {
   document.getElementById("userPlan").innerText = user.plan || 'free';
 }
 
-// Deduct search (wallet / free / plan)
+// ✅ Deduct search
 async function deductSearch() {
   const user = await loadUser();
   if(!user) return false;
@@ -186,11 +193,13 @@ async function deductSearch() {
   // Admin/staff bypass
   if(user.role === "superadmin" || user.role === "staff") return true;
 
+  // Free searches
   if(user.freeSearchesRemaining > 0){
     await updateDoc(doc(db,"users",currentUserId), { freeSearchesRemaining: user.freeSearchesRemaining - 1 });
     return true;
   }
 
+  // Wallet balance
   if(user.wallet >= 30){
     await updateDoc(doc(db,"users",currentUserId), { wallet: user.wallet - 30 });
     await addDoc(collection(db,"wallet_transactions"), {
@@ -202,23 +211,14 @@ async function deductSearch() {
     return true;
   }
 
-  alert("No free searches or enough wallet balance.");
+  alert("No free searches left and wallet is empty.");
   return false;
 }
 
-// Auth
-onAuthStateChanged(auth, async(user) => {
-  if(!user) return window.location.href = "/dashboard.html"; // redirect if logged out
-  currentUserId = user.uid;
-  const uData = await loadUser();
-  currentUserRole = uData.role || "user";
-  await updateUI();
-});
-
-// Buttons
+// ✅ Wallet button
 document.getElementById("walletPageBtn").onclick = () => window.location.href = "wallet.html";
 
-// Search
+// ✅ Search button
 document.getElementById("searchBtn").onclick = async () => {
   const text = document.getElementById("searchInput").value.trim();
   const resultsDiv = document.getElementById("resultsArea");
@@ -233,14 +233,12 @@ document.getElementById("searchBtn").onclick = async () => {
 
   await updateUI();
 
-  // Name search (case-insensitive)
+  // Case-insensitive name search + NIA search
   const qName = query(collection(db,"records"), where("name_lower","==",text.toLowerCase()));
-  // NIA exact search
   const qNIA = query(collection(db,"records"), where("nia","==",text));
-
   const snapName = await getDocs(qName);
   const snapNIA = await getDocs(qNIA);
-  const results = [...snapName.docs, ...snapNIA.docs.filter(d => !snapName.docs.find(x => x.id === d.id))];
+  const results = [...snapName.docs, ...snapNIA.docs];
 
   resultsDiv.innerHTML = "";
   if(!results.length) {
@@ -273,7 +271,7 @@ document.getElementById("searchBtn").onclick = async () => {
   });
 };
 
-// Buy buttons
+// ✅ Buy/Plan buttons
 document.getElementById("buyBasicBtn").onclick = async() => {
   await updateDoc(doc(db,"users",currentUserId), { plan:"basic", freeSearchesRemaining: 10 });
   await updateUI();
@@ -282,23 +280,23 @@ document.getElementById("buyProBtn").onclick = async() => {
   await updateDoc(doc(db,"users",currentUserId), { plan:"pro", freeSearchesRemaining: 999 });
   await updateUI();
 };
-
-// Wallet to searches
 document.getElementById("useWalletBtn").onclick = async() => {
   const user = await loadUser();
   if(user.wallet <= 0){ alert("Wallet empty."); return; }
+  const searchesAdded = Math.floor(user.wallet / 30);
   await updateDoc(doc(db,"users",currentUserId), {
-    freeSearchesRemaining: (user.freeSearchesRemaining||0) + user.wallet,
-    wallet: 0
+    freeSearchesRemaining: (user.freeSearchesRemaining||0) + searchesAdded,
+    wallet: user.wallet - (searchesAdded*30)
   });
   await addDoc(collection(db,"wallet_transactions"), {
     user: currentUserId,
     type: "wallet converted to searches",
-    amount: -user.wallet,
+    amount: -searchesAdded*30,
     timestamp: new Date()
   });
   await updateUI();
 };
 </script>
+
 </body>
 </html>
