@@ -292,8 +292,24 @@ function setupTabsAndBindings(){
     const btn = document.getElementById("tab-"+t);
     const sec = document.getElementById("section-"+t);
     if(!btn || !sec) return;
-    btn.onclick = ()=>{ tabs.forEach(x=>document.getElementById("tab-"+x).classList.remove("active")); btn.classList.add("active"); document.querySelectorAll("section").forEach(s=>s.style.display="none"); sec.style.display="block"; if(t==="dashboard"){ renderAnalytics(); } };
-  });
+    btn.onclick = () => {
+  // Switch active tab
+  tabs.forEach(x => document.getElementById("tab-" + x).classList.remove("active"));
+  btn.classList.add("active");
+
+  // Switch visible section
+  document.querySelectorAll("section").forEach(s => s.style.display = "none");
+  sec.style.display = "block";
+
+  // Load tab-specific data
+  if (t === "dashboard")  renderAnalytics();
+  if (t === "audit")      loadAuditLogs();      // ✅ FIX
+  if (t === "logs")       loadSearchLogs();     // (optional)
+  if (t === "users")      loadUsersTable();
+  if (t === "wallet") {   loadWallets(); loadWalletTxs(); }
+  if (t === "records")    loadRecordsList();
+};
+
 
   /* VERIFY admin search (unlimited) */
   const verifyInput = document.getElementById("verify-query");
