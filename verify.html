@@ -4,38 +4,96 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>NBVS Ghana — Verify</title>
+
 <style>
-:root{--red:#ce1126;--yellow:#fcd116;--green:#006b3f;--accent:#004f2e;--card:#fff;--bg:#f6f7f9;--muted:#555}
-*{box-sizing:border-box;margin:0;padding:0}body{font-family:"Segoe UI",Arial,sans-serif;background:var(--bg);color:#222}
-header{background:linear-gradient(90deg,var(--red),var(--yellow),var(--green));padding:1.8rem 1rem;text-align:center;color:white;font-weight:700;box-shadow:0 3px 12px rgba(0,0,0,0.15)}
-main{max-width:900px;margin:1.6rem auto;padding:0 1rem}
-.panel{background:var(--card);padding:1.2rem;border-radius:12px;box-shadow:0 8px 26px rgba(0,0,0,0.06);margin-bottom:1rem}
-.record{background:white;border-left:5px solid var(--green);padding:1rem;border-radius:10px;margin-top:1rem;box-shadow:0 6px 20px rgba(0,0,0,0.06)}
-.pill{padding:6px 12px;border-radius:10px;background:var(--green);color:white;font-weight:600}
-.muted{color:var(--muted)}.flex{display:flex;gap:10px}.flex>button{flex:1}.small{font-size:.9rem;color:var(--muted)}
-button{padding:10px;border-radius:8px;border:none;cursor:pointer;font-weight:700}
-.btn-green{background:var(--green);color:white}.btn-yellow{background:var(--yellow);color:#111}.btn-red{background:var(--red);color:white}
+:root{
+  --red:#ce1126;
+  --yellow:#fcd116;
+  --green:#006b3f;
+  --accent:#004f2e;
+  --card:#fff;
+  --bg:#f6f7f9;
+  --muted:#555;
+}
+body{
+  background:var(--bg);
+  font-family:"Segoe UI",Arial,sans-serif;
+  color:#222;
+  margin:0;
+}
+header{
+  background:linear-gradient(90deg,var(--red),var(--yellow),var(--green));
+  padding:1.6rem 1rem;
+  text-align:center;
+  color:white;
+  font-weight:700;
+}
+main{
+  max-width:900px;
+  margin:1.6rem auto;
+  padding:0 1rem;
+}
+.panel{
+  background:var(--card);
+  padding:1.2rem;
+  border-radius:12px;
+  box-shadow:0 8px 24px rgba(0,0,0,0.08);
+  margin-bottom:1.4rem;
+}
+label{font-size:.9rem;color:var(--muted);font-weight:600;margin-bottom:6px;display:block;}
+input{
+  width:100%;
+  padding:12px;
+  border-radius:8px;
+  border:1px solid #ccc;
+  margin-bottom:12px;
+}
+button{
+  width:100%;
+  padding:12px;
+  border:none;
+  border-radius:8px;
+  cursor:pointer;
+  font-size:1rem;
+  font-weight:700;
+}
+.btn-green{background:var(--green);color:white;}
+.btn-yellow{background:var(--yellow);color:#111;}
+.btn-red{background:var(--red);color:white;}
+.record{
+  background:white;
+  border-left:5px solid var(--green);
+  padding:1rem;
+  margin-top:1rem;
+  border-radius:10px;
+  box-shadow:0 6px 20px rgba(0,0,0,0.06);
+}
+.flex{display:flex;gap:10px;}
+.pill{padding:6px 12px;border-radius:10px;background:var(--green);color:white;font-weight:600;}
+.muted{color:var(--muted);}
 </style>
 </head>
+
 <body>
-<header><h1>NBVS Ghana — Background Verification</h1></header>
+<header><h1>NBVS Ghana — Verification</h1></header>
 
-<main id="verifyMain" style="display:none">
+<main id="main" style="display:none">
+
   <div class="panel">
-    <p class="muted">Each verification costs ¢30. You have <strong id="userPlan">loading…</strong>.</p>
+    <p class="muted">Each verification costs ¢30. You have <b id="planDisplayTop">loading…</b>.</p>
 
-    <label class="muted">Search by full name or NIA ID</label>
-    <input id="searchInput" placeholder="e.g. Kofi Mensah or GHA-2039485" style="width:100%;padding:12px;border-radius:8px;border:1px solid #ccc;margin:8px 0" />
+    <label for="searchInput">Search Name or NIA</label>
+    <input id="searchInput" placeholder="e.g. John Doe or GHA-1234567" />
 
-    <div class="flex" style="margin-bottom:8px">
+    <div class="flex">
       <button id="searchBtn" class="btn-green">Search</button>
-      <button id="walletPageBtn" class="btn-yellow">Open Wallet</button>
+      <button id="walletBtn" class="btn-yellow">Open Wallet</button>
     </div>
 
-    <div style="display:flex;gap:12px;align-items:center">
-      <div><span class="pill" id="freeCountDisplay">Free: —</span></div>
-      <div class="small" id="planDisplay">Plan: —</div>
-      <div class="small" id="walletDisplay" style="margin-left:auto">Wallet: ¢—</div>
+    <div class="flex" style="margin-top:10px;">
+      <span id="freeCount" class="pill">Free: —</span>
+      <span class="muted" id="planLabel">Plan: —</span>
+      <span class="muted" id="walletLabel" style="margin-left:auto">Wallet: ¢—</span>
     </div>
   </div>
 
@@ -43,23 +101,31 @@ button{padding:10px;border-radius:8px;border:none;cursor:pointer;font-weight:700
 
   <div class="panel">
     <h3>Upgrade / Buy</h3>
-    <div style="margin-bottom:8px"><button id="buyBasicBtn" class="btn-green">BASIC — 10 searches — $3.99</button></div>
-    <div style="margin-bottom:8px"><button id="buyProBtn" class="btn-red">PRO — Unlimited 30 days — $14.99</button></div>
-    <div><button id="useWalletBtn" class="btn-yellow">Convert Wallet → Searches (¢30 each)</button></div>
-    <div class="small" style="margin-top:8px">Conversion uses whole multiples of ¢30; remainder stays in wallet.</div>
+    <button id="buyBasic" class="btn-green" style="margin-bottom:10px">BASIC — 10 searches — $3.99</button>
+    <button id="buyPro" class="btn-red" style="margin-bottom:10px">PRO — Unlimited — $14.99</button>
+    <button id="convertWallet" class="btn-yellow">Convert Wallet → Searches (¢30/search)</button>
   </div>
 
-  <div style="text-align:center;margin-top:8px"><a href="index.html">← Back Home</a> • <a href="wallet.html">Wallet</a></div>
+  <div style="text-align:center;margin-top:12px">
+    <a href="index.html">← Home</a> • <a href="wallet.html">Wallet</a>
+  </div>
+
 </main>
 
+
 <script type="module">
+/* ===============================
+   FIREBASE
+================================*/
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
 import {
-  getFirestore, doc, getDoc, setDoc, updateDoc, collection, getDocs, query, where, addDoc, limit
+  getFirestore, doc, getDoc, setDoc, updateDoc,
+  collection, getDocs, query, where, addDoc, limit
 } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 
-const firebaseConfig = {
+/* Your Firebase config */
+const firebaseConfig={
   apiKey:"AIzaSyCDh_qL3jiCMHROK0_Soul2Wsv3t3y4wv0",
   authDomain:"nbvs-ghana.firebaseapp.com",
   projectId:"nbvs-ghana",
@@ -71,275 +137,231 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-const SEARCH_COST = 30; // ¢30 per search
-let currentUserId = null;
+/* ===============================
+   DOM
+================================*/
+const main    = document.getElementById("main");
+const searchI = document.getElementById("searchInput");
+const searchB = document.getElementById("searchBtn");
+const walletB = document.getElementById("walletBtn");
+const results = document.getElementById("resultsArea");
 
-// DOM refs
-const verifyMain = document.getElementById("verifyMain");
-const searchInput = document.getElementById("searchInput");
-const searchBtn = document.getElementById("searchBtn");
-const walletPageBtn = document.getElementById("walletPageBtn");
-const resultsArea = document.getElementById("resultsArea");
-const freeCountDisplay = document.getElementById("freeCountDisplay");
-const planDisplay = document.getElementById("planDisplay");
-const walletDisplay = document.getElementById("walletDisplay");
-const buyBasicBtn = document.getElementById("buyBasicBtn");
-const buyProBtn = document.getElementById("buyProBtn");
-const useWalletBtn = document.getElementById("useWalletBtn");
-const userPlanText = document.getElementById("userPlan");
+const freeCountEl = document.getElementById("freeCount");
+const planLabelEl = document.getElementById("planLabel");
+const walletLabelEl = document.getElementById("walletLabel");
+const planDisplayTop = document.getElementById("planDisplayTop");
 
-// helpers
-function toNumber(v){
-  if(v === undefined || v === null) return 0;
-  if(typeof v === "number") return v;
-  const n = Number(v);
-  return Number.isFinite(n) ? n : 0;
-}
-function uniqById(arr){
-  const m = new Map();
-  arr.forEach(d=>{ if(!m.has(d.id)) m.set(d.id,d); });
-  return Array.from(m.values());
-}
+const buyBasic = document.getElementById("buyBasic");
+const buyPro = document.getElementById("buyPro");
+const convertWallet = document.getElementById("convertWallet");
 
-// ensure user doc defaults exist (merge-like)
-async function ensureUserDefaults(uid){
-  const uRef = doc(db,"users",uid);
-  const snap = await getDoc(uRef);
+/* ===============================
+   Helpers
+================================*/
+function num(x){ x = Number(x); return Number.isFinite(x) ? x : 0; }
+const COST = 30; // ¢30 per search
+let uid = null;
+
+/* ===============================
+   Load or Create Default User
+================================*/
+async function loadUserDoc(){
+  const ref = doc(db,"users",uid);
+  const snap = await getDoc(ref);
   if(!snap.exists()){
-    // create a doc with defaults
-    try{
-      await setDoc(uRef, { freeSearches: 3, walletCredits: 0, plan: "free", planExpires: null, role: "user" }, { merge: true });
-    }catch(e){
-      // fallback: setDoc without merge if above fails
-      await setDoc(uRef, { freeSearches: 3, walletCredits: 0, plan: "free", planExpires: null, role: "user" });
-    }
-  } else {
-    // if doc exists but missing keys set defaults (merge)
-    const data = snap.data();
-    const update = {};
-    if(data.freeSearches === undefined) update.freeSearches = 3;
-    if(data.walletCredits === undefined && data.wallet === undefined) update.walletCredits = 0;
-    if(data.plan === undefined) update.plan = "free";
-    if(data.role === undefined) update.role = "user";
-    if(Object.keys(update).length) await updateDoc(uRef, update);
+    await setDoc(ref,{
+      freeSearches:3,
+      walletCredits:0,
+      plan:"free",
+      role:"user"
+    });
+    return {freeSearches:3,walletCredits:0,plan:"free",role:"user"};
   }
+  return snap.data();
 }
 
-// load user doc
-async function loadUser(){
-  if(!currentUserId) return null;
-  const snap = await getDoc(doc(db,"users",currentUserId));
-  return snap.exists() ? snap.data() : null;
-}
-
-// update UI from actual fields your DB uses
+/* ===============================
+   Update UI
+================================*/
 async function updateUI(){
-  const u = await loadUser();
-  if(!u) return;
-  const free = (u.freeSearches !== undefined) ? toNumber(u.freeSearches) : ((u.freeSearchesRemaining !== undefined) ? toNumber(u.freeSearchesRemaining) : 0);
-  const walletAmt = toNumber(u.walletCredits ?? u.wallet ?? 0);
-  freeCountDisplay.innerText = `Free: ${free}`;
-  planDisplay.innerText = `Plan: ${u.plan || "free"}`;
-  walletDisplay.innerText = `Wallet: ¢${walletAmt}`;
-  userPlanText.innerText = u.plan || "free";
+  const u = await loadUserDoc();
+  const free = num(u.freeSearches);
+  const wallet = num(u.walletCredits);
+  const plan = u.plan || "free";
+
+  freeCountEl.innerText = `Free: ${free}`;
+  walletLabelEl.innerText = `Wallet: ¢${wallet}`;
+  planLabelEl.innerText = `Plan: ${plan}`;
+  planDisplayTop.innerText = plan;
 }
 
-// central deduct flow: freeSearches, then walletCredits
+/* ===============================
+   Deduct Search
+================================*/
 async function deductSearch(){
-  const u = await loadUser();
-  if(!u) return false;
+  const u = await loadUserDoc();
 
-  // admin/staff bypass (no deduction)
-  if(u.role === "superadmin" || u.role === "staff") return true;
+  // Admin/staff bypass
+  if(u.role === "staff" || u.role === "superadmin"){ return true; }
 
-  // check pro (if you use planExpires for pro)
-  if(u.plan === "pro" && u.planExpires){
-    try{
-      const ex = (u.planExpires.toDate) ? u.planExpires.toDate() : new Date(u.planExpires);
-      if(ex > new Date()) return true;
-    }catch(e){/* ignore */}
-  }
+  let free = num(u.freeSearches);
+  let wallet = num(u.walletCredits);
 
-  // freeSearches field (your DB uses freeSearches)
-  if(typeof u.freeSearches === "number" && u.freeSearches > 0){
-    await updateDoc(doc(db,"users",currentUserId), { freeSearches: u.freeSearches - 1 });
-    await updateUI();
+  if(free > 0){
+    await updateDoc(doc(db,"users",uid),{ freeSearches: free - 1 });
     return true;
   }
 
-  // walletCredits fallback
-  const walletAmt = toNumber(u.walletCredits ?? u.wallet ?? 0);
-  if(walletAmt >= SEARCH_COST){
-    // subtract cost
-    const newWallet = walletAmt - SEARCH_COST;
-    if(u.walletCredits !== undefined){
-      await updateDoc(doc(db,"users",currentUserId), { walletCredits: newWallet });
-    } else {
-      await updateDoc(doc(db,"users",currentUserId), { walletCredits: newWallet });
-    }
-    // add tx log
-    await addDoc(collection(db,"wallet_transactions"), { user: currentUserId, type: "search_deduction", amount: -SEARCH_COST, timestamp: new Date() });
-    await updateUI();
+  if(wallet >= COST){
+    await updateDoc(doc(db,"users",uid),{ walletCredits: wallet - COST });
+    await addDoc(collection(db,"wallet_transactions"),{
+      user:uid, type:"search deduction", amount:-COST, timestamp:new Date()
+    });
     return true;
   }
 
   return false;
 }
 
-// perform search: name (case-insensitive) and NIA exact (also try numeric variant)
-async function performSearch(term){
-  const results = [];
-  const t = (term||"").trim();
-  if(!t) return results;
-  const tLower = t.toLowerCase();
+/* ===============================
+   Perform Search
+================================*/
+async function doSearch(term){
+  const clean = term.trim().toLowerCase();
+  const out = [];
 
-  // Determine if maybe NIA: contains digits or common prefix
-  const maybeNia = /\d/.test(t);
+  const recordsRef = collection(db,"records");
 
-  try{
-    // 1) try name_lower exact (fast)
-    const qNameLower = query(collection(db,"records"), where("name_lower","==", tLower), limit(200));
-    const snapNL = await getDocs(qNameLower);
-    if(!snapNL.empty){
-      snapNL.forEach(d=>results.push(d));
-    }
+  // 1) Try NIA exact
+  const q1 = query(recordsRef, where("nia","==",term));
+  const s1 = await getDocs(q1);
+  s1.forEach(d=> out.push(d));
 
-    // 2) try NIA exact match
-    const qNia = query(collection(db,"records"), where("nia","==", t), limit(50));
-    const snapNia = await getDocs(qNia);
-    if(!snapNia.empty) snapNia.forEach(d=>results.push(d));
+  // 2) Try case-insensitive name match
+  const snapAll = await getDocs(query(recordsRef, limit(500)));
+  snapAll.forEach(d=>{
+    const r = d.data();
+    if((r.name||"").toLowerCase() === clean) out.push(d);
+  });
 
-    // 3) if not found and t contains digits, try numeric-only match (strip non-digits)
-    if(maybeNia && results.length === 0){
-      const digits = t.replace(/\D/g,'');
-      if(digits){
-        const qDigits = query(collection(db,"records"), where("nia","==", digits), limit(50));
-        const snapDigits = await getDocs(qDigits);
-        if(!snapDigits.empty) snapDigits.forEach(d=>results.push(d));
-      }
-    }
-
-    // 4) fallback: if name_lower not present or empty results, do client-side filter (limited read)
-    if(results.length === 0){
-      const snapAll = await getDocs(query(collection(db,"records"), limit(500)));
-      snapAll.forEach(d=>{
-        const r = d.data();
-        const nameVal = (r.name||"").toString().toLowerCase();
-        if(nameVal === tLower) results.push(d);
-        // also match NIA fallback
-        if((r.nia || "") === t) results.push(d);
-        const digits = t.replace(/\D/g,'');
-        if(digits && (r.nia || "") === digits) results.push(d);
-      });
-    }
-
-    // dedupe
-    return uniqById(results);
-
-  }catch(e){
-    console.error("performSearch error", e);
-    return results;
-  }
+  return out;
 }
 
-// render records
-function renderResults(docs){
-  resultsArea.innerHTML = "";
-  if(!docs || docs.length === 0){
-    resultsArea.innerHTML = "<p class='muted'>❌ No record found.</p>";
+/* ===============================
+   Search Button
+================================*/
+searchB.onclick = async ()=>{
+  const term = searchI.value.trim();
+  if(!term){
+    results.innerHTML="<p class='muted'>Enter a name or NIA.</p>";
     return;
   }
-  docs.forEach(d=>{
-    const r = d.data();
-    const div = document.createElement("div");
-    div.className = "record";
-    div.innerHTML = `
-      <p><b>Name:</b> ${r.name||""}</p>
-      <p><b>NIA:</b> ${r.nia||""}</p>
-      <p><b>DOB:</b> ${r.dob||""}</p>
-      <p><b>Region:</b> ${r.region||""}</p>
-      <p><b>Address:</b> ${r.address||""}</p>
-      <p><b>Criminal:</b> ${r.criminal||""}</p>
-      <p><b>Driving:</b> ${r.driving||""}</p>
-      <p><b>Credit:</b> ${r.credit||""}</p>
-      <p><b>Status:</b> ${r.status||""}</p>
-    `;
-    resultsArea.appendChild(div);
-  });
-}
 
-// events
-walletPageBtn.onclick = () => window.location.href = "wallet.html";
+  results.innerHTML="<p class='muted'>Checking permission…</p>";
 
-searchBtn.onclick = async () => {
-  const term = searchInput.value || "";
-  resultsArea.innerHTML = "<p class='muted'>Processing…</p>";
-
-  // Deduct first
   const ok = await deductSearch();
   if(!ok){
-    resultsArea.innerHTML = "<p class='muted'>Please upgrade or add funds to wallet.</p>";
+    results.innerHTML = "<p class='muted'>Not enough balance or free searches.</p>";
     return;
   }
 
-  // after deduction update UI
   await updateUI();
 
-  // perform search and render
-  const found = await performSearch(term);
-  renderResults(found);
+  results.innerHTML="<p class='muted'>Searching…</p>";
 
-  // log search
-  try{
-    await addDoc(collection(db,"search_logs"), { term, user: currentUserId, found: found.length>0, timestamp: new Date(), platform: "web" });
-  }catch(e){ console.error("log failed", e); }
+  const found = await doSearch(term);
+  if(found.length===0){
+    results.innerHTML="❌ No record found.";
+  } else{
+    results.innerHTML="";
+    found.forEach(d=>{
+      const r = d.data();
+      results.innerHTML += `
+        <div class="record">
+          <p><b>Name:</b> ${r.name}</p>
+          <p><b>NIA:</b> ${r.nia}</p>
+          <p><b>DOB:</b> ${r.dob}</p>
+          <p><b>Region:</b> ${r.region}</p>
+          <p><b>Address:</b> ${r.address}</p>
+          <p><b>Criminal:</b> ${r.criminal}</p>
+          <p><b>Driving:</b> ${r.driving}</p>
+          <p><b>Credit:</b> ${r.credit}</p>
+          <p><b>Status:</b> ${r.status}</p>
+        </div>
+      `;
+    });
+  }
+
+  await addDoc(collection(db,"search_logs"),{
+    term,user:uid,found:found.length>0,timestamp:new Date(),platform:"web"
+  });
 };
 
-// Buy basic & pro
-buyBasicBtn.onclick = async () => {
-  const u = await loadUser();
-  const currentFree = toNumber(u.freeSearches ?? 0);
-  await updateDoc(doc(db,"users",currentUserId), { plan: "basic", freeSearches: currentFree + 10 });
-  await addDoc(collection(db,"wallet_transactions"), { user: currentUserId, type: "purchase_basic", amount: 3.99, timestamp: new Date() });
+/* ===============================
+   Buy Buttons
+================================*/
+buyBasic.onclick = async ()=>{
+  const u = await loadUserDoc();
+  const free = num(u.freeSearches);
+  await updateDoc(doc(db,"users",uid),{
+    freeSearches: free + 10,
+    plan: "basic"
+  });
   await updateUI();
-  alert("Basic purchased: +10 searches");
+  alert("Basic purchased: +10 searches.");
 };
 
-buyProBtn.onclick = async () => {
-  const expires = new Date(Date.now() + 30*24*60*60*1000);
-  await updateDoc(doc(db,"users",currentUserId), { plan: "pro", planExpires: expires, freeSearches: 999 });
-  await addDoc(collection(db,"wallet_transactions"), { user: currentUserId, type: "purchase_pro", amount: 14.99, timestamp: new Date() });
+buyPro.onclick = async ()=>{
+  await updateDoc(doc(db,"users",uid),{
+    plan:"pro",
+    freeSearches:999
+  });
   await updateUI();
-  alert("Pro purchased: unlimited for 30 days");
+  alert("Pro activated: unlimited searches.");
 };
 
-// Convert walletCredits -> searches (¢30 per search)
-useWalletBtn.onclick = async () => {
-  const u = await loadUser();
-  const walletAmt = toNumber(u.walletCredits ?? u.wallet ?? 0);
-  if(walletAmt < SEARCH_COST) return alert(`Need at least ¢${SEARCH_COST} to convert`);
-  const searches = Math.floor(walletAmt / SEARCH_COST);
-  const spent = searches * SEARCH_COST;
-  const newWallet = walletAmt - spent;
-  const newFree = toNumber(u.freeSearches ?? 0) + searches;
-  await updateDoc(doc(db,"users",currentUserId), { freeSearches: newFree, walletCredits: newWallet });
-  await addDoc(collection(db,"wallet_transactions"), { user: currentUserId, type: "wallet_convert", amount: -spent, searchesAdded: searches, timestamp: new Date() });
+/* ===============================
+   Convert Wallet
+================================*/
+convertWallet.onclick = async ()=>{
+  const u = await loadUserDoc();
+  const wallet = num(u.walletCredits);
+  if(wallet < COST) return alert("Not enough wallet balance.");
+
+  const searches = Math.floor(wallet / COST);
+  const spent = searches * COST;
+  const newWallet = wallet - spent;
+
+  await updateDoc(doc(db,"users",uid),{
+    freeSearches: num(u.freeSearches) + searches,
+    walletCredits: newWallet
+  });
+
+  await addDoc(collection(db,"wallet_transactions"),{
+    user:uid,type:"wallet_convert",amount:-spent,searches,timestamp:new Date()
+  });
+
   await updateUI();
-  alert(`Converted ¢${spent} → ${searches} searches`);
+  alert(`Converted ¢${spent} → ${searches} searches.`);
 };
 
-// auth: ensure defaults and show UI
-onAuthStateChanged(auth, async (user) => {
+/* ===============================
+   Wallet Page
+================================*/
+walletB.onclick = ()=> window.location.href="wallet.html";
+
+/* ===============================
+   Authentication
+================================*/
+onAuthStateChanged(auth, async user=>{
   if(!user){
-    // show page but require sign-in
-    verifyMain.style.display = "block";
-    resultsArea.innerHTML = "<p class='muted'>Please sign in to use verification.</p>";
+    main.style.display="block";
+    results.innerHTML="<p class='muted'>Please sign in to use verification.</p>";
     return;
   }
-  currentUserId = user.uid;
-  // ensure default fields exist for this user
-  await ensureUserDefaults(currentUserId);
-  verifyMain.style.display = "block";
+  uid = user.uid;
+  main.style.display="block";
+  await loadUserDoc();
   await updateUI();
 });
 </script>
