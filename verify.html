@@ -4,117 +4,52 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>NBVS Ghana — Verify</title>
-
 <style>
   :root{
-    --red:#ce1126;
-    --yellow:#fcd116;
-    --green:#006b3f;
-    --accent:#004f2e;
-    --card:#ffffff;
-    --bg:#f6f7f9;
-    --muted:#555;
+    --red:#ce1126; --yellow:#fcd116; --green:#006b3f; --accent:#004f2e;
+    --card:#ffffff; --bg:#f6f7f9; --muted:#555;
   }
-
   *{box-sizing:border-box;margin:0;padding:0}
-  body{
-    font-family:"Segoe UI",Arial,sans-serif;
-    background:var(--bg);
-    color:#222;
-  }
-
-  header{
-    background:linear-gradient(90deg,var(--red),var(--yellow),var(--green));
-    padding:1.8rem 1rem;
-    text-align:center;
-    color:white;
-    font-weight:700;
-    box-shadow:0 3px 12px rgba(0,0,0,0.15);
-  }
+  body{font-family:"Segoe UI",Arial,sans-serif;background:var(--bg);color:#222;}
+  header{background:linear-gradient(90deg,var(--red),var(--yellow),var(--green));padding:1.8rem 1rem;text-align:center;color:white;font-weight:700;box-shadow:0 3px 12px rgba(0,0,0,0.15)}
   header h1{font-size:1.6rem;margin-bottom:4px}
-
-  main{
-    max-width:800px;
-    margin:1.6rem auto;
-    padding:0 1rem;
-  }
-
-  .panel{
-    background:var(--card);
-    padding:1.4rem;
-    border-radius:12px;
-    box-shadow:0 8px 26px rgba(0,0,0,0.06);
-    margin-bottom:1.4rem;
-  }
-
+  main{max-width:800px;margin:1.6rem auto;padding:0 1rem}
+  .panel{background:var(--card);padding:1.4rem;border-radius:12px;box-shadow:0 8px 26px rgba(0,0,0,0.06);margin-bottom:1.4rem}
   h3{margin-bottom:10px;color:var(--accent)}
-  input{
-    width:100%;
-    padding:13px;
-    border-radius:10px;
-    border:1px solid #ccc;
-    margin-bottom:12px;
-    font-size:1rem;
-  }
-  button{
-    width:100%;
-    padding:12px;
-    border:none;
-    border-radius:10px;
-    cursor:pointer;
-    font-weight:700;
-    font-size:1rem;
-    transition:.25s;
-  }
-
-  .btn-green{background:var(--green);color:white;}
-  .btn-green:hover{background:var(--accent);transform:translateY(-3px)}
-
+  input{width:100%;padding:13px;border-radius:10px;border:1px solid #ccc;margin-bottom:12px;font-size:1rem}
+  button{width:100%;padding:12px;border:none;border-radius:10px;cursor:pointer;font-weight:700;font-size:1rem;transition:.25s}
+  .btn-green{background:var(--green);color:white}
   .btn-yellow{background:var(--yellow);color:#111}
-  .btn-yellow:hover{filter:brightness(.93);transform:translateY(-3px)}
-
   .btn-red{background:var(--red);color:white}
-
-  .pill{
-    padding:6px 12px;
-    border-radius:10px;
-    background:var(--green);
-    color:white;
-    font-weight:600;
-  }
-
-  .record{
-    background:white;
-    border-left:5px solid var(--green);
-    padding:1rem;
-    border-radius:10px;
-    margin-top:1rem;
-    box-shadow:0 6px 20px rgba(0,0,0,0.06);
-  }
+  .pill{padding:6px 12px;border-radius:10px;background:var(--green);color:white;font-weight:600}
+  .record{background:white;border-left:5px solid var(--green);padding:1rem;border-radius:10px;margin-top:1rem;box-shadow:0 6px 20px rgba(0,0,0,0.06)}
   .muted{color:var(--muted)}
+  .small{font-size:0.9rem;color:var(--muted)}
+  .flex{display:flex;gap:10px}
+  .flex > button{flex:1}
 </style>
 </head>
-
 <body>
 <header>
   <h1>NBVS Ghana — Background Verification</h1>
 </header>
 
 <main>
-  <p class="muted">Each verification costs ¢30. You have <span id="userPlan">loading…</span>.</p>
+  <p class="muted">Each verification costs ¢30. You have <strong id="userPlan">loading…</strong>.</p>
 
   <div class="panel">
     <label class="muted">Search by full name or NIA ID</label>
     <input id="searchInput" placeholder="e.g. Kofi Mensah or GHA-2039485" />
 
-    <div style="display:flex;gap:10px">
+    <div class="flex" style="margin-top:6px">
       <button id="searchBtn" class="btn-green">Search</button>
       <button id="walletPageBtn" class="btn-yellow">Open Wallet</button>
     </div>
 
-    <div style="margin-top:12px">
-      <span class="pill" id="freeCountDisplay">Free: —</span>
-      <span class="muted" id="planDisplay">Plan: —</span>
+    <div style="margin-top:12px" class="flex">
+      <div><span class="pill" id="freeCountDisplay">Free: —</span></div>
+      <div class="small" style="align-self:center" id="planDisplay">Plan: —</div>
+      <div class="small" style="align-self:center">Wallet: ¢<span id="walletDisplay">—</span></div>
     </div>
   </div>
 
@@ -123,32 +58,40 @@
   <div class="panel">
     <h3>Upgrade / Buy</h3>
 
-    <button id="buyBasicBtn" class="btn-green" style="margin-bottom:10px">
-      BASIC — 10 searches — $3.99
-    </button>
+    <div style="margin-bottom:10px">
+      <button id="buyBasicBtn" class="btn-green">BASIC — 10 searches — $3.99</button>
+    </div>
 
-    <button id="buyProBtn" class="btn-red" style="margin-bottom:10px">
-      PRO — Unlimited 30 days — $14.99
-    </button>
+    <div style="margin-bottom:10px">
+      <button id="buyProBtn" class="btn-red">PRO — Unlimited 30 days — $14.99</button>
+    </div>
 
-    <button id="useWalletBtn" class="btn-yellow">
-      Use Wallet (¢30)
-    </button>
+    <div>
+      <button id="useWalletBtn" class="btn-yellow">Convert Wallet to Searches (¢30 per search)</button>
+    </div>
+    <div id="upgradeNote" class="small" style="margin-top:8px">Converting wallet consumes multiples of ¢30 and adds integer searches.</div>
   </div>
 
   <div style="text-align:center;margin-top:14px">
-    <a href="index.html">← Back Home</a> • 
-    <a href="wallet.html">Wallet</a>
+    <a href="index.html">← Back Home</a> • <a href="wallet.html">Wallet</a>
   </div>
-
 </main>
 
 <script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
-import { getFirestore, doc, getDoc, updateDoc, collection, getDocs, addDoc, query, where } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
-import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
+/*
+  Final verify.html per your choices:
+  - Combined system (A3): 3 free searches, Basic (10), Pro (30d unlimited), wallet (¢30/search)
+  - Admin/staff bypass + redirect to admin
+  - Name search case-insensitive, NIA exact
+  - Logs: search_logs, wallet_transactions, audit_logs
+*/
 
-// Firebase config
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
+import {
+  getFirestore, doc, getDoc, updateDoc, addDoc, collection, getDocs, query, where, orderBy, limit
+} from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
+
 const firebaseConfig = {
   apiKey:"AIzaSyCDh_qL3jiCMHROK0_Soul2Wsv3t3y4wv0",
   authDomain:"nbvs-ghana.firebaseapp.com",
@@ -158,142 +101,265 @@ const firebaseConfig = {
   appId:"1:702636577113:web:8369b43a2aa43aeb95fc48"
 };
 const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
 const auth = getAuth(app);
+const db = getFirestore(app);
 
-let currentUserId;
+let currentUserId = null;
+let currentUserData = null; // cached but always refetched before critical ops
+const SEARCH_COST = 30; // ¢30 per search
 
-// ✅ Get logged-in user
-onAuthStateChanged(auth, async(user) => {
+// helpers
+async function fetchUserFresh(){
+  if(!currentUserId) return null;
+  const snap = await getDoc(doc(db,"users",currentUserId));
+  const d = snap.exists() ? snap.data() : null;
+  currentUserData = d;
+  return d;
+}
+async function audit(action, meta = {}){
+  try{ await addDoc(collection(db,"audit_logs"), { user: currentUserId || "unknown", action, meta, timestamp: new Date() }); } catch(e){ console.error("audit failed",e); }
+}
+
+// UI elements
+const searchInput = document.getElementById("searchInput");
+const searchBtn = document.getElementById("searchBtn");
+const walletPageBtn = document.getElementById("walletPageBtn");
+const resultsArea = document.getElementById("resultsArea");
+const freeCountDisplay = document.getElementById("freeCountDisplay");
+const planDisplay = document.getElementById("planDisplay");
+const walletDisplay = document.getElementById("walletDisplay");
+const buyBasicBtn = document.getElementById("buyBasicBtn");
+const buyProBtn = document.getElementById("buyProBtn");
+const useWalletBtn = document.getElementById("useWalletBtn");
+const userPlanSpan = document.getElementById("userPlan");
+
+// Auth & role redirect
+onAuthStateChanged(auth, async(user)=>{
   if(!user) return window.location.href = "/dashboard.html";
   currentUserId = user.uid;
+  const uDocSnap = await getDoc(doc(db,"users",currentUserId));
+  if(!uDocSnap.exists()){
+    // If no user doc, create a basic default (to avoid nulls)
+    await addDoc(collection(db,"users"), { /* fallback not recommended; instead redirect or admin should create user */ });
+    // reload or redirect
+    location.reload();
+    return;
+  }
+  const u = uDocSnap.data();
+  // Redirect admin/staff to admin panel
+  if(u.role === "superadmin" || u.role === "staff"){
+    // optional: keep admins here too, but per your choice redirect
+    window.location.href = "/admin.html";
+    return;
+  }
   await updateUI();
 });
 
-// ✅ Load user data
-async function loadUser() {
-  const snap = await getDoc(doc(db,"users",currentUserId));
-  return snap.exists() ? snap.data() : null;
-}
-
-// ✅ Update UI
-async function updateUI() {
-  const user = await loadUser();
+// Update UI (always refetch latest)
+async function updateUI(){
+  const user = await fetchUserFresh();
   if(!user) return;
-  document.getElementById("freeCountDisplay").innerText = `Free: ${user.freeSearchesRemaining || 0}`;
-  document.getElementById("planDisplay").innerText = `Plan: ${user.plan || 'free'}`;
-  document.getElementById("userPlan").innerText = user.plan || 'free';
+  freeCountDisplay.innerText = `Free: ${user.freeSearchesRemaining ?? 0}`;
+  const plan = user.plan || "free";
+  let planText = plan;
+  if(plan === "pro"){
+    const exp = user.planExpires ? new Date(user.planExpires.toDate ? user.planExpires.toDate() : user.planExpires) : null;
+    if(exp && exp > new Date()){
+      planText = `PRO (until ${exp.toLocaleDateString()})`;
+      buyBasicBtn.style.display = "none";
+      buyProBtn.style.display = "none";
+    } else {
+      // expired
+      planText = "free";
+      // clear pro if expired
+      if(user.plan === "pro"){
+        try { await updateDoc(doc(db,"users",currentUserId), { plan: "free", planExpires: null, freeSearchesRemaining: user.freeSearchesRemaining ?? 0 }); } catch(e){console.error(e);}
+      }
+      buyBasicBtn.style.display = "";
+      buyProBtn.style.display = "";
+    }
+  } else {
+    buyBasicBtn.style.display = "";
+    buyProBtn.style.display = "";
+  }
+  planDisplay.innerText = `Plan: ${planText}`;
+  walletDisplay.innerText = (user.wallet || 0);
+  userPlanSpan.innerText = planText;
 }
 
-// ✅ Deduct search
-async function deductSearch() {
-  const user = await loadUser();
+// deductSearch: returns true if allowed (and performs deduction where necessary)
+async function deductSearch(){
+  // Always refetch user before acting
+  const user = await fetchUserFresh();
   if(!user) return false;
 
-  // Admin bypass
+  // Admin bypass already redirected; but keep role-safe check
   if(user.role === "superadmin" || user.role === "staff") return true;
 
-  if(user.freeSearchesRemaining > 0){
+  // If pro active -> unlimited
+  if(user.plan === "pro" && user.planExpires){
+    const exp = (user.planExpires.toDate) ? user.planExpires.toDate() : new Date(user.planExpires);
+    if(exp > new Date()) return true;
+  }
+
+  // Basic plan has freeSearchesRemaining attribute (we'll store it in freeSearchesRemaining)
+  if(user.freeSearchesRemaining && user.freeSearchesRemaining > 0){
     await updateDoc(doc(db,"users",currentUserId), { freeSearchesRemaining: user.freeSearchesRemaining - 1 });
+    await audit("search_deduct_free", {remaining: Math.max(0, user.freeSearchesRemaining - 1)} );
     return true;
   }
 
-  if(user.wallet >= 30){
-    await updateDoc(doc(db,"users",currentUserId), { wallet: user.wallet - 30 });
-    await addDoc(collection(db,"wallet_transactions"), {
-      user: currentUserId,
-      type: "search deduction",
-      amount: 30,
-      timestamp: new Date()
-    });
+  // Otherwise check wallet enough for one search
+  if((user.wallet || 0) >= SEARCH_COST){
+    // deduct SEARCH_COST
+    await updateDoc(doc(db,"users",currentUserId), { wallet: (user.wallet || 0) - SEARCH_COST });
+    await addDoc(collection(db,"wallet_transactions"), { user: currentUserId, type: "search deduction", amount: -SEARCH_COST, timestamp: new Date() });
+    await audit("search_deduct_wallet", {amount: SEARCH_COST});
     return true;
   }
 
-  alert("No free searches or enough wallet balance.");
+  // no funds
   return false;
 }
 
-// ✅ Wallet button
-document.getElementById("walletPageBtn").onclick = () => window.location.href = "wallet.html";
+// Search behavior: NIA exact only; name case-insensitive exact match
+async function performSearch(queryText){
+  resultsArea.innerHTML = "<p class='small muted'>Searching…</p>";
+  const t = (queryText||"").trim();
+  if(!t){ resultsArea.innerHTML = "<p class='muted'>Enter name or NIA.</p>"; return; }
 
-// ✅ Search button
-document.getElementById("searchBtn").onclick = async () => {
-  const text = document.getElementById("searchInput").value.trim();
-  const resultsDiv = document.getElementById("resultsArea");
-  if(!text) { resultsDiv.innerHTML = "<p class='muted'>Enter a name or NIA.</p>"; return; }
+  // NIA pattern detection (simple): starts with "GHA-" or contains dash and digits
+  const isNia = /^([A-Za-z]{2,}-\d+)|(^GHA-)/i.test(t);
 
-  resultsDiv.innerHTML = "<p class='muted'>Searching…</p>";
+  let foundDocs = [];
 
-  if(!(await deductSearch())){
-    resultsDiv.innerHTML = "<p class='muted'>Upgrade or add funds to wallet.</p>";
+  try{
+    if(isNia){
+      // exact NIA search
+      const q = query(collection(db,"records"), where("nia","==", t));
+      const snap = await getDocs(q);
+      foundDocs = snap.docs;
+    } else {
+      // Name search - case-insensitive exact match.
+      // Firestore can't do case-insensitive equality without stored lowercases.
+      // We fetch a reasonable subset (limit 500) and filter client-side by lowercased name.
+      // If you have enormous DB, we'll need a server-side text index or store name_lower on records.
+      const snap = await getDocs(query(collection(db,"records"), limit(500)));
+      foundDocs = snap.docs.filter(d => {
+        const r = d.data();
+        return (r.name || "").toString().toLowerCase() === t.toLowerCase();
+      });
+    }
+
+    // Render results
+    resultsArea.innerHTML = "";
+    if(!foundDocs.length){
+      resultsArea.innerHTML = "<p>❌ No record found.</p>";
+      await addDoc(collection(db,"search_logs"), { term: t, user: currentUserId, found: false, timestamp: new Date(), platform: "web" });
+      await audit("search_no_result", { term: t });
+      return;
+    }
+
+    // display all fields for each doc
+    for(const docSnap of foundDocs){
+      const r = docSnap.data();
+      const el = document.createElement("div"); el.className = "record";
+      el.innerHTML = `
+        <p><b>Name:</b> ${r.name || ""}</p>
+        <p><b>NIA:</b> ${r.nia || ""}</p>
+        <p><b>DOB:</b> ${r.dob || ""}</p>
+        <p><b>Region:</b> ${r.region || ""}</p>
+        <p><b>Address:</b> ${r.address || ""}</p>
+        <p><b>Criminal:</b> ${r.criminal || ""}</p>
+        <p><b>Driving:</b> ${r.driving || ""}</p>
+        <p><b>Credit:</b> ${r.credit || ""}</p>
+        <p><b>Status:</b> ${r.status || ""}</p>
+      `;
+      resultsArea.appendChild(el);
+    }
+
+    // Log search success
+    await addDoc(collection(db,"search_logs"), { term: t, user: currentUserId, found: true, timestamp: new Date(), platform: "web" });
+    await audit("search", { term: t, records: foundDocs.map(d=>d.id) });
+
+  }catch(e){
+    console.error("search err", e);
+    resultsArea.innerHTML = "<p style='color:red'>Search error — see console.</p>";
+  }
+}
+
+// Event handlers
+walletPageBtn.onclick = () => window.location.href = "wallet.html";
+
+// Search flow: check deductSearch first
+searchBtn.onclick = async () => {
+  const q = searchInput.value.trim();
+  if(!q){ resultsArea.innerHTML = "<p class='muted'>Enter name or NIA.</p>"; return; }
+
+  // Check and deduct (admins bypass earlier via redirect)
+  const ok = await deductSearch();
+  if(!ok){
+    resultsArea.innerHTML = "<p class='muted'>Please upgrade or add funds to wallet.</p>";
     return;
   }
 
+  // Update UI (fresh)
   await updateUI();
 
-  // Search by name OR NIA
-  const qName = query(collection(db,"records"), where("name","==",text));
-  const qNIA = query(collection(db,"records"), where("nia","==",text));
-  const snapName = await getDocs(qName);
-  const snapNIA = await getDocs(qNIA);
-  const results = [...snapName.docs, ...snapNIA.docs];
+  // perform search
+  await performSearch(q);
+};
 
-  resultsDiv.innerHTML = "";
-  if(!results.length) {
-    resultsDiv.innerHTML = "❌ No record found.";
-  } else {
-    results.forEach(docSnap => {
-      const r = docSnap.data();
-      resultsDiv.innerHTML += `
-        <div class="record">
-          <p><b>Name:</b> ${r.name}</p>
-          <p><b>NIA:</b> ${r.nia}</p>
-          <p><b>DOB:</b> ${r.dob}</p>
-          <p><b>Region:</b> ${r.region}</p>
-          <p><b>Address:</b> ${r.address}</p>
-          <p><b>Criminal:</b> ${r.criminal}</p>
-          <p><b>Driving:</b> ${r.driving}</p>
-          <p><b>Credit:</b> ${r.credit}</p>
-          <p><b>Status:</b> ${r.status}</p>
-        </div>`;
+// Buy Basic: grants freeSearchesRemaining + audit and search_logs entry
+buyBasicBtn.onclick = async () => {
+  // give 10 searches
+  try{
+    const user = await fetchUserFresh();
+    const existing = user.freeSearchesRemaining || 0;
+    await updateDoc(doc(db,"users",currentUserId), { plan: "basic", freeSearchesRemaining: existing + 10 });
+    await addDoc(collection(db,"wallet_transactions"), { user: currentUserId, type: "purchase_basic", amount: 3.99, timestamp: new Date() });
+    await audit("buy_basic", { amount: 3.99 });
+    await updateUI();
+    alert("Basic purchased: +10 searches");
+  }catch(e){ console.error(e); alert("Buy failed"); }
+};
+
+// Buy Pro: set plan pro with expires = now+30days
+buyProBtn.onclick = async () => {
+  try{
+    const now = new Date();
+    const expires = new Date(now.getTime() + 30*24*60*60*1000);
+    await updateDoc(doc(db,"users",currentUserId), { plan: "pro", planExpires: expires, freeSearchesRemaining: (await fetchUserFresh()).freeSearchesRemaining || 0 });
+    await addDoc(collection(db,"wallet_transactions"), { user: currentUserId, type: "purchase_pro", amount: 14.99, timestamp: new Date() });
+    await audit("buy_pro", { amount:14.99, expires: expires.toISOString() });
+    await updateUI();
+    alert("Pro purchased: unlimited for 30 days");
+  }catch(e){ console.error(e); alert("Buy Pro failed"); }
+};
+
+// Use Wallet button: convert wallet into searches (1 search per 30), consume multiples of 30
+useWalletBtn.onclick = async () => {
+  try{
+    const user = await fetchUserFresh();
+    const walletAmt = user.wallet || 0;
+    if(walletAmt < SEARCH_COST){ alert("Not enough in wallet to convert (min ¢30)"); return; }
+    const convertible = Math.floor(walletAmt / SEARCH_COST);
+    const consume = convertible * SEARCH_COST;
+    await updateDoc(doc(db,"users",currentUserId), {
+      freeSearchesRemaining: (user.freeSearchesRemaining || 0) + convertible,
+      wallet: walletAmt - consume
     });
-  }
-
-  // Log search
-  await addDoc(collection(db,"search_logs"),{
-    term: text,
-    user: currentUserId,
-    found: results.length > 0,
-    timestamp: new Date(),
-    platform: "web"
-  });
+    await addDoc(collection(db,"wallet_transactions"), { user: currentUserId, type: "wallet_convert", amount: -consume, searches_added: convertible, timestamp: new Date() });
+    await audit("wallet_convert",{converted:convertible,spent:consume});
+    await updateUI();
+    alert(`Converted ${consume} (¢) into ${convertible} searches.`);
+  }catch(e){ console.error(e); alert("Conversion failed"); }
 };
 
-// ✅ Buy/Plan buttons
-document.getElementById("buyBasicBtn").onclick = async() => {
-  await updateDoc(doc(db,"users",currentUserId), { plan:"basic", freeSearchesRemaining: 10 });
-  await updateUI();
-};
-document.getElementById("buyProBtn").onclick = async() => {
-  await updateDoc(doc(db,"users",currentUserId), { plan:"pro", freeSearchesRemaining: 999 });
-  await updateUI();
-};
-document.getElementById("useWalletBtn").onclick = async() => {
-  const user = await loadUser();
-  if(user.wallet <= 0){ alert("Wallet empty."); return; }
-  await updateDoc(doc(db,"users",currentUserId), {
-    freeSearchesRemaining: (user.freeSearchesRemaining||0) + user.wallet,
-    wallet: 0
-  });
-  await addDoc(collection(db,"wallet_transactions"), {
-    user: currentUserId,
-    type: "wallet converted to searches",
-    amount: -user.wallet,
-    timestamp: new Date()
-  });
-  await updateUI();
-};
+// initial UI load - after auth triggers updateUI
+// But in case user already signed in and onAuthStateChanged didn't fire (rare), we attempt to updateUI gracefully
+(async()=>{ try{ if(auth.currentUser){ currentUserId = auth.currentUser.uid; await updateUI(); } } catch(e){/*ignore*/} })();
+
 </script>
-
 </body>
 </html>
