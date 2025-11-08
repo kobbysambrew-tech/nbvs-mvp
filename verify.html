@@ -6,126 +6,156 @@
 <title>NBVS Ghana — Verify</title>
 
 <style>
-:root{
-  --red:#ce1126;
-  --yellow:#fcd116;
-  --green:#006b3f;
-  --accent:#004f2e;
-  --card:#fff;
-  --bg:#f6f7f9;
-  --muted:#555;
-}
-body{
-  background:var(--bg);
-  font-family:"Segoe UI",Arial,sans-serif;
-  color:#222;
-  margin:0;
-}
-header{
-  background:linear-gradient(90deg,var(--red),var(--yellow),var(--green));
-  padding:1.6rem 1rem;
-  text-align:center;
-  color:white;
-  font-weight:700;
-}
-main{
-  max-width:900px;
-  margin:1.6rem auto;
-  padding:0 1rem;
-}
-.panel{
-  background:var(--card);
-  padding:1.2rem;
-  border-radius:12px;
-  box-shadow:0 8px 24px rgba(0,0,0,0.08);
-  margin-bottom:1.4rem;
-}
-label{font-size:.9rem;color:var(--muted);font-weight:600;margin-bottom:6px;display:block;}
-input{
-  width:100%;
-  padding:12px;
-  border-radius:8px;
-  border:1px solid #ccc;
-  margin-bottom:12px;
-}
-button{
-  width:100%;
-  padding:12px;
-  border:none;
-  border-radius:8px;
-  cursor:pointer;
-  font-size:1rem;
-  font-weight:700;
-}
-.btn-green{background:var(--green);color:white;}
-.btn-yellow{background:var(--yellow);color:#111;}
-.btn-red{background:var(--red);color:white;}
-.record{
-  background:white;
-  border-left:5px solid var(--green);
-  padding:1rem;
-  margin-top:1rem;
-  border-radius:10px;
-  box-shadow:0 6px 20px rgba(0,0,0,0.06);
-}
-.flex{display:flex;gap:10px;}
-.pill{padding:6px 12px;border-radius:10px;background:var(--green);color:white;font-weight:600;}
-.muted{color:var(--muted);}
+  :root{
+    --red:#ce1126;
+    --yellow:#fcd116;
+    --green:#006b3f;
+    --accent:#004f2e;
+    --card:#ffffff;
+    --bg:#f6f7f9;
+    --muted:#555;
+  }
+
+  body{
+    font-family:"Segoe UI",Arial,sans-serif;
+    background:var(--bg);
+    margin:0;
+    padding:0;
+  }
+
+  header{
+    background:linear-gradient(90deg,var(--red),var(--yellow),var(--green));
+    padding:1.8rem 1rem;
+    text-align:center;
+    color:white;
+    font-weight:700;
+    box-shadow:0 3px 12px rgba(0,0,0,0.15);
+  }
+
+  main{
+    max-width:800px;
+    margin:1.6rem auto;
+    padding:0 1rem;
+  }
+
+  .panel{
+    background:var(--card);
+    padding:1.4rem;
+    border-radius:12px;
+    box-shadow:0 8px 26px rgba(0,0,0,0.06);
+    margin-bottom:1.4rem;
+  }
+
+  input{
+    width:100%;
+    padding:13px;
+    border-radius:10px;
+    border:1px solid #ccc;
+    margin-bottom:12px;
+    font-size:1rem;
+  }
+
+  button{
+    width:100%;
+    padding:12px;
+    border:none;
+    border-radius:10px;
+    cursor:pointer;
+    font-weight:700;
+    font-size:1rem;
+    transition:.25s;
+  }
+
+  .btn-green{background:var(--green);color:white;}
+  .btn-yellow{background:var(--yellow);color:#111;}
+  .btn-red{background:var(--red);color:white;}
+
+  .record{
+    background:white;
+    border-left:5px solid var(--green);
+    padding:1rem;
+    border-radius:10px;
+    margin-top:1rem;
+    box-shadow:0 6px 20px rgba(0,0,0,0.06);
+  }
+
+  .pill{
+    padding:6px 12px;
+    border-radius:10px;
+    background:var(--green);
+    color:white;
+    font-weight:600;
+  }
+
+  .muted{color:#555;}
 </style>
 </head>
 
 <body>
-<header><h1>NBVS Ghana — Verification</h1></header>
+<header>
+  <h1>NBVS Ghana — Background Verification</h1>
+</header>
 
-<main id="main" style="display:none">
+<main>
 
+  <p class="muted">
+    Each verification costs ¢30. You have <span id="userPlan">loading…</span>.
+  </p>
+
+  <!-- SEARCH PANEL -->
   <div class="panel">
-    <p class="muted">Each verification costs ¢30. You have <b id="planDisplayTop">loading…</b>.</p>
+    <label class="muted">Search by full name or NIA ID</label>
+    <input id="searchInput" placeholder="e.g. Ama Serwaa or GHA-2039485" />
 
-    <label for="searchInput">Search Name or NIA</label>
-    <input id="searchInput" placeholder="e.g. John Doe or GHA-1234567" />
-
-    <div class="flex">
+    <div style="display:flex;gap:10px;">
       <button id="searchBtn" class="btn-green">Search</button>
       <button id="walletBtn" class="btn-yellow">Open Wallet</button>
     </div>
 
-    <div class="flex" style="margin-top:10px;">
+    <div style="margin-top:12px;">
       <span id="freeCount" class="pill">Free: —</span>
-      <span class="muted" id="planLabel">Plan: —</span>
-      <span class="muted" id="walletLabel" style="margin-left:auto">Wallet: ¢—</span>
+      <span id="planLabel" class="muted">Plan: —</span>
     </div>
   </div>
 
-  <div id="resultsArea"></div>
+  <!-- RESULTS -->
+  <div id="results"></div>
 
+  <!-- PLANS -->
   <div class="panel">
     <h3>Upgrade / Buy</h3>
-    <button id="buyBasic" class="btn-green" style="margin-bottom:10px">BASIC — 10 searches — $3.99</button>
-    <button id="buyPro" class="btn-red" style="margin-bottom:10px">PRO — Unlimited — $14.99</button>
-    <button id="convertWallet" class="btn-yellow">Convert Wallet → Searches (¢30/search)</button>
+
+    <button id="buyBasic" class="btn-green" style="margin-bottom:10px;">
+      BASIC — 10 searches — $3.99
+    </button>
+
+    <button id="buyPro" class="btn-red" style="margin-bottom:10px;">
+      PRO — Unlimited 30 days — $14.99
+    </button>
+
+    <button id="convertWallet" class="btn-yellow">
+      Convert Wallet (¢30 → 1 search)
+    </button>
   </div>
 
-  <div style="text-align:center;margin-top:12px">
-    <a href="index.html">← Home</a> • <a href="wallet.html">Wallet</a>
+  <div style="text-align:center;margin-top:14px;">
+    <a href="index.html">← Back Home</a>
   </div>
 
 </main>
 
-
 <script type="module">
-/* ===============================
-   FIREBASE
-================================*/
+/* Firestore imports */
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
 import {
-  getFirestore, doc, getDoc, setDoc, updateDoc,
-  collection, getDocs, query, where, addDoc, limit
+  getFirestore, doc, getDoc, updateDoc, collection,
+  addDoc, query, where, getDocs
 } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 
-/* Your Firebase config */
-const firebaseConfig={
+
+/* Firebase config */
+const firebaseConfig = {
   apiKey:"AIzaSyCDh_qL3jiCMHROK0_Soul2Wsv3t3y4wv0",
   authDomain:"nbvs-ghana.firebaseapp.com",
   projectId:"nbvs-ghana",
@@ -134,149 +164,129 @@ const firebaseConfig={
   appId:"1:702636577113:web:8369b43a2aa43aeb95fc48"
 };
 const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
 const db = getFirestore(app);
+const auth = getAuth(app);
 
-/* ===============================
-   DOM
-================================*/
-const main    = document.getElementById("main");
-const searchI = document.getElementById("searchInput");
-const searchB = document.getElementById("searchBtn");
-const walletB = document.getElementById("walletBtn");
-const results = document.getElementById("resultsArea");
 
-const freeCountEl = document.getElementById("freeCount");
-const planLabelEl = document.getElementById("planLabel");
-const walletLabelEl = document.getElementById("walletLabel");
-const planDisplayTop = document.getElementById("planDisplayTop");
-
-const buyBasic = document.getElementById("buyBasic");
-const buyPro = document.getElementById("buyPro");
-const convertWallet = document.getElementById("convertWallet");
-
-/* ===============================
-   Helpers
-================================*/
-function num(x){ x = Number(x); return Number.isFinite(x) ? x : 0; }
-const COST = 30; // ¢30 per search
 let uid = null;
 
-/* ===============================
-   Load or Create Default User
-================================*/
-async function loadUserDoc(){
-  const ref = doc(db,"users",uid);
-  const snap = await getDoc(ref);
-  if(!snap.exists()){
-    await setDoc(ref,{
-      freeSearches:3,
-      walletCredits:0,
-      plan:"free",
-      role:"user"
-    });
-    return {freeSearches:3,walletCredits:0,plan:"free",role:"user"};
-  }
-  return snap.data();
+
+/* WAIT FOR USER */
+onAuthStateChanged(auth, async(user)=>{
+  if(!user) return window.location.href="login.html";
+  uid = user.uid;
+  await refreshUI();
+});
+
+
+/* LOAD USER */
+async function loadUser(){
+  const snap = await getDoc(doc(db,"users",uid));
+  return snap.exists() ? snap.data() : null;
 }
 
-/* ===============================
-   Update UI
-================================*/
-async function updateUI(){
-  const u = await loadUserDoc();
-  const free = num(u.freeSearches);
-  const wallet = num(u.walletCredits);
-  const plan = u.plan || "free";
 
-  freeCountEl.innerText = `Free: ${free}`;
-  walletLabelEl.innerText = `Wallet: ¢${wallet}`;
-  planLabelEl.innerText = `Plan: ${plan}`;
-  planDisplayTop.innerText = plan;
+/* UPDATE UI */
+async function refreshUI(){
+  const u = await loadUser();
+  if(!u) return;
+
+  document.getElementById("freeCount").innerText =
+    "Free: " + (u.freeSearchesRemaining ?? 0);
+
+  document.getElementById("planLabel").innerText =
+    "Plan: " + (u.plan ?? "free");
+
+  document.getElementById("userPlan").innerText =
+    (u.plan ?? "free");
 }
 
-/* ===============================
-   Deduct Search
-================================*/
+
+/* DEDUCT SEARCH */
 async function deductSearch(){
-  const u = await loadUserDoc();
+  const u = await loadUser();
 
-  // Admin/staff bypass
-  if(u.role === "staff" || u.role === "superadmin"){ return true; }
-
-  let free = num(u.freeSearches);
-  let wallet = num(u.walletCredits);
-
-  if(free > 0){
-    await updateDoc(doc(db,"users",uid),{ freeSearches: free - 1 });
+  if(u.role === "staff" || u.role === "superadmin"){
     return true;
   }
 
-  if(wallet >= COST){
-    await updateDoc(doc(db,"users",uid),{ walletCredits: wallet - COST });
-    await addDoc(collection(db,"wallet_transactions"),{
-      user:uid, type:"search deduction", amount:-COST, timestamp:new Date()
+  if(u.freeSearchesRemaining > 0){
+    await updateDoc(doc(db,"users",uid), {
+      freeSearchesRemaining: u.freeSearchesRemaining - 1
     });
+    return true;
+  }
+
+  if(u.walletCredits >= 30){
+    await updateDoc(doc(db,"users",uid), {
+      walletCredits: u.walletCredits - 30
+    });
+
+    await addDoc(collection(db,"wallet_transactions"),{
+      user: uid,
+      type: "search deduction",
+      amount: 30,
+      timestamp: new Date()
+    });
+
     return true;
   }
 
   return false;
 }
 
-/* ===============================
-   Perform Search
-================================*/
-async function doSearch(term){
-  const clean = term.trim().toLowerCase();
-  const out = [];
 
-  const recordsRef = collection(db,"records");
+/* SEARCH */
+document.getElementById("searchBtn").onclick = async()=>{
 
-  // 1) Try NIA exact
-  const q1 = query(recordsRef, where("nia","==",term));
-  const s1 = await getDocs(q1);
-  s1.forEach(d=> out.push(d));
+  const queryText = document.getElementById("searchInput").value.trim();
+  const resultsBox = document.getElementById("results");
 
-  // 2) Try case-insensitive name match
-  const snapAll = await getDocs(query(recordsRef, limit(500)));
-  snapAll.forEach(d=>{
-    const r = d.data();
-    if((r.name||"").toLowerCase() === clean) out.push(d);
+  if(!queryText){
+    resultsBox.innerHTML = "<p class='muted'>Enter a name or NIA.</p>";
+    return;
+  }
+
+  /* Deduct */
+  if(!await deductSearch()){
+    resultsBox.innerHTML = "<p class='muted'>Not enough balance or free searches.</p>";
+    return;
+  }
+
+  await refreshUI();
+
+  resultsBox.innerHTML = "<p class='muted'>Searching…</p>";
+
+  let docsFound = [];
+
+  /* CASE-INSENSITIVE NAME */
+  const qName = query(
+    collection(db,"records"),
+    where("name_lower","==",queryText.toLowerCase())
+  );
+  const snapName = await getDocs(qName);
+
+  snapName.forEach(d=>docsFound.push(d));
+
+  /* EXACT NIA */
+  const qNIA = query(
+    collection(db,"records"),
+    where("nia","==",queryText)
+  );
+  const snapNIA = await getDocs(qNIA);
+
+  snapNIA.forEach(d=>{
+    if(!docsFound.some(x=>x.id===d.id)) docsFound.push(d);
   });
 
-  return out;
-}
-
-/* ===============================
-   Search Button
-================================*/
-searchB.onclick = async ()=>{
-  const term = searchI.value.trim();
-  if(!term){
-    results.innerHTML="<p class='muted'>Enter a name or NIA.</p>";
-    return;
-  }
-
-  results.innerHTML="<p class='muted'>Checking permission…</p>";
-
-  const ok = await deductSearch();
-  if(!ok){
-    results.innerHTML = "<p class='muted'>Not enough balance or free searches.</p>";
-    return;
-  }
-
-  await updateUI();
-
-  results.innerHTML="<p class='muted'>Searching…</p>";
-
-  const found = await doSearch(term);
-  if(found.length===0){
-    results.innerHTML="❌ No record found.";
-  } else{
-    results.innerHTML="";
-    found.forEach(d=>{
-      const r = d.data();
-      results.innerHTML += `
+  /* SHOW RESULTS */
+  if(docsFound.length === 0){
+    resultsBox.innerHTML = "❌ No record found.";
+  } else {
+    resultsBox.innerHTML = "";
+    docsFound.forEach(docSnap=>{
+      const r = docSnap.data();
+      resultsBox.innerHTML += `
         <div class="record">
           <p><b>Name:</b> ${r.name}</p>
           <p><b>NIA:</b> ${r.nia}</p>
@@ -292,78 +302,62 @@ searchB.onclick = async ()=>{
     });
   }
 
+  /* LOG SEARCH */
   await addDoc(collection(db,"search_logs"),{
-    term,user:uid,found:found.length>0,timestamp:new Date(),platform:"web"
+    term: queryText,
+    user: uid,
+    found: docsFound.length > 0,
+    timestamp: new Date(),
+    platform: "web"
   });
 };
 
-/* ===============================
-   Buy Buttons
-================================*/
-buyBasic.onclick = async ()=>{
-  const u = await loadUserDoc();
-  const free = num(u.freeSearches);
+
+/* OPEN WALLET BUTTON */
+document.getElementById("walletBtn").onclick = ()=>{
+  window.location.href="wallet.html";
+};
+
+
+/* BASIC PLAN */
+document.getElementById("buyBasic").onclick = async()=>{
   await updateDoc(doc(db,"users",uid),{
-    freeSearches: free + 10,
-    plan: "basic"
+    plan:"basic",
+    freeSearchesRemaining:10,
+    monthlyRemaining:10
   });
-  await updateUI();
-  alert("Basic purchased: +10 searches.");
+  await refreshUI();
 };
 
-buyPro.onclick = async ()=>{
+
+/* PRO PLAN */
+document.getElementById("buyPro").onclick = async()=>{
   await updateDoc(doc(db,"users",uid),{
     plan:"pro",
-    freeSearches:999
+    freeSearchesRemaining:999,
+    planExpires: new Date(Date.now() + 30*24*60*60*1000)
   });
-  await updateUI();
-  alert("Pro activated: unlimited searches.");
+  await refreshUI();
 };
 
-/* ===============================
-   Convert Wallet
-================================*/
-convertWallet.onclick = async ()=>{
-  const u = await loadUserDoc();
-  const wallet = num(u.walletCredits);
-  if(wallet < COST) return alert("Not enough wallet balance.");
 
-  const searches = Math.floor(wallet / COST);
-  const spent = searches * COST;
-  const newWallet = wallet - spent;
-
-  await updateDoc(doc(db,"users",uid),{
-    freeSearches: num(u.freeSearches) + searches,
-    walletCredits: newWallet
-  });
-
-  await addDoc(collection(db,"wallet_transactions"),{
-    user:uid,type:"wallet_convert",amount:-spent,searches,timestamp:new Date()
-  });
-
-  await updateUI();
-  alert(`Converted ¢${spent} → ${searches} searches.`);
-};
-
-/* ===============================
-   Wallet Page
-================================*/
-walletB.onclick = ()=> window.location.href="wallet.html";
-
-/* ===============================
-   Authentication
-================================*/
-onAuthStateChanged(auth, async user=>{
-  if(!user){
-    main.style.display="block";
-    results.innerHTML="<p class='muted'>Please sign in to use verification.</p>";
+/* CONVERT WALLET TO SEARCHES */
+document.getElementById("convertWallet").onclick = async()=>{
+  const u = await loadUser();
+  if(u.walletCredits < 30){
+    alert("Not enough wallet credits.");
     return;
   }
-  uid = user.uid;
-  main.style.display="block";
-  await loadUserDoc();
-  await updateUI();
-});
+
+  await updateDoc(doc(db,"users",uid),{
+    walletCredits: u.walletCredits - 30,
+    freeSearchesRemaining: (u.freeSearchesRemaining || 0) + 1
+  });
+
+  await refreshUI();
+};
+
 </script>
+
 </body>
 </html>
