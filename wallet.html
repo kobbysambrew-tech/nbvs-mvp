@@ -3,138 +3,52 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>NBVS Ghana — Wallet</title>
-
+<title>NBVS — Wallet (Anonymous)</title>
 <style>
-  :root{
-    --red:#ce1126;
-    --yellow:#fcd116;
-    --green:#006b3f;
-    --accent:#004f2e;
-    --card:#ffffff;
-    --bg:#f6f7f9;
-    --muted:#555;
-  }
-
-  body{
-    font-family:"Segoe UI",Arial,sans-serif;
-    background:var(--bg);
-    margin:0;
-  }
-
-  header{
-    background:linear-gradient(90deg,var(--red),var(--yellow),var(--green));
-    padding:1.8rem 1rem;
-    text-align:center;
-    color:white;
-    font-weight:700;
-    box-shadow:0 3px 12px rgba(0,0,0,0.15);
-  }
-
-  main{
-    max-width:800px;
-    margin:1.6rem auto;
-    padding:0 1rem;
-  }
-
-  .panel{
-    background:white;
-    padding:1.4rem;
-    border-radius:12px;
-    box-shadow:0 8px 26px rgba(0,0,0,0.06);
-    margin-bottom:1.4rem;
-  }
-
-  .btn{
-    padding:12px;
-    border:none;
-    border-radius:10px;
-    cursor:pointer;
-    font-weight:700;
-    width:100%;
-    font-size:1rem;
-    margin-top:10px;
-  }
-
-  .btn-green{background:var(--green);color:white;}
-  .btn-green:hover{background:var(--accent);transform:translateY(-3px)}
-  .btn-yellow{background:var(--yellow);color:#111;}
-  .btn-red{background:var(--red);color:white;}
-
-  table{
-    width:100%;
-    border-collapse:collapse;
-    margin-top:10px;
-    background:white;
-    border-radius:10px;
-    overflow:hidden;
-    box-shadow:0 6px 20px rgba(0,0,0,0.05);
-  }
-  th,td{
-    padding:12px;
-    border-bottom:1px solid #eee;
-    font-size:0.95rem;
-  }
-  th{
-    background:#f7f7f7;
-    text-align:left;
-    color:#333;
-  }
+:root{--green:#006b3f;--accent:#004f2e;--bg:#f6f7f9;--muted:#555}
+body{font-family:"Segoe UI",Arial,sans-serif;background:var(--bg);margin:0;color:#222}
+header{background:linear-gradient(90deg,#ce1126,#fcd116,#006b3f);padding:16px;text-align:center;color:#fff}
+main{max-width:900px;margin:16px auto;padding:0 16px}
+.panel{background:#fff;padding:16px;border-radius:10px;box-shadow:0 6px 20px rgba(0,0,0,0.06);margin-bottom:16px}
+.btn{padding:12px;border-radius:8px;border:none;cursor:pointer;font-weight:700}
+.btn-green{background:var(--green);color:#fff}
+.btn-yellow{background:#fcd116;color:#111}
+.table{width:100%;border-collapse:collapse;margin-top:12px}
+.table th,.table td{padding:10px;border-bottom:1px solid #eee;text-align:left}
+.small{font-size:.9rem;color:var(--muted)}
 </style>
 </head>
-
 <body>
-
-<header>
-  <h1>NBVS — Wallet</h1>
-</header>
-
+<header><h1>NBVS — Wallet</h1></header>
 <main>
+  <div class="panel">
+    <h2>Your Wallet</h2>
+    <p style="font-size:1.6rem;font-weight:700">¢<span id="balance">0</span></p>
+    <p class="small">One verification costs ¢30</p>
 
-  <!-- BALANCE PANEL -->
-  <div class="panel" id="walletPanel">
-    <h2 style="margin-bottom:10px;color:var(--accent)">Your Wallet</h2>
-    <p style="font-size:1.6rem;font-weight:700;margin-bottom:6px">
-      ¢<span id="walletBalance">0</span>
-    </p>
-    <p class="muted">You need ¢30 to run one verification.</p>
+    <div style="display:flex;gap:10px;margin-top:12px">
+      <button id="add10" class="btn btn-green" style="flex:1">Add ¢10</button>
+      <button id="add30" class="btn btn-green" style="flex:1">Add ¢30</button>
+      <button id="add100" class="btn btn-green" style="flex:1">Add ¢100</button>
+    </div>
 
-    <button class="btn btn-green" id="add10">Add ¢10</button>
-    <button class="btn btn-green" id="add30">Add ¢30</button>
-    <button class="btn btn-green" id="add100">Add ¢100</button>
-
-    <button class="btn btn-yellow" id="backBtn">← Back to Verify Page</button>
+    <div style="margin-top:12px">
+      <button id="back" class="btn btn-yellow" style="width:100%">← Back to Verify</button>
+    </div>
   </div>
 
-  <!-- TRANSACTIONS -->
   <div class="panel">
-    <h3 style="color:var(--accent)">Transaction History</h3>
-
-    <table>
-      <thead>
-        <tr>
-          <th>Time</th>
-          <th>Type</th>
-          <th>Amount</th>
-        </tr>
-      </thead>
-      <tbody id="txBody">
-        <tr><td colspan="3">Loading…</td></tr>
-      </tbody>
+    <h3>Transactions</h3>
+    <table class="table" id="txTable">
+      <thead><tr><th>Time</th><th>Type</th><th>Amount</th></tr></thead>
+      <tbody id="txBody"><tr><td colspan="3">Loading…</td></tr></tbody>
     </table>
   </div>
-
 </main>
 
 <script type="module">
-/* ---------------------------------------------
-   ✅ Firebase Setup
---------------------------------------------- */
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-app.js";
-import { 
-  getFirestore, doc, getDoc, setDoc, updateDoc,
-  collection, addDoc, getDocs, query, orderBy
-} from "https://www.gstatic.com/firebasejs/10.7.2/firebase-firestore.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
+import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, addDoc, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey:"AIzaSyCDh_qL3jiCMHROK0_Soul2Wsv3t3y4wv0",
@@ -144,111 +58,79 @@ const firebaseConfig = {
   messagingSenderId:"702636577113",
   appId:"1:702636577113:web:8369b43a2aa43aeb95fc48"
 };
-
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-/* ---------------------------------------------
-   ✅ Device-based user (same as verify page)
---------------------------------------------- */
-let userId = localStorage.getItem("nbvs_userId");
-if (!userId){
-  userId = "guest_" + Math.random().toString(36).substring(2,12);
-  localStorage.setItem("nbvs_userId", userId);
+const DEVICE_KEY = 'nbvs_deviceId';
+let deviceId = localStorage.getItem(DEVICE_KEY);
+if(!deviceId){
+  deviceId = 'dev_' + Math.random().toString(36).slice(2,12);
+  localStorage.setItem(DEVICE_KEY, deviceId);
 }
+const walletRef = doc(db, 'wallet', deviceId);
 
-const walletRef = doc(db, "wallet", userId);
+const balanceEl = document.getElementById('balance');
+const txBody = document.getElementById('txBody');
 
-/* ---------------------------------------------
-   ✅ Ensure wallet exists
---------------------------------------------- */
-async function initWallet(){
+async function ensureDoc(){
   const snap = await getDoc(walletRef);
-  if (!snap.exists()){
-    await setDoc(walletRef,{ balance: 0 });
+  if(!snap.exists()){
+    await setDoc(walletRef, {
+      balance: 0,
+      freeSearchesRemaining: 3,
+      plan: 'free',
+      monthlyRemaining: 0,
+      planExpires: null,
+      createdAt: new Date()
+    });
   }
 }
-await initWallet();
 
-/* ---------------------------------------------
-   ✅ Load wallet & update UI
---------------------------------------------- */
-async function loadBalance(){
+async function refresh(){
   const snap = await getDoc(walletRef);
-  const bal = snap.data().balance || 0;
-  document.getElementById("walletBalance").innerText = bal;
+  if(!snap.exists()){
+    await ensureDoc();
+    return refresh();
+  }
+  const data = snap.data();
+  balanceEl.innerText = Number(data.balance || 0);
+  await loadTx();
 }
 
-await loadBalance();
-
-/* ---------------------------------------------
-   ✅ Load Transactions
---------------------------------------------- */
-async function loadTransactions(){
-  const txBody = document.getElementById("txBody");
-  txBody.innerHTML = "<tr><td colspan='3'>Loading…</td></tr>";
-
-  const q = query(
-    collection(db,"wallet_transactions"),
-    orderBy("timestamp","desc")
-  );
-
+async function loadTx(){
+  txBody.innerHTML = '<tr><td colspan="3">Loading…</td></tr>';
+  const q = query(collection(db,'wallet_transactions'), orderBy('timestamp','desc'));
   const snap = await getDocs(q);
-  txBody.innerHTML = "";
-
-  if (snap.empty){
-    txBody.innerHTML = "<tr><td colspan='3'>No transactions yet.</td></tr>";
+  if(snap.empty){
+    txBody.innerHTML = '<tr><td colspan="3">No transactions yet</td></tr>';
     return;
   }
-
-  snap.forEach(t=>{
-    const d = t.data();
-    const time = d.timestamp?.seconds ? 
-      new Date(d.timestamp.seconds*1000).toLocaleString() :
-      "—";
-
-    txBody.innerHTML += `
-      <tr>
-        <td>${time}</td>
-        <td>${d.type}</td>
-        <td>¢${d.amount}</td>
-      </tr>
-    `;
+  txBody.innerHTML = '';
+  snap.forEach(d=>{
+    const r = d.data();
+    const time = r.timestamp?.toDate ? r.timestamp.toDate().toLocaleString() : (r.timestamp ? new Date(r.timestamp).toLocaleString() : '—');
+    txBody.innerHTML += `<tr><td>${time}</td><td>${r.type||''}</td><td>¢${r.amount||0}</td></tr>`;
   });
 }
-await loadTransactions();
 
-/* ---------------------------------------------
-   ✅ Add Money Buttons
---------------------------------------------- */
 async function addMoney(amount){
   const snap = await getDoc(walletRef);
-  const bal = Number(snap.data().balance || 0);
-
-  await updateDoc(walletRef,{ balance: bal + amount });
-
-  await addDoc(collection(db,"wallet_transactions"), {
-    user: userId,
-    type: "top_up",
-    amount: amount,
-    timestamp: new Date()
-  });
-
-  await loadBalance();
-  await loadTransactions();
+  const bal = Number(snap.exists() ? snap.data().balance || 0 : 0);
+  await updateDoc(walletRef, { balance: bal + amount });
+  await addDoc(collection(db,'wallet_transactions'), { deviceId, type: 'top_up', amount, timestamp: new Date() });
+  await refresh();
 }
 
-document.getElementById("add10").onclick  = ()=>addMoney(10);
-document.getElementById("add30").onclick  = ()=>addMoney(30);
-document.getElementById("add100").onclick = ()=>addMoney(100);
+document.getElementById('add10').onclick = ()=> addMoney(10);
+document.getElementById('add30').onclick = ()=> addMoney(30);
+document.getElementById('add100').onclick = ()=> addMoney(100);
+document.getElementById('back').onclick = ()=> window.location.href = 'verify.html';
 
-/* ---------------------------------------------
-   ✅ Back Button
---------------------------------------------- */
-document.getElementById("backBtn").onclick = ()=>{
-  window.location.href = "verify.html";
-};
+(async()=>{
+  await ensureDoc();
+  await refresh();
+  console.log('wallet loaded for device', deviceId);
+})();
 </script>
-
 </body>
 </html>
