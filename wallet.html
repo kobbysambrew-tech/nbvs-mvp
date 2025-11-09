@@ -48,7 +48,7 @@ main{max-width:900px;margin:16px auto;padding:0 16px}
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
-import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, addDoc, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
+import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, addDoc, getDocs, query, orderBy, onSnapshot } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey:"AIzaSyCDh_qL3jiCMHROK0_Soul2Wsv3t3y4wv0",
@@ -67,12 +67,12 @@ if(!deviceId){
   deviceId = 'dev_' + Math.random().toString(36).slice(2,12);
   localStorage.setItem(DEVICE_KEY, deviceId);
 }
-const walletRef = doc(db, 'wallet', deviceId);
 
+const walletRef = doc(db, 'wallet', deviceId);
 const balanceEl = document.getElementById('balance');
 const txBody = document.getElementById('txBody');
 
-async function ensureDoc(){
+async function ensureWallet(){
   const snap = await getDoc(walletRef);
   if(!snap.exists()){
     await setDoc(walletRef, {
@@ -86,49 +86,44 @@ async function ensureDoc(){
   }
 }
 
+// Refresh wallet balance UI
 async function refresh(){
   const snap = await getDoc(walletRef);
-  if(!snap.exists()){
-    await ensureDoc();
-    return refresh();
-  }
-  const data = snap.data();
-  balanceEl.innerText = Number(data.balance || 0);
-  await loadTx();
+  if(!snap.exists()){ await ensureWallet(); return refresh(); }
+  balanceEl.innerText = Number(snap.data().balance || 0);
 }
 
+// Live update transactions table
 async function loadTx(){
-  txBody.innerHTML = '<tr><td colspan="3">Loading…</td></tr>';
   const q = query(collection(db,'wallet_transactions'), orderBy('timestamp','desc'));
-  const snap = await getDocs(q);
-  if(snap.empty){
-    txBody.innerHTML = '<tr><td colspan="3">No transactions yet</td></tr>';
-    return;
-  }
-  txBody.innerHTML = '';
-  snap.forEach(d=>{
-    const r = d.data();
-    const time = r.timestamp?.toDate ? r.timestamp.toDate().toLocaleString() : (r.timestamp ? new Date(r.timestamp).toLocaleString() : '—');
-    txBody.innerHTML += `<tr><td>${time}</td><td>${r.type||''}</td><td>¢${r.amount||0}</td></tr>`;
+  onSnapshot(q, snap=>{
+    txBody.innerHTML='';
+    if(snap.empty){ txBody.innerHTML='<tr><td colspan="3">No transactions yet</td></tr>'; return; }
+    snap.forEach(d=>{
+      const r = d.data();
+      const time = r.timestamp?.toDate ? r.timestamp.toDate().toLocaleString() : (r.timestamp ? new Date(r.timestamp).toLocaleString() : '—');
+      txBody.innerHTML += `<tr><td>${time}</td><td>${r.type||''}</td><td>¢${r.amount||0}</td></tr>`;
+    });
   });
 }
 
+// Add money & update wallet in real-time
 async function addMoney(amount){
   const snap = await getDoc(walletRef);
   const bal = Number(snap.exists() ? snap.data().balance || 0 : 0);
   await updateDoc(walletRef, { balance: bal + amount });
   await addDoc(collection(db,'wallet_transactions'), { deviceId, type: 'top_up', amount, timestamp: new Date() });
-  await refresh();
 }
 
-document.getElementById('add10').onclick = ()=> addMoney(10);
-document.getElementById('add30').onclick = ()=> addMoney(30);
-document.getElementById('add100').onclick = ()=> addMoney(100);
-document.getElementById('back').onclick = ()=> window.location.href = 'verify.html';
+document.getElementById('add10').onclick = ()=>addMoney(10);
+document.getElementById('add30').onclick = ()=>addMoney(30);
+document.getElementById('add100').onclick = ()=>addMoney(100);
+document.getElementById('back').onclick = ()=> window.location.href='verify.html';
 
 (async()=>{
-  await ensureDoc();
+  await ensureWallet();
   await refresh();
+  await loadTx();
   console.log('wallet loaded for device', deviceId);
 })();
 </script>
