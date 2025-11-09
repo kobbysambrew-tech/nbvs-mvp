@@ -3,52 +3,65 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>NBVS — Wallet (Anonymous)</title>
+<title>NBVS — Verify (Anonymous)</title>
 <style>
-:root{--green:#006b3f;--accent:#004f2e;--bg:#f6f7f9;--muted:#555}
+:root{--red:#ce1126;--yellow:#fcd116;--green:#006b3f;--bg:#f6f7f9;--muted:#555}
 body{font-family:"Segoe UI",Arial,sans-serif;background:var(--bg);margin:0;color:#222}
-header{background:linear-gradient(90deg,#ce1126,#fcd116,#006b3f);padding:16px;text-align:center;color:#fff}
-main{max-width:900px;margin:16px auto;padding:0 16px}
+header{background:linear-gradient(90deg,var(--red),var(--yellow),var(--green));padding:18px;text-align:center;color:#fff;font-weight:700}
+main{max-width:900px;margin:18px auto;padding:0 16px}
 .panel{background:#fff;padding:16px;border-radius:10px;box-shadow:0 6px 20px rgba(0,0,0,0.06);margin-bottom:16px}
-.btn{padding:12px;border-radius:8px;border:none;cursor:pointer;font-weight:700}
+label{display:block;font-size:0.9rem;color:var(--muted);margin-bottom:6px}
+input{width:100%;padding:12px;border-radius:8px;border:1px solid #ccc;margin-bottom:12px;font-size:1rem}
+button{padding:12px;border-radius:8px;border:none;cursor:pointer;font-weight:700}
 .btn-green{background:var(--green);color:#fff}
-.btn-yellow{background:#fcd116;color:#111}
-.table{width:100%;border-collapse:collapse;margin-top:12px}
-.table th,.table td{padding:10px;border-bottom:1px solid #eee;text-align:left}
+.btn-yellow{background:var(--yellow);color:#111}
+.btn-red{background:#ce1126;color:#fff}
+.record{background:#fff;border-left:5px solid var(--green);padding:12px;border-radius:8px;margin-top:12px}
+.row{display:flex;gap:10px}
+.pill{padding:6px 10px;border-radius:10px;background:var(--green);color:#fff;font-weight:700}
 .small{font-size:.9rem;color:var(--muted)}
 </style>
 </head>
 <body>
-<header><h1>NBVS — Wallet</h1></header>
-<main>
+<header><h1>NBVS — Background Verification</h1></header>
+<main id="app" style="display:none">
   <div class="panel">
-    <h2>Your Wallet</h2>
-    <p style="font-size:1.6rem;font-weight:700">¢<span id="balance">0</span></p>
-    <p class="small">One verification costs ¢30</p>
+    <p class="small">Each verification costs ¢30. New devices get <b>3 free</b> searches.</p>
 
-    <div style="display:flex;gap:10px;margin-top:12px">
-      <button id="add10" class="btn btn-green" style="flex:1">Add ¢10</button>
-      <button id="add30" class="btn btn-green" style="flex:1">Add ¢30</button>
-      <button id="add100" class="btn btn-green" style="flex:1">Add ¢100</button>
+    <label for="searchInput">Search by full name or NIA</label>
+    <input id="searchInput" aria-labelledby="searchInput" placeholder="e.g. Ama Serwaa or GHA-2039485" />
+
+    <div class="row">
+      <button id="searchBtn" class="btn-green" style="flex:1">Start Verification</button>
+      <button id="openWallet" class="btn-yellow" style="width:160px">Open Wallet</button>
     </div>
 
-    <div style="margin-top:12px">
-      <button id="back" class="btn btn-yellow" style="width:100%">← Back to Verify</button>
+    <div style="display:flex;gap:12px;margin-top:12px;align-items:center">
+      <div class="pill" id="freeBadge">Free: —</div>
+      <div class="small" id="planLabel">Plan: —</div>
+      <div class="small" id="walletLabel" style="margin-left:auto">Balance: ¢—</div>
     </div>
   </div>
 
+  <div id="resultsArea"></div>
+
   <div class="panel">
-    <h3>Transactions</h3>
-    <table class="table" id="txTable">
-      <thead><tr><th>Time</th><th>Type</th><th>Amount</th></tr></thead>
-      <tbody id="txBody"><tr><td colspan="3">Loading…</td></tr></tbody>
-    </table>
+    <h3>Plans & Conversion</h3>
+    <div style="display:flex;gap:10px;margin-bottom:8px">
+      <button id="buyBasic" class="btn-green" style="flex:1">Buy BASIC — 10 searches — $3.99</button>
+      <button id="buyPro" class="btn-red" style="flex:1">Buy PRO — 30 days — $14.99</button>
+    </div>
+    <div style="display:flex;gap:10px">
+      <button id="convertWallet" class="btn-yellow" style="flex:1">Convert Wallet → Searches (¢30 each)</button>
+      <button id="refreshBtn" style="flex:1">Refresh</button>
+    </div>
+    <p class="small" style="margin-top:8px">Conversion uses whole multiples of ¢30; remainder stays in wallet.</p>
   </div>
 </main>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
-import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, addDoc, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
+import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, addDoc, getDocs, query, where, limit, orderBy } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey:"AIzaSyCDh_qL3jiCMHROK0_Soul2Wsv3t3y4wv0",
@@ -58,19 +71,35 @@ const firebaseConfig = {
   messagingSenderId:"702636577113",
   appId:"1:702636577113:web:8369b43a2aa43aeb95fc48"
 };
+
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
+const SEARCH_COST = 30;
+
+// device id stored in localStorage
 const DEVICE_KEY = 'nbvs_deviceId';
 let deviceId = localStorage.getItem(DEVICE_KEY);
 if(!deviceId){
   deviceId = 'dev_' + Math.random().toString(36).slice(2,12);
   localStorage.setItem(DEVICE_KEY, deviceId);
+  console.log('created deviceId', deviceId);
 }
 const walletRef = doc(db, 'wallet', deviceId);
 
-const balanceEl = document.getElementById('balance');
-const txBody = document.getElementById('txBody');
+// DOM
+const appEl = document.getElementById('app');
+const searchInput = document.getElementById('searchInput');
+const searchBtn = document.getElementById('searchBtn');
+const openWallet = document.getElementById('openWallet');
+const freeBadge = document.getElementById('freeBadge');
+const planLabel = document.getElementById('planLabel');
+const walletLabel = document.getElementById('walletLabel');
+const resultsArea = document.getElementById('resultsArea');
+const buyBasic = document.getElementById('buyBasic');
+const buyPro = document.getElementById('buyPro');
+const convertWallet = document.getElementById('convertWallet');
+const refreshBtn = document.getElementById('refreshBtn');
 
 async function ensureDoc(){
   const snap = await getDoc(walletRef);
@@ -83,53 +112,216 @@ async function ensureDoc(){
       planExpires: null,
       createdAt: new Date()
     });
+    console.log('wallet doc created for device', deviceId);
+  } else {
+    // set missing defaults if necessary
+    const data = snap.data();
+    const update = {};
+    if(data.freeSearchesRemaining === undefined) update.freeSearchesRemaining = 3;
+    if(data.balance === undefined) update.balance = 0;
+    if(data.plan === undefined) update.plan = 'free';
+    if(data.monthlyRemaining === undefined) update.monthlyRemaining = 0;
+    if(Object.keys(update).length) await updateDoc(walletRef, update);
   }
 }
 
-async function refresh(){
+async function loadWalletDoc(){
   const snap = await getDoc(walletRef);
-  if(!snap.exists()){
-    await ensureDoc();
-    return refresh();
-  }
-  const data = snap.data();
-  balanceEl.innerText = Number(data.balance || 0);
-  await loadTx();
+  return snap.exists() ? snap.data() : null;
 }
 
-async function loadTx(){
-  txBody.innerHTML = '<tr><td colspan="3">Loading…</td></tr>';
-  const q = query(collection(db,'wallet_transactions'), orderBy('timestamp','desc'));
-  const snap = await getDocs(q);
-  if(snap.empty){
-    txBody.innerHTML = '<tr><td colspan="3">No transactions yet</td></tr>';
+function toNum(v){ const n = Number(v); return Number.isFinite(n) ? n : 0; }
+
+async function refreshUI(){
+  const u = await loadWalletDoc();
+  if(!u) return;
+  freeBadge.innerText = 'Free: ' + toNum(u.freeSearchesRemaining);
+  planLabel.innerText = 'Plan: ' + (u.plan || 'free');
+  walletLabel.innerText = `Balance: ¢${toNum(u.balance)}`;
+  appEl.style.display = 'block';
+}
+
+// deduction logic: PRO active → monthlyRemaining (basic) → freeSearchesRemaining → balance
+async function deductForSearch(){
+  const uSnap = await getDoc(walletRef);
+  if(!uSnap.exists()) return false;
+  const u = uSnap.data();
+
+  // pro check
+  if(u.plan === 'pro' && u.planExpires){
+    try{
+      const expires = (u.planExpires.toDate) ? u.planExpires.toDate() : new Date(u.planExpires);
+      if(expires > new Date()){
+        console.log('pro active', expires);
+        return true;
+      }
+    }catch(e){}
+  }
+
+  // basic monthlyRemaining
+  const monthly = toNum(u.monthlyRemaining);
+  if(monthly > 0){
+    await updateDoc(walletRef, { monthlyRemaining: monthly - 1 });
+    console.log('used monthlyRemaining, left', monthly - 1);
+    return true;
+  }
+
+  // free searches
+  const free = toNum(u.freeSearchesRemaining);
+  if(free > 0){
+    await updateDoc(walletRef, { freeSearchesRemaining: free - 1 });
+    console.log('used free search, left', free - 1);
+    return true;
+  }
+
+  // balance
+  const balance = toNum(u.balance);
+  if(balance >= SEARCH_COST){
+    await updateDoc(walletRef, { balance: balance - SEARCH_COST });
+    await addDoc(collection(db,'wallet_transactions'), {
+      deviceId,
+      type: 'search deduction',
+      amount: -SEARCH_COST,
+      timestamp: new Date()
+    });
+    console.log('used balance, new', balance - SEARCH_COST);
+    return true;
+  }
+
+  return false;
+}
+
+async function performSearch(term){
+  const out = [];
+  const trimmed = term.trim();
+  if(!trimmed) return out;
+
+  const recordsRef = collection(db, 'records');
+
+  // 1) try exact NIA
+  const qNia = query(recordsRef, where('nia','==', trimmed), limit(50));
+  const snapNia = await getDocs(qNia);
+  snapNia.forEach(d => out.push(d));
+
+  // 2) try name_lower
+  const nameLower = trimmed.toLowerCase();
+  const qNameLower = query(recordsRef, where('name_lower','==', nameLower), limit(200));
+  const snapNL = await getDocs(qNameLower);
+  if(!snapNL.empty){
+    snapNL.forEach(d => {
+      if(!out.find(x=>x.id===d.id)) out.push(d);
+    });
+    return out;
+  }
+
+  // 3) fallback: limited fetch + client-side match
+  const snapAll = await getDocs(query(recordsRef, limit(500)));
+  snapAll.forEach(d=>{
+    const r = d.data();
+    if((r.name || '').toString().toLowerCase() === nameLower) {
+      if(!out.find(x=>x.id===d.id)) out.push(d);
+    }
+    // also match numeric-only NIA e.g. "5784986"
+    const digits = trimmed.replace(/\D/g,'');
+    if(digits && (r.nia || '') === digits){
+      if(!out.find(x=>x.id===d.id)) out.push(d);
+    }
+  });
+  return out;
+}
+
+function renderResults(docs){
+  resultsArea.innerHTML = '';
+  if(!docs || docs.length === 0){
+    resultsArea.innerHTML = '<p class="small">❌ No record found.</p>';
     return;
   }
-  txBody.innerHTML = '';
-  snap.forEach(d=>{
+  docs.forEach(d=>{
     const r = d.data();
-    const time = r.timestamp?.toDate ? r.timestamp.toDate().toLocaleString() : (r.timestamp ? new Date(r.timestamp).toLocaleString() : '—');
-    txBody.innerHTML += `<tr><td>${time}</td><td>${r.type||''}</td><td>¢${r.amount||0}</td></tr>`;
+    const div = document.createElement('div');
+    div.className = 'record';
+    div.innerHTML = `
+      <p><b>Name:</b> ${r.name || ''}</p>
+      <p><b>NIA:</b> ${r.nia || ''}</p>
+      <p><b>DOB:</b> ${r.dob || ''}</p>
+      <p><b>Region:</b> ${r.region || ''}</p>
+      <p><b>Address:</b> ${r.address || ''}</p>
+      <p><b>Criminal:</b> ${r.criminal || ''}</p>
+      <p><b>Driving:</b> ${r.driving || ''}</p>
+      <p><b>Credit:</b> ${r.credit || ''}</p>
+      <p><b>Status:</b> ${r.status || ''}</p>
+    `;
+    resultsArea.appendChild(div);
   });
 }
 
-async function addMoney(amount){
+searchBtn.onclick = async () => {
+  const term = searchInput.value || '';
+  resultsArea.innerHTML = '<p class="small">Checking credits…</p>';
+
+  const ok = await deductForSearch();
+  if(!ok){
+    resultsArea.innerHTML = '<p class="small">Not enough balance or searches. Open wallet to add funds.</p>';
+    await refreshUI();
+    return;
+  }
+
+  await refreshUI();
+
+  resultsArea.innerHTML = '<p class="small">Searching…</p>';
+  const docs = await performSearch(term);
+  renderResults(docs);
+
+  // log search
+  await addDoc(collection(db,'search_logs'), {
+    term, deviceId, found: docs.length > 0, timestamp: new Date(), platform: 'web'
+  });
+};
+
+openWallet.onclick = ()=> window.location.href = 'wallet.html';
+
+buyBasic.onclick = async () => {
+  // charge not implemented — this is UI-only placeholder; add payment integration as needed
   const snap = await getDoc(walletRef);
-  const bal = Number(snap.exists() ? snap.data().balance || 0 : 0);
-  await updateDoc(walletRef, { balance: bal + amount });
-  await addDoc(collection(db,'wallet_transactions'), { deviceId, type: 'top_up', amount, timestamp: new Date() });
-  await refresh();
-}
+  const u = snap.exists() ? snap.data() : {};
+  const newMonthly = toNum(u.monthlyRemaining) + 10;
+  await updateDoc(walletRef, { plan: 'basic', monthlyRemaining: newMonthly });
+  await addDoc(collection(db,'wallet_transactions'), { deviceId, type: 'purchase_basic', amount: 3.99, timestamp: new Date() });
+  alert('Basic purchased: +10 searches');
+  await refreshUI();
+};
 
-document.getElementById('add10').onclick = ()=> addMoney(10);
-document.getElementById('add30').onclick = ()=> addMoney(30);
-document.getElementById('add100').onclick = ()=> addMoney(100);
-document.getElementById('back').onclick = ()=> window.location.href = 'verify.html';
+buyPro.onclick = async () => {
+  const expires = new Date(Date.now() + 30*24*60*60*1000);
+  await updateDoc(walletRef, { plan: 'pro', planExpires: expires.toISOString() });
+  await addDoc(collection(db,'wallet_transactions'), { deviceId, type: 'purchase_pro', amount: 14.99, timestamp: new Date() });
+  alert('Pro activated for 30 days');
+  await refreshUI();
+};
 
+convertWallet.onclick = async () => {
+  const snap = await getDoc(walletRef);
+  if(!snap.exists()) return alert('Wallet missing');
+  const u = snap.data();
+  const bal = toNum(u.balance);
+  if(bal < SEARCH_COST) return alert(`Need at least ¢${SEARCH_COST} to convert`);
+  const searches = Math.floor(bal / SEARCH_COST);
+  const spent = searches * SEARCH_COST;
+  const newBal = bal - spent;
+  const newFree = toNum(u.freeSearchesRemaining) + searches;
+  await updateDoc(walletRef, { balance: newBal, freeSearchesRemaining: newFree });
+  await addDoc(collection(db,'wallet_transactions'), { deviceId, type: 'convert_to_searches', amount: -spent, searchesAdded: searches, timestamp: new Date() });
+  alert(`Converted ¢${spent} → ${searches} searches`);
+  await refreshUI();
+};
+
+refreshBtn.onclick = refreshUI;
+
+// initialize
 (async()=>{
   await ensureDoc();
-  await refresh();
-  console.log('wallet loaded for device', deviceId);
+  await refreshUI();
+  console.log('verify loaded with deviceId', deviceId);
 })();
 </script>
 </body>
