@@ -3,158 +3,53 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>NBVS Ghana — Verify</title>
-
+<title>NBVS — Wallet (Anonymous)</title>
 <style>
-  :root{
-    --red:#ce1126;
-    --yellow:#fcd116;
-    --green:#006b3f;
-    --accent:#004f2e;
-    --card:#ffffff;
-    --bg:#f6f7f9;
-    --muted:#555;
-  }
-
-  body{
-    font-family:"Segoe UI",Arial,sans-serif;
-    background:var(--bg);
-    margin:0;
-    padding:0;
-  }
-
-  header{
-    background:linear-gradient(90deg,var(--red),var(--yellow),var(--green));
-    padding:1.8rem 1rem;
-    text-align:center;
-    color:white;
-    font-weight:700;
-    box-shadow:0 3px 12px rgba(0,0,0,0.15);
-  }
-
-  main{
-    max-width:800px;
-    margin:1.6rem auto;
-    padding:0 1rem;
-  }
-
-  .panel{
-    background:var(--card);
-    padding:1.4rem;
-    border-radius:12px;
-    box-shadow:0 8px 26px rgba(0,0,0,0.06);
-    margin-bottom:1.4rem;
-  }
-
-  input{
-    width:100%;
-    padding:13px;
-    border-radius:10px;
-    border:1px solid #ccc;
-    margin-bottom:12px;
-    font-size:1rem;
-  }
-
-  button{
-    width:100%;
-    padding:12px;
-    border:none;
-    border-radius:10px;
-    cursor:pointer;
-    font-weight:700;
-    font-size:1rem;
-    transition:.25s;
-  }
-
-  .btn-green{background:var(--green);color:white;}
-  .btn-yellow{background:var(--yellow);color:#111;}
-  .btn-red{background:var(--red);color:white;}
-
-  .record{
-    background:white;
-    border-left:5px solid var(--green);
-    padding:1rem;
-    border-radius:10px;
-    margin-top:1rem;
-    box-shadow:0 6px 20px rgba(0,0,0,0.06);
-  }
-
-  .pill{
-    padding:6px 12px;
-    border-radius:10px;
-    background:var(--green);
-    color:white;
-    font-weight:600;
-  }
-
-  .muted{color:#555;}
+:root{--green:#006b3f;--accent:#004f2e;--bg:#f6f7f9;--muted:#555}
+body{font-family:"Segoe UI",Arial,sans-serif;background:var(--bg);margin:0;color:#222}
+header{background:linear-gradient(90deg,#ce1126,#fcd116,#006b3f);padding:16px;text-align:center;color:#fff}
+main{max-width:900px;margin:16px auto;padding:0 16px}
+.panel{background:#fff;padding:16px;border-radius:10px;box-shadow:0 6px 20px rgba(0,0,0,0.06);margin-bottom:16px}
+.btn{padding:12px;border-radius:8px;border:none;cursor:pointer;font-weight:700}
+.btn-green{background:var(--green);color:#fff}
+.btn-yellow{background:#fcd116;color:#111}
+.table{width:100%;border-collapse:collapse;margin-top:12px}
+.table th,.table td{padding:10px;border-bottom:1px solid #eee;text-align:left}
+.small{font-size:.9rem;color:var(--muted)}
 </style>
 </head>
-
 <body>
-<header>
-  <h1>NBVS Ghana — Background Verification</h1>
-</header>
-
+<header><h1>NBVS — Wallet</h1></header>
 <main>
-
-  <p class="muted">
-    Each verification costs ¢30. You have <span id="userPlan">loading…</span>.
-  </p>
-
-  <!-- SEARCH PANEL -->
   <div class="panel">
-    <label class="muted">Search by full name or NIA ID</label>
-    <input id="searchInput" placeholder="e.g. Ama Serwaa or GHA-2039485" />
+    <h2>Your Wallet</h2>
+    <p style="font-size:1.6rem;font-weight:700">¢<span id="balance">0</span></p>
+    <p class="small">One verification costs ¢30</p>
 
-    <div style="display:flex;gap:10px;">
-      <button id="searchBtn" class="btn-green">Search</button>
-      <button id="walletBtn" class="btn-yellow">Open Wallet</button>
+    <div style="display:flex;gap:10px;margin-top:12px">
+      <button id="add10" class="btn btn-green" style="flex:1">Add ¢10</button>
+      <button id="add30" class="btn btn-green" style="flex:1">Add ¢30</button>
+      <button id="add100" class="btn btn-green" style="flex:1">Add ¢100</button>
     </div>
 
-    <div style="margin-top:12px;">
-      <span id="freeCount" class="pill">Free: —</span>
-      <span id="planLabel" class="muted">Plan: —</span>
+    <div style="margin-top:12px">
+      <button id="back" class="btn btn-yellow" style="width:100%">← Back to Verify</button>
     </div>
   </div>
 
-  <!-- RESULTS -->
-  <div id="results"></div>
-
-  <!-- PLANS -->
   <div class="panel">
-    <h3>Upgrade / Buy</h3>
-
-    <button id="buyBasic" class="btn-green" style="margin-bottom:10px;">
-      BASIC — 10 searches — $3.99
-    </button>
-
-    <button id="buyPro" class="btn-red" style="margin-bottom:10px;">
-      PRO — Unlimited 30 days — $14.99
-    </button>
-
-    <button id="convertWallet" class="btn-yellow">
-      Convert Wallet (¢30 → 1 search)
-    </button>
+    <h3>Transactions</h3>
+    <table class="table" id="txTable">
+      <thead><tr><th>Time</th><th>Type</th><th>Amount</th></tr></thead>
+      <tbody id="txBody"><tr><td colspan="3">Loading…</td></tr></tbody>
+    </table>
   </div>
-
-  <div style="text-align:center;margin-top:14px;">
-    <a href="index.html">← Back Home</a>
-  </div>
-
 </main>
 
 <script type="module">
-/* Firestore imports */
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
-import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
-import {
-  getFirestore, doc, getDoc, updateDoc, collection,
-  addDoc, query, where, getDocs
-} from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
+import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, addDoc, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 
-
-/* Firebase config */
 const firebaseConfig = {
   apiKey:"AIzaSyCDh_qL3jiCMHROK0_Soul2Wsv3t3y4wv0",
   authDomain:"nbvs-ghana.firebaseapp.com",
@@ -165,199 +60,77 @@ const firebaseConfig = {
 };
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
-const auth = getAuth(app);
 
+const DEVICE_KEY = 'nbvs_deviceId';
+let deviceId = localStorage.getItem(DEVICE_KEY);
+if(!deviceId){
+  deviceId = 'dev_' + Math.random().toString(36).slice(2,12);
+  localStorage.setItem(DEVICE_KEY, deviceId);
+}
+const walletRef = doc(db, 'wallet', deviceId);
 
-let uid = null;
+const balanceEl = document.getElementById('balance');
+const txBody = document.getElementById('txBody');
 
-
-/* WAIT FOR USER */
-onAuthStateChanged(auth, async(user)=>{
-  if(!user) return window.location.href="login.html";
-  uid = user.uid;
-  await refreshUI();
-});
-
-
-/* LOAD USER */
-async function loadUser(){
-  const snap = await getDoc(doc(db,"users",uid));
-  return snap.exists() ? snap.data() : null;
+async function ensureDoc(){
+  const snap = await getDoc(walletRef);
+  if(!snap.exists()){
+    await setDoc(walletRef, {
+      balance: 0,
+      freeSearchesRemaining: 3,
+      plan: 'free',
+      monthlyRemaining: 0,
+      planExpires: null,
+      createdAt: new Date()
+    });
+  }
 }
 
-
-/* UPDATE UI */
-async function refreshUI(){
-  const u = await loadUser();
-  if(!u) return;
-
-  document.getElementById("freeCount").innerText =
-    "Free: " + (u.freeSearchesRemaining ?? 0);
-
-  document.getElementById("planLabel").innerText =
-    "Plan: " + (u.plan ?? "free");
-
-  document.getElementById("userPlan").innerText =
-    (u.plan ?? "free");
+async function refresh(){
+  const snap = await getDoc(walletRef);
+  if(!snap.exists()){
+    await ensureDoc();
+    return refresh();
+  }
+  const data = snap.data();
+  balanceEl.innerText = Number(data.balance || 0);
+  await loadTx();
 }
 
-
-/* DEDUCT SEARCH */
-async function deductSearch(){
-  const u = await loadUser();
-
-  if(u.role === "staff" || u.role === "superadmin"){
-    return true;
+async function loadTx(){
+  txBody.innerHTML = '<tr><td colspan="3">Loading…</td></tr>';
+  const q = query(collection(db,'wallet_transactions'), orderBy('timestamp','desc'));
+  const snap = await getDocs(q);
+  if(snap.empty){
+    txBody.innerHTML = '<tr><td colspan="3">No transactions yet</td></tr>';
+    return;
   }
-
-  if(u.freeSearchesRemaining > 0){
-    await updateDoc(doc(db,"users",uid), {
-      freeSearchesRemaining: u.freeSearchesRemaining - 1
-    });
-    return true;
-  }
-
-  if(u.walletCredits >= 30){
-    await updateDoc(doc(db,"users",uid), {
-      walletCredits: u.walletCredits - 30
-    });
-
-    await addDoc(collection(db,"wallet_transactions"),{
-      user: uid,
-      type: "search deduction",
-      amount: 30,
-      timestamp: new Date()
-    });
-
-    return true;
-  }
-
-  return false;
+  txBody.innerHTML = '';
+  snap.forEach(d=>{
+    const r = d.data();
+    const time = r.timestamp?.toDate ? r.timestamp.toDate().toLocaleString() : (r.timestamp ? new Date(r.timestamp).toLocaleString() : '—');
+    txBody.innerHTML += `<tr><td>${time}</td><td>${r.type||''}</td><td>¢${r.amount||0}</td></tr>`;
+  });
 }
 
+async function addMoney(amount){
+  const snap = await getDoc(walletRef);
+  const bal = Number(snap.exists() ? snap.data().balance || 0 : 0);
+  await updateDoc(walletRef, { balance: bal + amount });
+  await addDoc(collection(db,'wallet_transactions'), { deviceId, type: 'top_up', amount, timestamp: new Date() });
+  await refresh();
+}
 
-/* SEARCH */
-document.getElementById("searchBtn").onclick = async()=>{
+document.getElementById('add10').onclick = ()=> addMoney(10);
+document.getElementById('add30').onclick = ()=> addMoney(30);
+document.getElementById('add100').onclick = ()=> addMoney(100);
+document.getElementById('back').onclick = ()=> window.location.href = 'verify.html';
 
-  const queryText = document.getElementById("searchInput").value.trim();
-  const resultsBox = document.getElementById("results");
-
-  if(!queryText){
-    resultsBox.innerHTML = "<p class='muted'>Enter a name or NIA.</p>";
-    return;
-  }
-
-  /* Deduct */
-  if(!await deductSearch()){
-    resultsBox.innerHTML = "<p class='muted'>Not enough balance or free searches.</p>";
-    return;
-  }
-
-  await refreshUI();
-
-  resultsBox.innerHTML = "<p class='muted'>Searching…</p>";
-
-  let docsFound = [];
-
-  /* CASE-INSENSITIVE NAME */
-  const qName = query(
-    collection(db,"records"),
-    where("name_lower","==",queryText.toLowerCase())
-  );
-  const snapName = await getDocs(qName);
-
-  snapName.forEach(d=>docsFound.push(d));
-
-  /* EXACT NIA */
-  const qNIA = query(
-    collection(db,"records"),
-    where("nia","==",queryText)
-  );
-  const snapNIA = await getDocs(qNIA);
-
-  snapNIA.forEach(d=>{
-    if(!docsFound.some(x=>x.id===d.id)) docsFound.push(d);
-  });
-
-  /* SHOW RESULTS */
-  if(docsFound.length === 0){
-    resultsBox.innerHTML = "❌ No record found.";
-  } else {
-    resultsBox.innerHTML = "";
-    docsFound.forEach(docSnap=>{
-      const r = docSnap.data();
-      resultsBox.innerHTML += `
-        <div class="record">
-          <p><b>Name:</b> ${r.name}</p>
-          <p><b>NIA:</b> ${r.nia}</p>
-          <p><b>DOB:</b> ${r.dob}</p>
-          <p><b>Region:</b> ${r.region}</p>
-          <p><b>Address:</b> ${r.address}</p>
-          <p><b>Criminal:</b> ${r.criminal}</p>
-          <p><b>Driving:</b> ${r.driving}</p>
-          <p><b>Credit:</b> ${r.credit}</p>
-          <p><b>Status:</b> ${r.status}</p>
-        </div>
-      `;
-    });
-  }
-
-  /* LOG SEARCH */
-  await addDoc(collection(db,"search_logs"),{
-    term: queryText,
-    user: uid,
-    found: docsFound.length > 0,
-    timestamp: new Date(),
-    platform: "web"
-  });
-};
-
-
-/* OPEN WALLET BUTTON */
-document.getElementById("walletBtn").onclick = ()=>{
-  window.location.href="wallet.html";
-};
-
-
-/* BASIC PLAN */
-document.getElementById("buyBasic").onclick = async()=>{
-  await updateDoc(doc(db,"users",uid),{
-    plan:"basic",
-    freeSearchesRemaining:10,
-    monthlyRemaining:10
-  });
-  await refreshUI();
-};
-
-
-/* PRO PLAN */
-document.getElementById("buyPro").onclick = async()=>{
-  await updateDoc(doc(db,"users",uid),{
-    plan:"pro",
-    freeSearchesRemaining:999,
-    planExpires: new Date(Date.now() + 30*24*60*60*1000)
-  });
-  await refreshUI();
-};
-
-
-/* CONVERT WALLET TO SEARCHES */
-document.getElementById("convertWallet").onclick = async()=>{
-  const u = await loadUser();
-  if(u.walletCredits < 30){
-    alert("Not enough wallet credits.");
-    return;
-  }
-
-  await updateDoc(doc(db,"users",uid),{
-    walletCredits: u.walletCredits - 30,
-    freeSearchesRemaining: (u.freeSearchesRemaining || 0) + 1
-  });
-
-  await refreshUI();
-};
-
+(async()=>{
+  await ensureDoc();
+  await refresh();
+  console.log('wallet loaded for device', deviceId);
+})();
 </script>
-
 </body>
 </html>
