@@ -318,8 +318,24 @@ convertWallet.onclick = async () => {
 refreshBtn.onclick = async () => {
   resultsArea.innerHTML = "<p class='small'>Refreshing…</p>";
 
+  try {
+    const snap = await getDoc(walletRef);
+
+    if (!snap.exists()) {
+      console.warn("Wallet doc missing, recreating…");
+      await ensureDoc();
+    }
+
+    await refreshUI();
+    resultsArea.innerHTML = "";
+    console.log("Refresh complete");
+
+  } catch (err) {
+    console.error("Refresh failed:", err);
+    resultsArea.innerHTML = "<p class='small'>Could not refresh. Try again.</p>";
   }
 };
+
 
 
 // initialize
