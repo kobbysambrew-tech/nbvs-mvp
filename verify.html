@@ -61,7 +61,7 @@ button{padding:12px;border-radius:8px;border:none;cursor:pointer;font-weight:700
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
-import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, addDoc, getDocs, query, where, limit, orderBy } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
+import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, addDoc, getDocs, query, where, limit } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey:"AIzaSyCDh_qL3jiCMHROK0_Soul2Wsv3t3y4wv0",
@@ -71,23 +71,20 @@ const firebaseConfig = {
   messagingSenderId:"702636577113",
   appId:"1:702636577113:web:8369b43a2aa43aeb95fc48"
 };
-
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
 const SEARCH_COST = 30;
-
-// device id stored in localStorage
 const DEVICE_KEY = 'nbvs_deviceId';
+
 let deviceId = localStorage.getItem(DEVICE_KEY);
 if(!deviceId){
   deviceId = 'dev_' + Math.random().toString(36).slice(2,12);
   localStorage.setItem(DEVICE_KEY, deviceId);
-  console.log('created deviceId', deviceId);
 }
+
 const walletRef = doc(db, 'wallet', deviceId);
 
-// DOM
 const appEl = document.getElementById('app');
 const searchInput = document.getElementById('searchInput');
 const searchBtn = document.getElementById('searchBtn');
@@ -101,20 +98,20 @@ const buyPro = document.getElementById('buyPro');
 const convertWallet = document.getElementById('convertWallet');
 const refreshBtn = document.getElementById('refreshBtn');
 
-async function ensureDoc(){
+function toNum(v){ const n = Number(v); return Number.isFinite(n) ? n : 0; }
+
+async function ensureWallet(){
   const snap = await getDoc(walletRef);
   if(!snap.exists()){
-    await setDoc(walletRef, {
-      balance: 0,
-      freeSearchesRemaining: 3,
-      plan: 'free',
-      monthlyRemaining: 0,
-      planExpires: null,
-      createdAt: new Date()
+    await setDoc(walletRef,{
+      balance:0,
+      freeSearchesRemaining:3,
+      plan:'free',
+      monthlyRemaining:0,
+      planExpires:null,
+      createdAt:new Date()
     });
-    console.log('wallet doc created for device', deviceId);
   } else {
-    // set missing defaults if necessary
     const data = snap.data();
     const update = {};
     if(data.freeSearchesRemaining === undefined) update.freeSearchesRemaining = 3;
@@ -125,66 +122,52 @@ async function ensureDoc(){
   }
 }
 
-async function loadWalletDoc(){
+async function loadWallet(){
   const snap = await getDoc(walletRef);
   return snap.exists() ? snap.data() : null;
 }
 
-function toNum(v){ const n = Number(v); return Number.isFinite(n) ? n : 0; }
-
 async function refreshUI(){
-  const u = await loadWalletDoc();
-  if(!u) return;
-  freeBadge.innerText = 'Free: ' + toNum(u.freeSearchesRemaining);
-  planLabel.innerText = 'Plan: ' + (u.plan || 'free');
-  walletLabel.innerText = `Balance: ¢${toNum(u.balance)}`;
+  const w = await loadWallet();
+  if(!w) return;
+  freeBadge.innerText = 'Free: ' + toNum(w.freeSearchesRemaining);
+  planLabel.innerText = 'Plan: ' + (w.plan || 'free');
+  walletLabel.innerText = `Balance: ¢${toNum(w.balance)}`;
   appEl.style.display = 'block';
 }
 
-// deduction logic: PRO active → monthlyRemaining (basic) → freeSearchesRemaining → balance
-async function deductForSearch(){
-  const uSnap = await getDoc(walletRef);
-  if(!uSnap.exists()) return false;
-  const u = uSnap.data();
+async function deductSearch(){
+  const snap = await getDoc(walletRef);
+  if(!snap.exists()) return false;
+  const u = snap.data();
 
-  // pro check
-  if(u.plan === 'pro' && u.planExpires){
-    try{
-      const expires = (u.planExpires.toDate) ? u.planExpires.toDate() : new Date(u.planExpires);
-      if(expires > new Date()){
-        console.log('pro active', expires);
-        return true;
-      }
-    }catch(e){}
+  // PRO
+  if(u.plan==='pro' && u.planExpires){
+    const exp = (u.planExpires.toDate) ? u.planExpires.toDate() : new Date(u.planExpires);
+    if(exp>new Date()) return true;
   }
 
-  // basic monthlyRemaining
-  const monthly = toNum(u.monthlyRemaining);
-  if(monthly > 0){
-    await updateDoc(walletRef, { monthlyRemaining: monthly - 1 });
-    console.log('used monthlyRemaining, left', monthly - 1);
+  // BASIC
+  if(toNum(u.monthlyRemaining)>0){
+    await updateDoc(walletRef,{monthlyRemaining: u.monthlyRemaining-1});
     return true;
   }
 
-  // free searches
-  const free = toNum(u.freeSearchesRemaining);
-  if(free > 0){
-    await updateDoc(walletRef, { freeSearchesRemaining: free - 1 });
-    console.log('used free search, left', free - 1);
+  // FREE
+  if(toNum(u.freeSearchesRemaining)>0){
+    await updateDoc(walletRef,{freeSearchesRemaining: u.freeSearchesRemaining-1});
     return true;
   }
 
-  // balance
-  const balance = toNum(u.balance);
-  if(balance >= SEARCH_COST){
-    await updateDoc(walletRef, { balance: balance - SEARCH_COST });
-    await addDoc(collection(db,'wallet_transactions'), {
+  // WALLET
+  if(toNum(u.balance)>=SEARCH_COST){
+    await updateDoc(walletRef,{balance: u.balance-SEARCH_COST});
+    await addDoc(collection(db,'wallet_transactions'),{
       deviceId,
-      type: 'search deduction',
-      amount: -SEARCH_COST,
-      timestamp: new Date()
+      type:'search deduction',
+      amount:-SEARCH_COST,
+      timestamp:new Date()
     });
-    console.log('used balance, new', balance - SEARCH_COST);
     return true;
   }
 
@@ -195,152 +178,106 @@ async function performSearch(term){
   const out = [];
   const trimmed = term.trim();
   if(!trimmed) return out;
+  const recordsRef = collection(db,'records');
 
-  const recordsRef = collection(db, 'records');
-
-  // 1) try exact NIA
-  const qNia = query(recordsRef, where('nia','==', trimmed), limit(50));
+  // exact NIA
+  const qNia = query(recordsRef,where('nia','==',trimmed),limit(50));
   const snapNia = await getDocs(qNia);
-  snapNia.forEach(d => out.push(d));
+  snapNia.forEach(d=>out.push(d));
 
-  // 2) try name_lower
-  const nameLower = trimmed.toLowerCase();
-  const qNameLower = query(recordsRef, where('name_lower','==', nameLower), limit(200));
-  const snapNL = await getDocs(qNameLower);
-  if(!snapNL.empty){
-    snapNL.forEach(d => {
-      if(!out.find(x=>x.id===d.id)) out.push(d);
-    });
-    return out;
-  }
-
-  // 3) fallback: limited fetch + client-side match
-  const snapAll = await getDocs(query(recordsRef, limit(500)));
-  snapAll.forEach(d=>{
-    const r = d.data();
-    if((r.name || '').toString().toLowerCase() === nameLower) {
-      if(!out.find(x=>x.id===d.id)) out.push(d);
-    }
-    // also match numeric-only NIA e.g. "5784986"
-    const digits = trimmed.replace(/\D/g,'');
-    if(digits && (r.nia || '') === digits){
-      if(!out.find(x=>x.id===d.id)) out.push(d);
-    }
+  // name_lower
+  const qName = query(recordsRef,where('name_lower','==',trimmed.toLowerCase()),limit(200));
+  const snapName = await getDocs(qName);
+  snapName.forEach(d=>{
+    if(!out.find(x=>x.id===d.id)) out.push(d);
   });
+
   return out;
 }
 
 function renderResults(docs){
-  resultsArea.innerHTML = '';
-  if(!docs || docs.length === 0){
-    resultsArea.innerHTML = '<p class="small">❌ No record found.</p>';
+  resultsArea.innerHTML='';
+  if(!docs.length){
+    resultsArea.innerHTML='<p class="small">❌ No record found.</p>';
     return;
   }
   docs.forEach(d=>{
     const r = d.data();
     const div = document.createElement('div');
-    div.className = 'record';
-    div.innerHTML = `
-      <p><b>Name:</b> ${r.name || ''}</p>
-      <p><b>NIA:</b> ${r.nia || ''}</p>
-      <p><b>DOB:</b> ${r.dob || ''}</p>
-      <p><b>Region:</b> ${r.region || ''}</p>
-      <p><b>Address:</b> ${r.address || ''}</p>
-      <p><b>Criminal:</b> ${r.criminal || ''}</p>
-      <p><b>Driving:</b> ${r.driving || ''}</p>
-      <p><b>Credit:</b> ${r.credit || ''}</p>
-      <p><b>Status:</b> ${r.status || ''}</p>
+    div.className='record';
+    div.innerHTML=`
+      <p><b>Name:</b> ${r.name||''}</p>
+      <p><b>NIA:</b> ${r.nia||''}</p>
+      <p><b>DOB:</b> ${r.dob||''}</p>
+      <p><b>Region:</b> ${r.region||''}</p>
+      <p><b>Address:</b> ${r.address||''}</p>
+      <p><b>Criminal:</b> ${r.criminal||''}</p>
+      <p><b>Driving:</b> ${r.driving||''}</p>
+      <p><b>Credit:</b> ${r.credit||''}</p>
+      <p><b>Status:</b> ${r.status||''}</p>
     `;
     resultsArea.appendChild(div);
   });
 }
 
-searchBtn.onclick = async () => {
-  const term = searchInput.value || '';
-  resultsArea.innerHTML = '<p class="small">Checking credits…</p>';
-
-  const ok = await deductForSearch();
+searchBtn.onclick = async ()=>{
+  const term = searchInput.value||'';
+  resultsArea.innerHTML='<p class="small">Checking credits…</p>';
+  const ok = await deductSearch();
   if(!ok){
-    resultsArea.innerHTML = '<p class="small">Not enough balance or searches. Open wallet to add funds.</p>';
+    resultsArea.innerHTML='<p class="small">Not enough balance or searches. Open wallet to add funds.</p>';
     await refreshUI();
     return;
   }
-
   await refreshUI();
-
-  resultsArea.innerHTML = '<p class="small">Searching…</p>';
+  resultsArea.innerHTML='<p class="small">Searching…</p>';
   const docs = await performSearch(term);
   renderResults(docs);
-
-  // log search
-  await addDoc(collection(db,'search_logs'), {
-    term, deviceId, found: docs.length > 0, timestamp: new Date(), platform: 'web'
-  });
+  await addDoc(collection(db,'search_logs'),{term, deviceId, found: docs.length>0, timestamp:new Date(), platform:'web'});
 };
 
-openWallet.onclick = ()=> window.location.href = 'wallet.html';
+openWallet.onclick = ()=>window.location.href='wallet.html';
 
-buyBasic.onclick = async () => {
-  // charge not implemented — this is UI-only placeholder; add payment integration as needed
+buyBasic.onclick = async ()=>{
   const snap = await getDoc(walletRef);
-  const u = snap.exists() ? snap.data() : {};
-  const newMonthly = toNum(u.monthlyRemaining) + 10;
-  await updateDoc(walletRef, { plan: 'basic', monthlyRemaining: newMonthly });
-  await addDoc(collection(db,'wallet_transactions'), { deviceId, type: 'purchase_basic', amount: 3.99, timestamp: new Date() });
+  const u = snap.exists()? snap.data() : {};
+  await updateDoc(walletRef,{plan:'basic',monthlyRemaining:10});
+  await addDoc(collection(db,'wallet_transactions'),{deviceId,type:'purchase_basic',amount:3.99,timestamp:new Date()});
   alert('Basic purchased: +10 searches');
   await refreshUI();
 };
 
-buyPro.onclick = async () => {
-  const expires = new Date(Date.now() + 30*24*60*60*1000);
-  await updateDoc(walletRef, { plan: 'pro', planExpires: expires.toISOString() });
-  await addDoc(collection(db,'wallet_transactions'), { deviceId, type: 'purchase_pro', amount: 14.99, timestamp: new Date() });
+buyPro.onclick = async ()=>{
+  const expires = new Date(Date.now()+30*24*60*60*1000);
+  await updateDoc(walletRef,{plan:'pro',planExpires:expires.toISOString()});
+  await addDoc(collection(db,'wallet_transactions'),{deviceId,type:'purchase_pro',amount:14.99,timestamp:new Date()});
   alert('Pro activated for 30 days');
   await refreshUI();
 };
 
-convertWallet.onclick = async () => {
+convertWallet.onclick = async ()=>{
   const snap = await getDoc(walletRef);
   if(!snap.exists()) return alert('Wallet missing');
   const u = snap.data();
   const bal = toNum(u.balance);
-  if(bal < SEARCH_COST) return alert(`Need at least ¢${SEARCH_COST} to convert`);
-  const searches = Math.floor(bal / SEARCH_COST);
-  const spent = searches * SEARCH_COST;
-  const newBal = bal - spent;
-  const newFree = toNum(u.freeSearchesRemaining) + searches;
-  await updateDoc(walletRef, { balance: newBal, freeSearchesRemaining: newFree });
-  await addDoc(collection(db,'wallet_transactions'), { deviceId, type: 'convert_to_searches', amount: -spent, searchesAdded: searches, timestamp: new Date() });
+  if(bal<SEARCH_COST) return alert(`Need at least ¢${SEARCH_COST} to convert`);
+  const searches = Math.floor(bal/SEARCH_COST);
+  const spent = searches*SEARCH_COST;
+  await updateDoc(walletRef,{balance: bal-spent, freeSearchesRemaining: toNum(u.freeSearchesRemaining)+searches});
+  await addDoc(collection(db,'wallet_transactions'),{deviceId,type:'convert_to_searches',amount:-spent,searchesAdded:searches,timestamp:new Date()});
   alert(`Converted ¢${spent} → ${searches} searches`);
   await refreshUI();
 };
 
-refreshBtn.onclick = async () => {
-  resultsArea.innerHTML = "<p class='small'>Refreshing…</p>";
-
-  try {
-    const snap = await getDoc(walletRef);
-
-    if (!snap.exists()) {
-      console.warn("Wallet doc missing, recreating…");
-      await ensureDoc();
-    }
-
-    await refreshUI();
-    resultsArea.innerHTML = "";
-    console.log("Refresh complete");
-
-  } catch (err) {
-    console.error("Refresh failed:", err);
-    resultsArea.innerHTML = "<p class='small'>Could not refresh. Try again.</p>";
-  }
+refreshBtn.onclick = async ()=>{
+  resultsArea.innerHTML="<p class='small'>Refreshing…</p>";
+  await ensureWallet();
+  await refreshUI();
+  resultsArea.innerHTML='';
 };
 
-
-
-// initialize
 (async()=>{
-  await ensureDoc();
+  await ensureWallet();
   await refreshUI();
   console.log('verify loaded with deviceId', deviceId);
 })();
