@@ -480,6 +480,38 @@ onAuthStateChanged(auth, async user => {
 
   currentUserRole = (uDoc.data().role || "user").toLowerCase();
   document.getElementById("admin-role").innerText = currentUserRole;
+// =======================
+// STAFF PERMISSIONS
+// =======================
+if (role === "staff") {
+    // Hide restricted tabs
+    document.getElementById("tab-users").style.display = "none";
+    document.getElementById("tab-audit").style.display = "none";
+    document.getElementById("tab-tools").style.display = "none";
+
+    // Hide delete buttons in records
+    const style = document.createElement("style");
+    style.innerHTML = `
+      button[data-action="delete"],
+      #rec-delete,
+      button[data-delete],
+      button[data-promote] {
+        display: none !important;
+      }
+
+      /* Wallet actions hidden */
+      button[data-action="add"],
+      button[data-action="set"] {
+        display: none !important;
+      }
+
+      /* Tools panel hidden just in case */
+      #section-tools {
+        display: none !important;
+      }
+    `;
+    document.head.appendChild(style);
+}
 
   setupTabsAndBindings();
   applyRoleRestrictions();     /* 🟢 NEW */
