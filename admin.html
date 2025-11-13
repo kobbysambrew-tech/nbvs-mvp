@@ -418,7 +418,7 @@ input:focus,select:focus,textarea:focus{
 <script type="module">
 /*
   FULL ADMIN: Implements all requested features in a single page.
-  NOTHING CHANGED except redirect bug FIXED.
+  NOTHING CHANGED except redirect bug FIXED + role restrictions added.
 */
 
 /* === Firebase imports === */
@@ -449,6 +449,7 @@ let analytics;
 
 /* === State === */
 let currentUser = null;
+let currentUserRole = null;   /* 🟢 NEW */
 
 /* === Utility: audit logger === */
 async function logAudit(action, meta = {}) {
@@ -463,15 +464,13 @@ async function logAudit(action, meta = {}) {
 }
 
 /* ==========================================================
-   ✅ FIXED AUTH + REDIRECT (no more /dashboard.html errors)
+   AUTH + ROLE LOADING + RESTRICTIONS
    ========================================================== */
 onAuthStateChanged(auth, async user => {
   currentUser = user;
 
-  // If NOT logged in → go to dashboard.html (LOGIN PAGE)
   if (!user) return window.location.href = "dashboard.html";
 
-  // Check user exists in Firestore
   const uDoc = await getDoc(doc(db,"users",user.uid));
 
   if (!uDoc.exists()) {
@@ -479,25 +478,49 @@ onAuthStateChanged(auth, async user => {
     return window.location.href = "dashboard.html";
   }
 
-  // Load admin role label
-  const role = uDoc.data().role || "user";
-  document.getElementById("admin-role").innerText = role;
+  currentUserRole = (uDoc.data().role || "user").toLowerCase();
+  document.getElementById("admin-role").innerText = currentUserRole;
 
   setupTabsAndBindings();
+  applyRoleRestrictions();     /* 🟢 NEW */
   await refreshAll();
 });
 
 /* ==========================================================
-   ✅ FIX LOGOUT BUTTON TOO (remove leading slash)
+   LOGOUT
    ========================================================== */
 document.getElementById("btn-logout").onclick = async () => {
   await signOut(auth);
   window.location.href = "dashboard.html";
 };
-/* ===================== END FIX =========================== */
 
+/* ==========================================================
+   ROLE RESTRICTIONS (staff-limited)
+   ========================================================== */
+function applyRoleRestrictions() {
+  if (currentUserRole !== "staff") return;
 
-/* === Tabs wiring === */
+  /* Hide Tools tab */
+  const toolsTab = document.getElementById("tab-tools");
+  const toolsSection = document.getElementById("section-tools");
+  if (toolsTab) toolsTab.style.display = "none";
+  if (toolsSection) toolsSection.style.display = "none";
+
+  /* Hide user creation panel */
+  const usersSection = document.getElementById("section-users");
+  if (usersSection) {
+    const managePanel = usersSection.querySelector(".panel");
+    if (managePanel) managePanel.style.display = "none";
+  }
+
+  /* Hide DELETE RECORD button */
+  const recDelete = document.getElementById("rec-delete");
+  if (recDelete) recDelete.style.display = "none";
+}
+
+/* ==========================================================
+   TABS + BINDINGS
+   ========================================================== */
 function setupTabsAndBindings(){
   const tabs = ["dashboard","verify","records","users","wallet","logs","audit","analytics","tools"];
   tabs.forEach(t=>{
@@ -505,7 +528,6 @@ function setupTabsAndBindings(){
     const sec = document.getElementById("section-"+t);
     if(!btn || !sec) return;
     btn.onclick = () => {
-
       tabs.forEach(x => document.getElementById("tab-" + x).classList.remove("active"));
       btn.classList.add("active");
 
@@ -521,33 +543,30 @@ function setupTabsAndBindings(){
     };
   });
 
-  /* VERIFY — FIXED (removes duplicate handlers + ensures response always shows) */
-const verifyInput = document.getElementById("verify-query");
-const verifyBtn = document.getElementById("verify-search");
-const verifyBtnNIA = document.getElementById("verify-search-nia");
-const verifyClear = document.getElementById("verify-clear");
-const resultsDiv = document.getElementById("verify-results");
-
-function clearVerifyUI() {
-  verifyInput.value = "";
-  resultsDiv.innerHTML = "";
-}
-
-verifyClear.onclick = clearVerifyUI;
-
-verifyBtn.onclick = () => adminVerifySearch(false);
-verifyBtnNIA.onclick = () => adminVerifySearch(true);
-
+  /* VERIFY FIX */
+  const verifyInput = document.getElementById("verify-query");
+  const verifyBtn = document.getElementById("verify-search");
+  const verifyBtnNIA = document.getElementById("verify-search-nia");
+  const verifyClear = document.getElementById("verify-clear");
+  const resultsDiv = document.getElementById("verify-results");
 
   verifyClear.onclick = ()=>{ verifyInput.value=""; resultsDiv.innerHTML=""; };
-
-  verifyBtn.onclick = async ()=> await adminVerifySearch(false);
-  verifyBtnNIA.onclick = async ()=> await adminVerifySearch(true);
+  verifyBtn.onclick = () => adminVerifySearch(false);
+  verifyBtnNIA.onclick = () => adminVerifySearch(true);
 
   /* RECORDS */
   document.getElementById("rec-create").onclick = createRecord;
   document.getElementById("rec-update").onclick = updateRecordById;
-  document.getElementById("rec-delete").onclick = deleteRecordById;
+
+  /* 🟢 Restrict DELETE for staff */
+  document.getElementById("rec-delete").onclick = ()=>{
+    if (currentUserRole !== "superadmin") {
+      alert("Only superadmin can delete records.");
+      return;
+    }
+    deleteRecordById();
+  };
+
   document.getElementById("rec-clear").onclick = ()=>{
     ["rec-name","rec-nia","rec-dob","rec-region","rec-address","rec-credit","rec-criminal","rec-driving","rec-status","rec-id"]
       .forEach(id=>document.getElementById(id).value="");
@@ -556,12 +575,24 @@ verifyBtnNIA.onclick = () => adminVerifySearch(true);
   document.getElementById("records-refresh").onclick = loadRecordsList;
 
   /* USERS */
-  document.getElementById("create-user").onclick = createUserDoc;
+  document.getElementById("create-user").onclick = ()=>{
+    if (currentUserRole !== "superadmin") {
+      alert("Only superadmin can create users.");
+      return;
+    }
+    createUserDoc();
+  };
 
-  /* WALLET */
+  /* WALLET EDITING RESTRICTED */
   document.getElementById("wallet-tbody").onclick = (ev)=>{
     const btn = ev.target.closest("button[data-action]");
     if(!btn) return;
+
+    if (currentUserRole !== "superadmin") {
+      alert("Only superadmin can modify wallet balances.");
+      return;
+    }
+
     const uid = btn.dataset.user;
     const action = btn.dataset.action;
     if(action==="add") return promptAddWallet(uid);
@@ -570,15 +601,19 @@ verifyBtnNIA.onclick = () => adminVerifySearch(true);
 
   document.getElementById("records-filter").oninput = loadRecordsList;
 
-  /* TOOLS */
-  document.getElementById("csv-import").onclick = importCSV;
-  document.getElementById("export-csv").onclick = exportRecordsCSV;
-  document.getElementById("export-pdf").onclick = exportSelectedRecordPDF;
-  document.getElementById("face-match").onclick = ()=>alert("Stub only");
-  document.getElementById("manage-api").onclick = ()=>alert("Stub only");
+  /* TOOLS: superadmin only */
+  if (currentUserRole === "superadmin") {
+    document.getElementById("csv-import").onclick = importCSV;
+    document.getElementById("export-csv").onclick = exportRecordsCSV;
+    document.getElementById("export-pdf").onclick = exportSelectedRecordPDF;
+    document.getElementById("face-match").onclick = ()=>alert("Stub only");
+    document.getElementById("manage-api").onclick = ()=>alert("Stub only");
+  }
 }
 
-/* === ADMIN SEARCH === */
+/* ==========================================================
+   SEARCH
+   ========================================================== */
 async function adminVerifySearch(forceNiaOnly = false){
   const qText = (document.getElementById("verify-query").value || "").trim();
   const out = document.getElementById("verify-results");
@@ -629,12 +664,21 @@ async function adminVerifySearch(forceNiaOnly = false){
           <div style="min-width:160px;text-align:right">
             <div class="small">ID: ${docSnap.id}</div>
             <div style="margin-top:10px">
-              <button class="btn btn-yellow" data-action="edit" data-id="${docSnap.id}">Load to Edit</button>
-              <button class="btn btn-red" data-action="delete" data-id="${docSnap.id}">Delete</button>
+              <button class="btn btn-yellow" data-load="${docSnap.id}">Load to Edit</button>
+              ${
+                currentUserRole === "superadmin"
+                  ? `<button class="btn btn-red" data-delete="${docSnap.id}">Delete</button>`
+                  : ""
+              }
             </div>
           </div>
         </div>`;
       out.appendChild(html);
+
+      html.querySelector("[data-load]")?.addEventListener("click",()=>loadRecordIntoForm(docSnap.id));
+      if (currentUserRole === "superadmin") {
+        html.querySelector("[data-delete]")?.addEventListener("click", ()=>deleteRecordById(docSnap.id));
+      }
     });
 
     await addDoc(collection(db,"search_logs"),{
@@ -648,7 +692,9 @@ async function adminVerifySearch(forceNiaOnly = false){
   }
 }
 
-/* === RECORD CRUD === */
+/* ==========================================================
+   RECORD CRUD
+   ========================================================== */
 function readRecordForm(){
   return {
     name: document.getElementById("rec-name").value.trim(),
@@ -692,12 +738,18 @@ async function updateRecordById(){
   } catch(err){ console.error(err); }
 }
 
-async function deleteRecordById(){
-  const id = document.getElementById("rec-id").value.trim();
+/* RECORD DELETE locked down */
+async function deleteRecordById(idOverride){
+  if (currentUserRole !== "superadmin") {
+    alert("Only superadmin can delete records.");
+    return;
+  }
+
+  const id = idOverride || document.getElementById("rec-id").value.trim();
   if(!id) return;
   if(!confirm("Delete record?")) return;
+
   try{
-    const snap = await getDoc(doc(db,"records",id));
     await deleteDoc(doc(db,"records",id));
     document.getElementById("rec-output").innerText="Deleted";
     await logAudit("delete_record",{id});
@@ -705,6 +757,9 @@ async function deleteRecordById(){
   } catch(err){ console.error(err); }
 }
 
+/* ==========================================================
+   RECORD LIST
+   ========================================================== */
 async function loadRecordsList(){
   const container = document.getElementById("records-list");
   container.innerHTML="Loading…";
@@ -777,8 +832,15 @@ async function loadRecordIntoForm(id){
   } catch(err){ console.error(err); }
 }
 
-/* === USERS === */
+/* ==========================================================
+   USERS (Restricted)
+   ========================================================== */
 async function createUserDoc(){
+  if (currentUserRole !== "superadmin") {
+    alert("Only superadmin can create user docs.");
+    return;
+  }
+
   const email = document.getElementById("new-user-email").value.trim();
   const name = document.getElementById("new-user-name").value.trim();
   const role = document.getElementById("new-user-role").value;
@@ -807,33 +869,48 @@ async function loadUsersTable(){
 
     snap.forEach(u=>{
       const d = u.data();
+
+      let actionsHtml = `
+        <button class="btn" data-viewlogs="${u.id}">View Logs</button>
+      `;
+      if (currentUserRole === "superadmin") {
+        actionsHtml = `
+          <button class="btn btn-red" data-delete="${u.id}">Delete</button>
+          <button class="btn btn-yellow" data-promote="${u.id}">Promote</button>
+          <button class="btn" data-viewlogs="${u.id}">View Logs</button>
+        `;
+      }
+
       const tr = document.createElement("tr");
       tr.innerHTML = `
         <td>${u.id}</td>
         <td>${d.name||""}</td>
         <td>${d.email||""}</td>
         <td>${d.role||"user"}</td>
-        <td>
-          <button class="btn btn-red" data-delete="${u.id}">Delete</button>
-          <button class="btn btn-yellow" data-promote="${u.id}">Promote</button>
-          <button class="btn" data-viewlogs="${u.id}">View Logs</button>
-        </td>`;
+        <td>${actionsHtml}</td>`;
+
       tbody.appendChild(tr);
 
-      tr.querySelector("[data-delete]").onclick = async ()=>{
-        if(!confirm("Delete user doc?")) return;
-        await deleteDoc(doc(db,"users",u.id));
-        await logAudit("delete_user_doc",{id:u.id});
-        loadUsersTable();
-      };
+      const delBtn = tr.querySelector("[data-delete]");
+      if (delBtn) {
+        delBtn.onclick = async ()=>{
+          if(!confirm("Delete user doc?")) return;
+          await deleteDoc(doc(db,"users",u.id));
+          await logAudit("delete_user_doc",{id:u.id});
+          loadUsersTable();
+        };
+      }
 
-      tr.querySelector("[data-promote]").onclick = async ()=>{
-        const newRole = prompt("Enter role (user/staff/superadmin)", d.role);
-        if(!newRole) return;
-        await updateDoc(doc(db,"users",u.id),{role:newRole});
-        await logAudit("promote_user",{id:u.id,role:newRole});
-        loadUsersTable();
-      };
+      const promoteBtn = tr.querySelector("[data-promote]");
+      if (promoteBtn) {
+        promoteBtn.onclick = async ()=>{
+          const newRole = prompt("Enter role (user/staff/superadmin)", d.role);
+          if(!newRole) return;
+          await updateDoc(doc(db,"users",u.id),{role:newRole});
+          await logAudit("promote_user",{id:u.id,role:newRole});
+          loadUsersTable();
+        };
+      }
 
       tr.querySelector("[data-viewlogs]").onclick = ()=> loadUserSearchLogs(u.id);
     });
@@ -869,7 +946,9 @@ async function loadUserSearchLogs(uid){
   } catch(err){ console.error(err); }
 }
 
-/* === WALLET === */
+/* ==========================================================
+   WALLET (Restricted)
+   ========================================================== */
 async function loadWallets(){
   const tbody = document.getElementById("wallet-tbody");
   tbody.innerHTML="<tr><td colspan='3'>Loading…</td></tr>";
@@ -880,14 +959,20 @@ async function loadWallets(){
 
     snap.forEach(u=>{
       const d = u.data();
+
+      let walletActions = "";
+      if (currentUserRole === "superadmin") {
+        walletActions = `
+          <button class="btn" data-action="add" data-user="${u.id}">+Add</button>
+          <button class="btn" data-action="set" data-user="${u.id}">Set</button>
+        `;
+      }
+
       const tr = document.createElement("tr");
       tr.innerHTML = `
         <td>${u.id}</td>
         <td>${d.wallet||0}</td>
-        <td>
-          <button class="btn" data-action="add" data-user="${u.id}">+Add</button>
-          <button class="btn" data-action="set" data-user="${u.id}">Set</button>
-        </td>`;
+        <td>${walletActions}</td>`;
       tbody.appendChild(tr);
     });
 
@@ -895,6 +980,8 @@ async function loadWallets(){
 }
 
 async function promptAddWallet(uid){
+  if (currentUserRole !== "superadmin") return;
+
   const amt = parseFloat(prompt("Amount to add","10"));
   if(isNaN(amt)) return;
 
@@ -911,6 +998,8 @@ async function promptAddWallet(uid){
 }
 
 async function promptSetWallet(uid){
+  if (currentUserRole !== "superadmin") return;
+
   const amt = parseFloat(prompt("Set wallet to","0"));
   if(isNaN(amt)) return;
 
@@ -922,6 +1011,9 @@ async function promptSetWallet(uid){
   loadWallets();
 }
 
+/* ==========================================================
+   WALLET TXS
+   ========================================================== */
 async function loadWalletTxs(){
   const tbody = document.getElementById("wallettx-tbody");
   tbody.innerHTML="<tr><td colspan='4'>Loading…</td></tr>";
@@ -948,7 +1040,9 @@ async function loadWalletTxs(){
   } catch(err){ console.error(err); }
 }
 
-/* === LOGS === */
+/* ==========================================================
+   LOGS
+   ========================================================== */
 async function loadSearchLogs(){
   const tbody = document.getElementById("searchlogs-tbody");
   tbody.innerHTML="<tr><td colspan='4'>Loading…</td></tr>";
@@ -999,7 +1093,9 @@ async function loadAuditLogs(){
   } catch(err){ console.error(err); }
 }
 
-/* === ANALYTICS === */
+/* ==========================================================
+   ANALYTICS
+   ========================================================== */
 let charts = {};
 async function renderAnalytics(){
   const searchSnap = await getDocs(query(collection(db,"search_logs"),orderBy("timestamp","desc"),limit(1000)));
@@ -1054,7 +1150,9 @@ async function renderAnalytics(){
 
 }
 
-/* === Tools === */
+/* ==========================================================
+   TOOLS (superadmin only, bound earlier)
+   ========================================================== */
 async function importCSV(){
   alert("CSV import works but unchanged.");
 }
@@ -1067,7 +1165,9 @@ async function exportSelectedRecordPDF(){
   alert("Stub — implement server endpoint.");
 }
 
-/* === Refresh helpers === */
+/* ==========================================================
+   REFRESH HELPERS
+   ========================================================== */
 async function loadStats(){
   const usersSnap = await getDocs(collection(db,"users"));
   const searchSnap = await getDocs(collection(db,"search_logs"));
@@ -1076,12 +1176,12 @@ async function loadStats(){
   document.getElementById("stat-users").innerText = usersSnap.size;
   document.getElementById("stat-searches").innerText = searchSnap.size;
 
-  // FIX: Wallet total = sum of users' wallet balances (not amounts)
-let total = 0;
-usersSnap.forEach(u => {
-  total += Number(u.data().wallet || 0);
-});
-document.getElementById("stat-wallet").innerText = total.toFixed(2);
+  /* Wallet total fixed */
+  let total = 0;
+  usersSnap.forEach(u => {
+    total += Number(u.data().wallet || 0);
+  });
+  document.getElementById("stat-wallet").innerText = total.toFixed(2);
 
   document.getElementById("stat-transactions").innerText = txSnap.size;
 }
@@ -1107,6 +1207,7 @@ window.loadAuditLogs = loadAuditLogs;
 window.renderAnalytics = renderAnalytics;
 
 </script>
+
 
 </body>
 </html>
