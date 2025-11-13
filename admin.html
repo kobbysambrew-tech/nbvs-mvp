@@ -521,12 +521,23 @@ function setupTabsAndBindings(){
     };
   });
 
-  /* VERIFY */
-  const verifyInput = document.getElementById("verify-query");
-  const verifyBtn = document.getElementById("verify-search");
-  const verifyBtnNIA = document.getElementById("verify-search-nia");
-  const verifyClear = document.getElementById("verify-clear");
-  const resultsDiv = document.getElementById("verify-results");
+  /* VERIFY — FIXED (removes duplicate handlers + ensures response always shows) */
+const verifyInput = document.getElementById("verify-query");
+const verifyBtn = document.getElementById("verify-search");
+const verifyBtnNIA = document.getElementById("verify-search-nia");
+const verifyClear = document.getElementById("verify-clear");
+const resultsDiv = document.getElementById("verify-results");
+
+function clearVerifyUI() {
+  verifyInput.value = "";
+  resultsDiv.innerHTML = "";
+}
+
+verifyClear.onclick = clearVerifyUI;
+
+verifyBtn.onclick = () => adminVerifySearch(false);
+verifyBtnNIA.onclick = () => adminVerifySearch(true);
+
 
   verifyClear.onclick = ()=>{ verifyInput.value=""; resultsDiv.innerHTML=""; };
 
