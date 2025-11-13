@@ -1,0 +1,695 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>NBVS Admin Dashboard</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <style>
+    :root{
+      --red:#ce1126; --yellow:#fcd116; --green:#006b3f; --accent:#004f2e;
+      --card:#fff; --bg:#f6f7f9; --muted:#666; --shadow: rgba(0,0,0,0.08);
+    }
+    *{box-sizing:border-box}
+    body{font-family:Inter,Segoe UI,Arial,sans-serif;background:var(--bg);color:#222;margin:0}
+    header{background:linear-gradient(90deg,var(--red),var(--yellow),var(--green));padding:16px 12px;color:#fff;box-shadow:0 4px 18px rgba(0,0,0,.12);position:relative}
+    header h1{margin:0;font-size:18px}
+    header #admin-role{position:absolute;right:110px;top:18px;color:#fff;font-weight:600}
+    header #btn-logout{position:absolute;right:12px;top:12px;padding:8px 10px;border-radius:8px;border:none;background:transparent;color:#fff;cursor:pointer}
+    main{max-width:1100px;margin:18px auto;padding:12px}
+    .tabs{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+    .tabs button{flex:0 0 auto;padding:10px 12px;border-radius:8px;border:none;background:#fff;cursor:pointer;font-weight:700}
+    .tabs button.active{background:var(--green);color:#fff}
+    .panel{background:var(--card);padding:12px;border-radius:12px;box-shadow:0 8px 30px var(--shadow);margin-bottom:12px}
+    table{width:100%;border-collapse:collapse}
+    th,td{padding:10px;border-bottom:1px solid #eee;text-align:left}
+    th{background:#f7f7f7}
+    input,select,textarea{padding:8px;border-radius:8px;border:1px solid #ddd;width:100%}
+    .row{display:flex;gap:8px}
+    .right{text-align:right}
+    .muted{color:var(--muted)}
+    .small{font-size:.9rem;color:var(--muted)}
+    .btn{padding:8px 10px;border-radius:8px;border:none;cursor:pointer;font-weight:700}
+    .btn-green{background:var(--green);color:#fff}
+    .btn-yellow{background:var(--yellow);color:#111}
+    .btn-red{background:var(--red);color:#fff}
+    .record{background:#fff;border-left:4px solid var(--green);padding:12px;border-radius:8px;margin-bottom:8px}
+    .flex-between{display:flex;justify-content:space-between;align-items:center}
+    .hidden{display:none}
+    pre{white-space:pre-wrap;word-break:break-word}
+  </style>
+</head>
+<body>
+  <header>
+    <h1>NBVS Admin Dashboard</h1>
+    <div id="admin-role">Loading role…</div>
+    <button id="btn-logout">Logout</button>
+  </header>
+
+  <main>
+    <div class="tabs" id="tabs">
+      <button id="tab-dashboard" class="active">Dashboard</button>
+      <button id="tab-verify">Verify</button>
+      <button id="tab-records">Records</button>
+      <button id="tab-users">Users</button>
+      <button id="tab-wallet">Wallet</button>
+      <button id="tab-logs">Search Logs</button>
+      <button id="tab-audit">Audit Logs</button>
+      <button id="tab-tools">Tools</button>
+    </div>
+
+    <!-- DASHBOARD -->
+    <section id="section-dashboard" class="panel">
+      <div class="flex-between">
+        <h3>Stats</h3>
+        <div><button id="refreshAll" class="btn">Refresh All</button></div>
+      </div>
+      <div style="display:flex;gap:16px;flex-wrap:wrap">
+        <div class="panel" style="flex:1;min-width:180px">
+          <strong>Users</strong><div id="stat-users">—</div>
+        </div>
+        <div class="panel" style="flex:1;min-width:180px">
+          <strong>Searches</strong><div id="stat-searches">—</div>
+        </div>
+        <div class="panel" style="flex:1;min-width:180px">
+          <strong>Wallet Total</strong><div>$<span id="stat-wallet">—</span></div>
+        </div>
+        <div class="panel" style="flex:1;min-width:180px">
+          <strong>Transactions</strong><div id="stat-transactions">—</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- VERIFY -->
+    <section id="section-verify" class="panel hidden">
+      <h3>Admin Verify (no deduction)</h3>
+      <label>Search by name or NIA</label>
+      <div class="row">
+        <input id="verify-query" placeholder="Name or NIA" />
+        <button id="verify-search" class="btn btn-green">Search</button>
+        <button id="verify-search-nia" class="btn">NIA Only</button>
+      </div>
+      <div id="verify-results" style="margin-top:12px"></div>
+    </section>
+
+    <!-- RECORDS -->
+    <section id="section-records" class="panel hidden">
+      <h3>Records — Create / Update / Delete</h3>
+      <div style="display:flex;gap:12px;flex-wrap:wrap">
+        <div style="flex:1;min-width:280px">
+          <label>Name</label><input id="rec-name" />
+          <label>NIA</label><input id="rec-nia" />
+          <label>DOB</label><input id="rec-dob" />
+          <label>Region</label><input id="rec-region" />
+          <label>Address</label><input id="rec-address" />
+        </div>
+        <div style="flex:1;min-width:280px">
+          <label>Credit</label><input id="rec-credit" />
+          <label>Criminal</label><input id="rec-criminal" />
+          <label>Driving</label><input id="rec-driving" />
+          <label>Status</label><input id="rec-status" />
+          <label>Record ID (for update/delete)</label><input id="rec-id" />
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:10px">
+        <button id="rec-create" class="btn btn-green">Create</button>
+        <button id="rec-update" class="btn">Update</button>
+        <button id="rec-delete" class="btn btn-red">Delete</button>
+        <button id="rec-clear" class="btn">Clear</button>
+        <button id="records-refresh" class="btn">Refresh List</button>
+      </div>
+      <div id="rec-output" style="margin-top:12px"></div>
+
+      <h4 style="margin-top:16px">Records list (click Load)</h4>
+      <input id="records-filter" placeholder="Filter by name or region" />
+      <div id="records-list" style="margin-top:8px"></div>
+    </section>
+
+    <!-- USERS -->
+    <section id="section-users" class="panel hidden">
+      <h3>Users</h3>
+      <div style="display:flex;gap:8px;margin-bottom:8px">
+        <input id="new-user-email" placeholder="email" style="flex:1" />
+        <input id="new-user-name" placeholder="name" style="flex:1" />
+        <select id="new-user-role" style="width:160px">
+          <option value="user">user</option>
+          <option value="staff">staff</option>
+          <option value="superadmin">superadmin</option>
+        </select>
+        <button id="create-user" class="btn btn-green">Create</button>
+      </div>
+
+      <table>
+        <thead><tr><th>ID</th><th>Name</th><th>Email</th><th>Role</th><th>Actions</th></tr></thead>
+        <tbody id="users-tbody"><tr><td colspan="5">Loading…</td></tr></tbody>
+      </table>
+    </section>
+
+    <!-- WALLET -->
+    <section id="section-wallet" class="panel hidden">
+      <h3>Wallets</h3>
+      <table>
+        <thead><tr><th>User/Device</th><th>Balance</th><th>Actions</th></tr></thead>
+        <tbody id="wallet-tbody"><tr><td colspan="3">Loading…</td></tr></tbody>
+      </table>
+
+      <h4 style="margin-top:12px">Wallet Transactions</h4>
+      <table>
+        <thead><tr><th>Time</th><th>User</th><th>Type</th><th>Amount</th></tr></thead>
+        <tbody id="wallettx-tbody"><tr><td colspan="4">Loading…</td></tr></tbody>
+      </table>
+    </section>
+
+    <!-- SEARCH LOGS -->
+    <section id="section-logs" class="panel hidden">
+      <h3>Search Logs</h3>
+      <table>
+        <thead><tr><th>Time</th><th>User/Device</th><th>Term</th><th>Found</th></tr></thead>
+        <tbody id="searchlogs-tbody"><tr><td colspan="4">Loading…</td></tr></tbody>
+      </table>
+    </section>
+
+    <!-- AUDIT LOGS -->
+    <section id="section-audit" class="panel hidden">
+      <h3>Audit Logs</h3>
+      <table>
+        <thead><tr><th>Time</th><th>User</th><th>Action</th><th>Meta</th></tr></thead>
+        <tbody id="auditlogs-tbody"><tr><td colspan="4">Loading…</td></tr></tbody>
+      </table>
+    </section>
+
+    <!-- TOOLS -->
+    <section id="section-tools" class="panel hidden">
+      <h3>Tools</h3>
+      <div style="display:flex;gap:8px">
+        <input id="csv-upload" type="file" accept=".csv" />
+        <button id="csv-import" class="btn">Import CSV</button>
+        <button id="export-csv" class="btn">Export CSV</button>
+        <button id="backfill" class="btn">Backfill name_lower / nia_digits</button>
+        <button id="export-pdf" class="btn">Export record → PDF (stub)</button>
+      </div>
+      <div id="tools-output" style="margin-top:8px"></div>
+    </section>
+  </main>
+
+  <script type="module">
+  /* ===== FIREBASE IMPORTS ===== */
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
+  import {
+    getFirestore, collection, doc, getDoc, getDocs, query,
+    where, addDoc, updateDoc, deleteDoc, orderBy, limit
+  } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
+
+  /* ===== CONFIG (your existing config) ===== */
+  const firebaseConfig = {
+    apiKey:"AIzaSyCDh_qL3jiCMHROK0_Soul2Wsv3t3y4wv0",
+    authDomain:"nbvs-ghana.firebaseapp.com",
+    projectId:"nbvs-ghana",
+    storageBucket:"nbvs-ghana.firebasestorage.app",
+    messagingSenderId:"702636577113",
+    appId:"1:702636577113:web:8369b43a2aa43aeb95fc48",
+    measurementId:"G-2FHFSQRMZX"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  /* ===== STATE ===== */
+  let currentUser = null;
+  let currentUserRole = null;
+
+  /* ===== HELPERS ===== */
+  function $id(id){ return document.getElementById(id); }
+  function formatDate(ts){ try { return ts.toDate().toLocaleString(); } catch(e){ return ts ? new Date(ts).toString() : ""; } }
+
+  async function logAudit(action, meta = {}){
+    try{ await addDoc(collection(db,"audit_logs"), { user: currentUser?.uid || "unknown", action, meta, timestamp: new Date() }); }
+    catch(e){ console.error("audit log failed", e); }
+  }
+
+  /* ===== AUTH + ROLE CHECK ===== */
+  onAuthStateChanged(auth, async (user) => {
+    currentUser = user;
+    if(!user) {
+      // Not signed in — go to login
+      window.location.href = "/dashboard.html";
+      return;
+    }
+
+    // read user doc for role
+    try{
+      const udoc = await getDoc(doc(db,"users", user.uid));
+      if(!udoc.exists()){
+        await signOut(auth);
+        window.location.href = "/dashboard.html";
+        return;
+      }
+      currentUserRole = udoc.data().role || "user";
+      $id("admin-role").textContent = currentUserRole;
+      setupBindings();
+      await refreshAll();
+    }catch(err){
+      console.error("role check error", err);
+      await signOut(auth);
+      window.location.href = "/dashboard.html";
+    }
+  });
+
+  $id("btn-logout").onclick = async ()=>{ await signOut(auth); window.location.href="/dashboard.html"; };
+
+  /* ===== TABS ===== */
+  function setupBindings(){
+    const tabs = ["dashboard","verify","records","users","wallet","logs","audit","tools"];
+    tabs.forEach(t=>{
+      const btn = $id("tab-"+t);
+      const sec = $id("section-"+t);
+      if(!btn || !sec) return;
+      btn.onclick = ()=>{
+        tabs.forEach(x=>{ const b=$id("tab-"+x); if(b) b.classList.remove("active"); });
+        btn.classList.add("active");
+        document.querySelectorAll("section").forEach(s=>s.classList.add("hidden"));
+        sec.classList.remove("hidden");
+        // load on demand
+        if(t==="dashboard") loadStats();
+        if(t==="logs") loadSearchLogs();
+        if(t==="audit") loadAuditLogs();
+        if(t==="users") loadUsersTable();
+        if(t==="wallet") { loadWallets(); loadWalletTxs(); }
+        if(t==="records") loadRecordsList();
+      };
+    });
+
+    // verify handlers
+    $id("verify-search").onclick = ()=> adminVerifySearch(false);
+    $id("verify-search-nia").onclick = ()=> adminVerifySearch(true);
+
+    // records handlers
+    $id("rec-create").onclick = createRecord;
+    $id("rec-update").onclick = updateRecordById;
+    $id("rec-delete").onclick = deleteRecordById;
+    $id("rec-clear").onclick = ()=>{ ["rec-name","rec-nia","rec-dob","rec-region","rec-address","rec-credit","rec-criminal","rec-driving","rec-status","rec-id"].forEach(i=>$id(i).value=""); $id("rec-output").innerText=""; };
+    $id("records-refresh").onclick = loadRecordsList;
+    $id("records-filter").oninput = loadRecordsList;
+
+    // users
+    $id("create-user").onclick = createUserDoc;
+
+    // tools
+    $id("csv-import").onclick = importCSV;
+    $id("export-csv").onclick = exportRecordsCSV;
+    $id("backfill").onclick = backfillNameLower;
+    $id("export-pdf").onclick = exportSelectedRecordPDF;
+
+    // global refresh
+    $id("refreshAll").onclick = refreshAll;
+  }
+
+  /* ===== LOAD INITIAL DATA ===== */
+  async function refreshAll(){
+    await loadStats();
+    await loadRecordsList();
+    await loadUsersTable();
+    await loadWallets();
+    await loadWalletTxs();
+    await loadSearchLogs();
+    await loadAuditLogs();
+  }
+
+  /* ===== STATS ===== */
+  async function loadStats(){
+    try{
+      const usersSnap = await getDocs(collection(db,"users"));
+      const searchSnap = await getDocs(collection(db,"search_logs"));
+      const txSnap = await getDocs(collection(db,"wallet_transactions"));
+      $id("stat-users").textContent = usersSnap.size;
+      $id("stat-searches").textContent = searchSnap.size;
+      let total = 0; txSnap.forEach(t=> total += t.data().amount || 0);
+      $id("stat-wallet").textContent = total;
+      $id("stat-transactions").textContent = txSnap.size;
+    }catch(e){ console.error("loadStats err", e); }
+  }
+
+  /* ===== RECORDS CRUD ===== */
+  function readRecordForm(){
+    return {
+      name: $id("rec-name").value.trim(),
+      nia: $id("rec-nia").value.trim(),
+      dob: $id("rec-dob").value.trim(),
+      region: $id("rec-region").value.trim(),
+      address: $id("rec-address").value.trim(),
+      credit: $id("rec-credit").value.trim(),
+      criminal: $id("rec-criminal").value.trim(),
+      driving: $id("rec-driving").value.trim(),
+      status: $id("rec-status").value.trim()
+    };
+  }
+
+  async function createRecord(){
+    const rec = readRecordForm();
+    if(!rec.name || !rec.nia){ $id("rec-output").innerText = "Name & NIA required"; return; }
+    try{
+      const ref = await addDoc(collection(db,"records"), {...rec, createdAt:new Date()});
+      $id("rec-output").innerText = `Created ${ref.id}`;
+      await logAudit("add_record",{id:ref.id});
+      await loadRecordsList();
+    }catch(err){ console.error(err); $id("rec-output").innerText = "Create failed"; }
+  }
+
+  async function updateRecordById(){
+    const id = $id("rec-id").value.trim();
+    if(!id){ $id("rec-output").innerText = "Provide rec id to update"; return; }
+    const rec = readRecordForm();
+    try{
+      await updateDoc(doc(db,"records",id), {...rec, updatedAt:new Date()});
+      $id("rec-output").innerText = "Updated";
+      await logAudit("update_record",{id});
+      await loadRecordsList();
+    }catch(err){ console.error(err); $id("rec-output").innerText = "Update failed"; }
+  }
+
+  async function deleteRecordById(){
+    const id = $id("rec-id").value.trim();
+    if(!id){ $id("rec-output").innerText = "Provide rec id to delete"; return; }
+    if(!confirm("Delete record?")) return;
+    try{
+      const snap = await getDoc(doc(db,"records",id));
+      const data = snap.exists()? snap.data() : null;
+      await deleteDoc(doc(db,"records",id));
+      $id("rec-output").innerText = "Deleted";
+      await logAudit("delete_record",{id,meta:data});
+      await loadRecordsList();
+    }catch(err){ console.error(err); $id("rec-output").innerText = "Delete failed"; }
+  }
+
+  async function loadRecordIntoForm(id){
+    try{
+      const snap = await getDoc(doc(db,"records",id));
+      if(!snap.exists()){ alert("Not found"); return; }
+      const r = snap.data();
+      $id("rec-name").value = r.name || "";
+      $id("rec-nia").value = r.nia || "";
+      $id("rec-dob").value = r.dob || "";
+      $id("rec-region").value = r.region || "";
+      $id("rec-address").value = r.address || "";
+      $id("rec-credit").value = r.credit || "";
+      $id("rec-criminal").value = r.criminal || "";
+      $id("rec-driving").value = r.driving || "";
+      $id("rec-status").value = r.status || "";
+      $id("rec-id").value = id;
+      $id("rec-output").innerText = `Loaded ${id}`;
+    }catch(e){ console.error(e); alert("Load failed"); }
+  }
+
+  async function loadRecordsList(){
+    const container = $id("records-list");
+    container.innerHTML = "Loading…";
+    const f = ($id("records-filter").value || "").trim();
+    try{
+      let docs = [];
+      if(f){
+        // try name or region
+        const q1 = query(collection(db,"records"), where("name","==",f), limit(200));
+        const q2 = query(collection(db,"records"), where("region","==",f), limit(200));
+        const r1 = await getDocs(q1);
+        const r2 = await getDocs(q2);
+        docs = [...r1.docs, ...r2.docs];
+      } else {
+        const qAll = query(collection(db,"records"), limit(200));
+        const all = await getDocs(qAll);
+        docs = all.docs;
+      }
+      renderRecordsDocs(docs, container);
+    }catch(err){ console.error(err); container.innerHTML = "Load failed"; }
+  }
+
+  function renderRecordsDocs(docs, container){
+    container.innerHTML = "";
+    if(!docs.length){ container.innerHTML = "<p class='small'>No records</p>"; return; }
+    docs.forEach(d=>{
+      const r = d.data();
+      const div = document.createElement("div");
+      div.className = "record";
+      div.innerHTML = `<div style="display:flex;justify-content:space-between"><div>
+        <p><b>${r.name}</b> <span class="small">(${r.nia})</span></p>
+        <p class="small">${r.region} — ${r.status}</p>
+      </div>
+      <div style="text-align:right">
+        <div class="small">id:${d.id}</div>
+        <div style="margin-top:8px"><button class="btn" data-loadid="${d.id}">Load</button></div>
+      </div></div>`;
+      container.appendChild(div);
+      div.querySelector("button[data-loadid]").onclick = ()=> loadRecordIntoForm(d.id);
+    });
+  }
+
+  /* ===== USERS ===== */
+  async function createUserDoc(){
+    const email = $id("new-user-email").value.trim();
+    const name = $id("new-user-name").value.trim();
+    const role = $id("new-user-role").value;
+    if(!email) return alert("email required");
+    try{
+      const uref = await addDoc(collection(db,"users"), { email, name, role, wallet:0, freeSearchesRemaining:0, createdAt:new Date() });
+      await logAudit("create_user_doc",{id:uref.id,email,name,role});
+      alert("User doc created: " + uref.id);
+      loadUsersTable();
+    }catch(err){ console.error(err); alert("create failed"); }
+  }
+
+  async function loadUsersTable(){
+    const tbody = $id("users-tbody");
+    tbody.innerHTML = "<tr><td colspan='5'>Loading…</td></tr>";
+    try{
+      const snap = await getDocs(collection(db,"users"));
+      tbody.innerHTML = "";
+      snap.forEach(u=>{
+        const d = u.data();
+        const tr = document.createElement("tr");
+        tr.innerHTML = `<td>${u.id}</td><td>${d.name||""}</td><td>${d.email||""}</td><td>${d.role||"user"}</td>
+          <td>
+            <button class="btn btn-red" data-delete="${u.id}">Delete</button>
+            <button class="btn btn-yellow" data-promote="${u.id}">Promote</button>
+            <button class="btn" data-viewlogs="${u.id}">View Logs</button>
+          </td>`;
+        tbody.appendChild(tr);
+
+        tr.querySelector("button[data-delete]").onclick = async ()=>{ if(confirm("Delete user doc?")){ await deleteDoc(doc(db,"users",u.id)); await logAudit("delete_user_doc",{id:u.id}); loadUsersTable(); } };
+        tr.querySelector("button[data-promote]").onclick = async ()=>{ const newRole = prompt("Enter role (user/staff/superadmin)", d.role||"user"); if(!newRole) return; await updateDoc(doc(db,"users",u.id), { role:newRole }); await logAudit("promote_user",{id:u.id,role:newRole}); loadUsersTable(); };
+        tr.querySelector("button[data-viewlogs]").onclick = ()=> loadUserSearchLogs(u.id);
+      });
+    }catch(err){ console.error(err); tbody.innerHTML = "<tr><td colspan='5'>Load failed</td></tr>"; }
+  }
+
+  async function loadUserSearchLogs(uid){
+    $id("tab-logs").click();
+    const tbody = $id("searchlogs-tbody");
+    tbody.innerHTML = "<tr><td colspan='4'>Loading…</td></tr>";
+    try{
+      const q = query(collection(db,"search_logs"), where("user","==",uid), orderBy("timestamp","desc"), limit(200));
+      const snap = await getDocs(q);
+      tbody.innerHTML = "";
+      snap.forEach(s=>{
+        const r = s.data();
+        const tr = document.createElement("tr");
+        tr.innerHTML = `<td>${formatDate(r.timestamp)}</td><td>${r.user||""}</td><td>${r.term||""}</td><td>${r.found?"✔":"❌"}</td>`;
+        tbody.appendChild(tr);
+      });
+    }catch(err){ console.error(err); tbody.innerHTML = "<tr><td colspan='4'>Load failed</td></tr>"; }
+  }
+
+  /* ===== WALLET ===== */
+  async function loadWallets(){
+    const tbody = $id("wallet-tbody");
+    tbody.innerHTML = "<tr><td colspan='3'>Loading…</td></tr>";
+    try{
+      const snap = await getDocs(collection(db,"wallet"));
+      tbody.innerHTML = "";
+      snap.forEach(u=>{
+        const d = u.data();
+        const tr = document.createElement("tr");
+        tr.innerHTML = `<td>${u.id}</td><td>${d.balance||0}</td><td>
+          <button class="btn" data-action="add" data-user="${u.id}">+Add</button>
+          <button class="btn" data-action="set" data-user="${u.id}">Set</button>
+        </td>`;
+        tbody.appendChild(tr);
+      });
+
+      // delegated actions
+      tbody.querySelectorAll("button[data-action]").forEach(btn=>{
+        btn.onclick = async ()=>{
+          const uid = btn.dataset.user;
+          const act = btn.dataset.action;
+          if(act==="add"){ const amt = parseFloat(prompt("Amount to add","10")); if(isNaN(amt)) return; await updateDoc(doc(db,"wallet",uid), { balance: ( (await (await getDoc(doc(db,"wallet",uid))).data().balance) || 0) + amt }); await addDoc(collection(db,"wallet_transactions"),{ user: uid, amount: amt, type:"manual credit", timestamp:new Date() }); await logAudit("wallet_credit",{user:uid,amount:amt}); loadWallets(); loadWalletTxs(); }
+          if(act==="set"){ const amt = parseFloat(prompt("Set balance to:","0")); if(isNaN(amt)) return; await updateDoc(doc(db,"wallet",uid), { balance: amt }); await addDoc(collection(db,"wallet_transactions"),{ user: uid, amount: amt, type:"manual set", timestamp:new Date() }); await logAudit("wallet_set",{user:uid,amount:amt}); loadWallets(); loadWalletTxs(); }
+        };
+      });
+    }catch(err){ console.error(err); tbody.innerHTML = "<tr><td colspan='3'>Load failed</td></tr>"; }
+  }
+
+  async function loadWalletTxs(){
+    const tbody = $id("wallettx-tbody");
+    tbody.innerHTML = "<tr><td colspan='4'>Loading…</td></tr>";
+    try{
+      const snap = await getDocs(query(collection(db,"wallet_transactions"), orderBy("timestamp","desc"), limit(200)));
+      tbody.innerHTML = "";
+      snap.forEach(t=>{
+        const tx = t.data();
+        const tr = document.createElement("tr");
+        tr.innerHTML = `<td>${formatDate(tx.timestamp)}</td><td>${tx.user||""}</td><td>${tx.type||""}</td><td>${tx.amount||0}</td>`;
+        tbody.appendChild(tr);
+      });
+    }catch(err){ console.error(err); tbody.innerHTML = "<tr><td colspan='4'>Load failed</td></tr>"; }
+  }
+
+  /* ===== SEARCH LOGS ===== */
+  async function loadSearchLogs(){
+    const tbody = $id("searchlogs-tbody");
+    tbody.innerHTML = "<tr><td colspan='4'>Loading…</td></tr>";
+    try{
+      const snap = await getDocs(query(collection(db,"search_logs"), orderBy("timestamp","desc"), limit(200)));
+      tbody.innerHTML = "";
+      snap.forEach(s=>{
+        const r = s.data();
+        const tr = document.createElement("tr");
+        tr.innerHTML = `<td>${formatDate(r.timestamp)}</td><td>${r.user||""}</td><td>${r.term||""}</td><td>${r.found?"✔":"❌"}</td>`;
+        tbody.appendChild(tr);
+      });
+    }catch(err){ console.error(err); tbody.innerHTML = "<tr><td colspan='4'>Load failed</td></tr>"; }
+  }
+
+  /* ===== AUDIT LOGS ===== */
+  async function loadAuditLogs(){
+    const tbody = $id("auditlogs-tbody");
+    tbody.innerHTML = "<tr><td colspan='4'>Loading…</td></tr>";
+    try{
+      const snap = await getDocs(query(collection(db,"audit_logs"), orderBy("timestamp","desc"), limit(300)));
+      tbody.innerHTML = "";
+      snap.forEach(a=>{
+        const r = a.data();
+        const tr = document.createElement("tr");
+        tr.innerHTML = `<td>${formatDate(r.timestamp)}</td><td>${r.user||""}</td><td>${r.action||""}</td><td><pre>${JSON.stringify(r.meta||{},null,0)}</pre></td>`;
+        tbody.appendChild(tr);
+      });
+    }catch(err){ console.error(err); tbody.innerHTML = "<tr><td colspan='4'>Load failed</td></tr>"; }
+  }
+
+  /* ===== VERIFY (admin unlimited) ===== */
+  async function adminVerifySearch(forceNia=false){
+    const qText = ($id("verify-query").value || "").trim();
+    const out = $id("verify-results");
+    if(!qText){ out.innerHTML = "<p class='small'>Enter name or NIA</p>"; return; }
+    out.innerHTML = "<p class='small'>Searching…</p>";
+    try{
+      const recordsRef = collection(db,"records");
+      let docs = [];
+      if(!forceNia){
+        const q1 = query(recordsRef, where("name","==", qText));
+        const r1 = await getDocs(q1);
+        r1.forEach(d=>docs.push(d));
+      }
+      const q2 = query(recordsRef, where("nia","==", qText));
+      const r2 = await getDocs(q2);
+      r2.forEach(d=>{ if(!docs.find(x=>x.id===d.id)) docs.push(d); });
+      out.innerHTML = "";
+      if(!docs.length){ out.innerHTML = "<p class='small'>❌ No record found.</p>"; await addDoc(collection(db,"search_logs"),{term:qText,user:currentUser.uid,found:false,timestamp:new Date(),platform:"admin"}); await logAudit("search_no_result",{term:qText}); return; }
+      docs.forEach(docSnap=>{
+        const r = docSnap.data();
+        const wrap = document.createElement("div");
+        wrap.className = "record";
+        wrap.innerHTML = `<div style="display:flex;justify-content:space-between"><div>
+          <p><b>${r.name}</b></p>
+          <p><b>NIA:</b> ${r.nia}</p>
+          <p><b>DOB:</b> ${r.dob}</p>
+          <p>${r.region} • ${r.status}</p>
+        </div><div style="text-align:right"><div class="small">id: ${docSnap.id}</div><div style="margin-top:8px"><button class="btn btn-yellow" data-id="${docSnap.id}" data-action="edit">Load</button><button class="btn btn-red" style="margin-left:6px" data-id="${docSnap.id}" data-action="delete">Delete</button></div></div></div>`;
+        out.appendChild(wrap);
+      });
+
+      out.querySelectorAll("button[data-action]").forEach(b=>{
+        b.onclick = async ()=> {
+          const id = b.dataset.id;
+          const action = b.dataset.action;
+          if(action==="edit"){ await loadRecordIntoForm(id); $id("tab-records").click(); }
+          if(action==="delete"){ if(!confirm("Delete record?")) return; await deleteDoc(doc(db,"records",id)); await logAudit("delete_record",{id}); await loadRecordsList(); out.innerHTML="<p class='small'>Deleted</p>"; }
+        };
+      });
+
+      await addDoc(collection(db,"search_logs"),{term:qText,user:currentUser.uid,found:true,timestamp:new Date(),platform:"admin"});
+      await logAudit("search",{term:qText,results:docs.map(d=>d.id)});
+    }catch(e){ console.error("verify err", e); out.innerHTML = "<p class='small'>Error (see console)</p>"; }
+  }
+
+  /* ===== TOOLS: CSV import/export & backfill ===== */
+  async function importCSV(){
+    const f = $id("csv-upload").files[0];
+    if(!f) return alert("Choose CSV");
+    const txt = await f.text();
+    const lines = txt.split(/\r?\n/).filter(Boolean);
+    const header = lines.shift().split(",").map(s=>s.trim());
+    const tasks = [];
+    for(const line of lines){
+      const cols = line.split(",");
+      const rec = {};
+      header.forEach((h,i)=> rec[h] = (cols[i]||"").trim());
+      tasks.push(addDoc(collection(db,"records"), {...rec, createdAt:new Date()}));
+    }
+    await Promise.all(tasks);
+    await logAudit("csv_import",{rows:tasks.length});
+    $id("tools-output").innerText = `Imported ${tasks.length} rows`;
+    await loadRecordsList();
+  }
+
+  async function exportRecordsCSV(){
+    const snap = await getDocs(query(collection(db,"records"), limit(1000)));
+    if(snap.empty) return alert("No records");
+    const keys = ["name","nia","dob","address","region","credit","criminal","driving","status"];
+    const rows = [keys.join(",")];
+    snap.forEach(d=>{ const r = d.data(); rows.push(keys.map(k=>`"${(r[k]||"").toString().replace(/"/g,'""')}"`).join(",")); });
+    const csv = rows.join("\n");
+    const blob = new Blob([csv],{type:"text/csv"});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href=url; a.download = "nbvs_records.csv"; a.click();
+    URL.revokeObjectURL(url);
+    await logAudit("export_csv",{count:snap.size});
+  }
+
+  async function backfillNameLower(){
+    if(!confirm("Backfill name_lower and nia_digits for all records?")) return;
+    const snap = await getDocs(collection(db,"records"));
+    let updated = 0;
+    for(const d of snap.docs){
+      const data = d.data();
+      const updates = {};
+      if(data.name && !data.name_lower) updates.name_lower = data.name.toLowerCase();
+      if(data.nia && !data.nia_digits) updates.nia_digits = (data.nia||"").replace(/\D/g,"");
+      if(Object.keys(updates).length){ await updateDoc(doc(db,"records",d.id), updates); updated++; }
+    }
+    await logAudit("backfill",{updated});
+    alert(`Updated ${updated} records`);
+    loadRecordsList();
+  }
+
+  async function exportSelectedRecordPDF(){
+    alert("PDF export is a UI placeholder — implement server-side to render a proper PDF.");
+  }
+
+  /* ===== REFRESH HELPERS ===== */
+  async function loadSearchLogs(){ return loadSearchLogs; } // placeholder to avoid redeclaring earlier
+  // (we already implemented loadSearchLogs above)
+
+  /* ===== PUBLIC WRAPPERS ===== */
+  window.loadRecordsList = loadRecordsList;
+  window.loadUsersTable = loadUsersTable;
+  window.loadWallets = loadWallets;
+  window.loadWalletTxs = loadWalletTxs;
+  window.loadSearchLogs = loadSearchLogs;
+  window.loadAuditLogs = loadAuditLogs;
+  window.renderAnalytics = loadStats;
+  window.backfillNameLower = backfillNameLower;
+
+  /* ===== INITIAL CALLS handled after auth ready (onAuthStateChanged) ===== */
+  </script>
+</body>
+</html>
