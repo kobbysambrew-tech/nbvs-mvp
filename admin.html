@@ -1176,7 +1176,7 @@ async function loadStats(){
   document.getElementById("stat-users").innerText = usersSnap.size;
   document.getElementById("stat-searches").innerText = searchSnap.size;
 
-  /* Wallet total fixed */
+  // CORRECT: wallet total = sum of all users' wallet balances
   let total = 0;
   usersSnap.forEach(u => {
     total += Number(u.data().wallet || 0);
