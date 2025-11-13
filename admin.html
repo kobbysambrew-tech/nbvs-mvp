@@ -412,9 +412,14 @@ onAuthStateChanged(auth, async user => {
   document.getElementById("admin-role").innerText = currentUserRole;
 
   setupTabs();
-  applyRoleRestrictions();     // FIXED
-  setupButtons();              // FIXED
-  await refreshAll();          // FINALLY LOAD EVERYTHING
+setupButtons();
+
+// delay the role restrictions + loading until Firestore finishes
+setTimeout(() => {
+    applyRoleRestrictions();
+    refreshAll();
+}, 200);
+
 });
 
 /* ============================================================
