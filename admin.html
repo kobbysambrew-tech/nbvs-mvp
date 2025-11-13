@@ -431,19 +431,19 @@ document.getElementById("btn-logout").onclick = async () => {
 function applyRoleRestrictions() {
   if (currentUserRole !== "staff") return;
 
-  // Hide tabs
+  // Hide restricted tabs
   document.getElementById("tab-users").style.display = "none";
   document.getElementById("tab-audit").style.display = "none";
   document.getElementById("tab-tools").style.display = "none";
 
-  // Hide tools page completely
+  // Hide Tools page fully
   document.getElementById("section-tools").style.display = "none";
 
-  // Hide user creation panel
+  // Hide user creation card
   const userPanel = document.querySelector("#section-users .panel");
   if (userPanel) userPanel.style.display = "none";
 
-  // Hide delete & promote actions in users
+  // Hide dangerous buttons
   const style = document.createElement("style");
   style.innerHTML = `
     button[data-delete],
@@ -456,6 +456,7 @@ function applyRoleRestrictions() {
   `;
   document.head.appendChild(style);
 }
+
 
 /* ============================================================
    TAB SWITCHING — FIXED
