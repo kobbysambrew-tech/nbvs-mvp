@@ -396,12 +396,13 @@ async function logAudit(action, meta = {}) {
 /* ============================================================
    AUTH — FIXED
    ============================================================ */
-onAuthStateChanged(auth, async user => {
+onAuthStateChanged(auth, async (user) => {
 
   if (!user) return window.location.href = "dashboard.html";
 
   currentUser = user;
-  const uDoc = await getDoc(doc(db,"users",user.uid));
+
+  const uDoc = await getDoc(doc(db, "users", user.uid));
 
   if (!uDoc.exists()) {
     await signOut(auth);
@@ -411,15 +412,15 @@ onAuthStateChanged(auth, async user => {
   currentUserRole = (uDoc.data().role || "user").toLowerCase();
   document.getElementById("admin-role").innerText = currentUserRole;
 
+  // Load these immediately
   setupTabs();
-setupButtons();
+  setupButtons();
 
-// delay the role restrictions + loading until Firestore finishes
-setTimeout(() => {
+  // FIX: wait for Firestore to fully load before applying role rules + stats
+  setTimeout(async () => {
     applyRoleRestrictions();
-    refreshAll();
-}, 200);
-
+    await refreshAll();
+  }, 300);  // 300ms is perfect
 });
 
 /* ============================================================
