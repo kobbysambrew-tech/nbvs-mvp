@@ -380,6 +380,17 @@ let analytics;
 /* === Globals === */
 let currentUser = null;
 let currentUserRole = null;
+  
+// ===== FIX MISSING TOOL FUNCTIONS (IMPORTANT) =====
+function importCSV(){
+  console.log("importCSV stub");
+}
+function exportRecordsCSV(){
+  console.log("exportCSV stub");
+}
+function exportSelectedRecordPDF(){
+  console.log("exportPDF stub");
+}
 
 /* === Audit logger === */
 async function logAudit(action, meta = {}) {
