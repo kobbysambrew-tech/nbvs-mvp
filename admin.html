@@ -8,31 +8,223 @@
 <!-- Styles (kept compact) -->
 <style>
 :root{
-  --red:#ce1126; --yellow:#fcd116; --green:#006b3f; --accent:#004f2e;
-  --card:#fff; --bg:#f6f7f9; --muted:#555; --shadow: rgba(0,0,0,0.08);
+  --red:#ce1126;
+  --yellow:#fcd116;
+  --green:#006b3f;
+  --accent:#004f2e;
+
+  --bg:#f5f6f8;
+  --card:#ffffff;
+  --muted:#6b7280;
+
+  --shadow-sm:0 2px 6px rgba(0,0,0,0.08);
+  --shadow:0 4px 16px rgba(0,0,0,0.10);
+  --shadow-lg:0 8px 24px rgba(0,0,0,0.16);
 }
-*{box-sizing:border-box;margin:0;padding:0;font-family:"Segoe UI",Arial,sans-serif;}
-body{background:var(--bg);color:#222;}
-header{background:linear-gradient(90deg,var(--red),var(--yellow),var(--green));padding:1.2rem 1rem;text-align:center;color:white;box-shadow:0 3px 12px rgba(0,0,0,0.15);}
-header h1{font-size:1.4rem}
-main{max-width:1100px;margin:1rem auto;padding:0 1rem;}
-.tabs{display:flex;gap:8px;margin-bottom:10px;}
-.tabs button{flex:1;padding:8px;border-radius:8px;border:0;background:#fff;cursor:pointer;font-weight:600}
-.tabs button.active{background:var(--green);color:#fff}
-.panel{background:var(--card);padding:12px;border-radius:10px;box-shadow:0 6px 20px var(--shadow);margin-bottom:12px;}
-input,select,textarea{width:100%;padding:8px;border-radius:8px;border:1px solid #ccc;margin-bottom:8px}
-.btn{padding:10px;border-radius:8px;border:0;cursor:pointer;font-weight:700}
-.btn-green{background:var(--green);color:#fff}
-.btn-red{background:var(--red);color:#fff}
-.btn-yellow{background:var(--yellow);color:#111}
-.table{width:100%;border-collapse:collapse}
-.table th,.table td{padding:8px;border-bottom:1px solid #eee;text-align:left}
-.record{background:#fff;border-left:4px solid var(--green);padding:12px;border-radius:8px;margin-bottom:8px}
-.small{font-size:0.85rem;color:var(--muted)}
-.flex{display:flex;gap:8px;align-items:center}
-.right{float:right}
-.kv{font-weight:600;margin-right:6px}
-.file-input{padding:6px;border-radius:6px;border:1px dashed #ccc;background:#fafafa}
+
+*{
+  box-sizing:border-box;
+  margin:0;
+  padding:0;
+  font-family:"Segoe UI",Arial,sans-serif;
+}
+
+body{
+  background:var(--bg);
+  color:#1f2937;
+}
+
+/* HEADER */
+header{
+  background:linear-gradient(90deg,var(--red),var(--yellow),var(--green));
+  padding:1.4rem 1rem 1rem;
+  text-align:center;
+  color:#fff;
+  box-shadow:var(--shadow);
+}
+header h1{
+  font-size:1.5rem;
+  font-weight:700;
+  letter-spacing:0.3px;
+}
+#admin-role{
+  display:inline-block;
+  background:rgba(255,255,255,0.15);
+  padding:3px 10px;
+  border-radius:6px;
+  margin-top:4px;
+}
+
+/* LOGOUT BUTTON */
+#btn-logout{
+  float:right;
+  padding:6px 12px;
+  background:#fff;
+  color:#222;
+  border-radius:6px;
+  font-weight:600;
+  border:none;
+  cursor:pointer;
+  transition:0.2s;
+}
+#btn-logout:hover{
+  transform:translateY(-1px);
+  background:#f0f0f0;
+}
+
+/* MAIN */
+main{
+  max-width:1100px;
+  margin:1.4rem auto;
+  padding:0 14px;
+}
+
+/* TABS */
+.tabs{
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+  margin-bottom:14px;
+}
+.tabs button{
+  flex:1;
+  border-radius:10px;
+  padding:10px 0;
+  border:none;
+  background:#ffffff;
+  box-shadow:var(--shadow-sm);
+  font-weight:600;
+  cursor:pointer;
+  transition:0.2s ease;
+}
+.tabs button:hover{
+  background:#f1f5f9;
+}
+.tabs button.active{
+  background:var(--green);
+  color:#fff;
+  box-shadow:var(--shadow);
+  transform:translateY(-1px);
+}
+
+/* PANELS */
+.panel{
+  background:var(--card);
+  border-radius:12px;
+  padding:16px;
+  box-shadow:var(--shadow);
+  margin-bottom:16px;
+  animation:fadeIn 0.25s ease;
+}
+@keyframes fadeIn{
+  from{opacity:0; transform:translateY(5px);}
+  to{opacity:1; transform:translateY(0);}
+}
+
+h3{
+  margin-bottom:10px;
+  font-size:1.1rem;
+}
+
+/* INPUTS & SELECTS */
+input,select,textarea{
+  width:100%;
+  padding:10px;
+  border-radius:8px;
+  border:1px solid #d1d5db;
+  margin-bottom:8px;
+  background:#fff;
+  transition:0.2s;
+}
+input:focus,select:focus,textarea:focus{
+  outline:none;
+  border-color:var(--green);
+  box-shadow:0 0 0 2px rgba(0,107,63,0.25);
+}
+
+/* BUTTONS */
+.btn{
+  padding:10px 14px;
+  border-radius:8px;
+  border:none;
+  font-weight:600;
+  cursor:pointer;
+  transition:0.2s;
+  box-shadow:var(--shadow-sm);
+}
+.btn:hover{
+  transform:translateY(-1px);
+  box-shadow:var(--shadow);
+}
+
+.btn-green{ background:var(--green); color:#fff; }
+.btn-red{ background:var(--red); color:#fff; }
+.btn-yellow{ background:var(--yellow); color:#222; }
+
+/* TABLES */
+.table{
+  width:100%;
+  border-collapse:collapse;
+}
+.table th{
+  background:#f1f5f9;
+  font-weight:700;
+  padding:10px;
+  border-bottom:2px solid #e5e7eb;
+}
+.table td{
+  padding:10px;
+  border-bottom:1px solid #e5e7eb;
+  font-size:0.95rem;
+}
+.table tr:hover{
+  background:#f9fafb;
+}
+
+/* RECORD CARDS */
+.record{
+  background:#fff;
+  border-left:5px solid var(--green);
+  padding:12px;
+  border-radius:10px;
+  box-shadow:var(--shadow-sm);
+  margin-bottom:10px;
+  transition:0.2s;
+}
+.record:hover{
+  transform:scale(1.01);
+  box-shadow:var(--shadow);
+}
+
+/* MISC */
+.small{
+  font-size:0.82rem;
+  color:var(--muted);
+}
+
+.flex{
+  display:flex;
+  gap:10px;
+  align-items:center;
+}
+
+.file-input{
+  padding:8px;
+  border-radius:8px;
+  border:1px dashed #bbb;
+  background:#fdfdfd;
+}
+.file-input:hover{
+  background:#f9f9f9;
+}
+
+/* Overview cards improvements */
+.kv{
+  font-weight:600;
+  font-size:0.9rem;
+  color:#374151;
+}
+
 </style>
 
 <!-- Chart.js -->
