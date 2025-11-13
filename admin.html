@@ -1076,10 +1076,13 @@ async function loadStats(){
   document.getElementById("stat-users").innerText = usersSnap.size;
   document.getElementById("stat-searches").innerText = searchSnap.size;
 
-  let total = 0;
-  txSnap.forEach(t=> total += t.data().amount || 0);
+  // FIX: Wallet total = sum of users' wallet balances (not amounts)
+let total = 0;
+usersSnap.forEach(u => {
+  total += Number(u.data().wallet || 0);
+});
+document.getElementById("stat-wallet").innerText = total.toFixed(2);
 
-  document.getElementById("stat-wallet").innerText = total;
   document.getElementById("stat-transactions").innerText = txSnap.size;
 }
 
