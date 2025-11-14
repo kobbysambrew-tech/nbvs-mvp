@@ -492,9 +492,12 @@ function applyRoleRestrictions() {
   document.getElementById("tab-users").style.display = "none";
   document.getElementById("tab-audit").style.display = "none";
   document.getElementById("tab-tools").style.display = "none";
+  document.getElementById("tab-apikeys").style.display = "none";
+
 
   // Hide Tools page fully
   document.getElementById("section-tools").style.display = "none";
+  document.getElementById("section-apikeys").style.display = "none";
 
   // Hide user creation card
   const userPanel = document.querySelector("#section-users .panel");
