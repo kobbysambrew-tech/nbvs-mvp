@@ -1,101 +1,65 @@
-// api/verify.js - Node serverless function for Vercel using Firebase Admin
+// api/verify.js – Serverless Function for Vercel
 
 const admin = require("firebase-admin");
 
+// Load Firebase Admin only once
 if (!admin.apps.length) {
-  const serviceAccount = JSON.parse(process.env.FIREBASE_ADMIN_KEY);
+  try {
+    const serviceAccount = JSON.parse(process.env.FIREBASE_ADMIN_KEY);
 
-  admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount),
-  });
+    admin.initializeApp({
+      credential: admin.credential.cert(serviceAccount),
+    });
+
+    console.log("Firebase Admin initialized.");
+  } catch (err) {
+    console.error("Failed to init Firebase Admin:", err);
+  }
 }
 
 const db = admin.firestore();
 
-/**
- * Vercel Node serverless route
- * GET /api/verify?key=API_KEY&nia=12345
- */
 module.exports = async (req, res) => {
   try {
-    // Only allow GET
+    // Allow GET only
     if (req.method !== "GET") {
-      res.status(405).json({ status: "error", message: "Only GET allowed" });
-      return;
+      return res.status(405).json({ error: "Only GET allowed" });
     }
 
-    const key = req.query.key;
-    const nia = req.query.nia;
+    // User-provided query values
+    const { key, nia } = req.query;
 
-    if (!key) {
-      res.status(400).json({ status: "error", message: "Missing API key" });
-      return;
+    // Require API key
+    if (!key || key.trim() === "") {
+      return res.status(400).json({ error: "Missing API key" });
     }
 
-    if (!nia) {
-      res.status(400).json({ status: "error", message: "Missing NIA number" });
-      return;
+    // Require NIA parameter
+    if (!nia || nia.trim() === "") {
+      return res.status(400).json({ error: "Missing NIA number" });
     }
 
-    // Look up API key in Firestore
-    const keySnap = await db
-      .collection("api_keys")
-      .where("key", "==", key)
-      .limit(1)
-      .get();
+    // Fetch record (example: "citizens" collection)
+    const docRef = db.collection("citizens").doc(nia);
+    const docSnap = await docRef.get();
 
-    if (keySnap.empty) {
-      res.status(401).json({ status: "error", message: "Invalid API key" });
-      return;
+    if (!docSnap.exists) {
+      return res.status(404).json({
+        status: "not_found",
+        message: "NIA record not found",
+      });
     }
 
-    const keyDoc = keySnap.docs[0];
-    const keyData = keyDoc.data();
-
-    if (keyData.status === "disabled") {
-      res.status(403).json({ status: "error", message: "API key disabled" });
-      return;
-    }
-
-    if (
-      typeof keyData.dailyLimit === "number" &&
-      typeof keyData.usedToday === "number" &&
-      keyData.usedToday >= keyData.dailyLimit
-    ) {
-      res
-        .status(429)
-        .json({ status: "error", message: "Daily API limit reached" });
-      return;
-    }
-
-    // Search records by NIA
-    const recSnap = await db
-      .collection("records")
-      .where("nia", "==", nia)
-      .limit(1)
-      .get();
-
-    // Increment usage even if no record found
-    const newUsedToday = (keyData.usedToday || 0) + 1;
-    await keyDoc.ref.update({
-      usedToday: newUsedToday,
-      lastUsedAt: admin.firestore.FieldValue.serverTimestamp(),
-    });
-
-    if (recSnap.empty) {
-      res.json({ status: "success", found: false });
-      return;
-    }
-
-    const record = recSnap.docs[0].data();
-
-    res.json({
+    return res.status(200).json({
       status: "success",
-      found: true,
-      record,
+      data: docSnap.data(),
     });
+
   } catch (err) {
-    console.error("API /verify error:", err);
-    res.status(500).json({ status: "error", message: "Server error" });
+    console.error("Serverless verify error:", err);
+    return res.status(500).json({
+      error: "Internal server error",
+      details: err.toString(),
+    });
   }
 };
