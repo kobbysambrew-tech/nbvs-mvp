@@ -1069,6 +1069,126 @@ async function loadAuditLogs(){
     tbody.appendChild(tr);
   });
 }
+/* ============================================================
+   API KEYS (Advanced)
+   Collection: api_keys
+   Fields:
+   - key: string
+   - company: string
+   - email: string
+   - status: "active" | "disabled"
+   - dailyLimit: number
+   - usedToday: number
+   - resetDate: "YYYY-MM-DD"
+   - createdAt: Timestamp
+   - lastUsedAt: Timestamp | null
+   ============================================================ */
+
+function generateApiKeyString(){
+  const random = crypto.randomUUID ? crypto.randomUUID().replace(/-/g,"") : Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2);
+  return "nbvs_" + random.slice(0,24);
+}
+
+async function createApiKey(){
+  const company = document.getElementById("api-company").value.trim();
+  const email = document.getElementById("api-email").value.trim();
+  const limitStr = document.getElementById("api-limit").value.trim();
+
+  const dailyLimit = parseInt(limitStr || "1000",10);
+  if (!company) {
+    alert("Company name is required.");
+    return;
+  }
+
+  const key = generateApiKeyString();
+  const today = new Date().toISOString().slice(0,10);
+
+  await addDoc(collection(db,"api_keys"), {
+    key,
+    company,
+    email,
+    status:"active",
+    dailyLimit: isNaN(dailyLimit) ? 1000 : dailyLimit,
+    usedToday:0,
+    resetDate:today,
+    createdAt:new Date(),
+    lastUsedAt:null
+  });
+
+  document.getElementById("api-company").value = "";
+  document.getElementById("api-email").value = "";
+  document.getElementById("api-limit").value = "";
+
+  await logAudit("api_key_created",{company,keyMasked:key.slice(0,6)+"***"});
+  loadApiKeys();
+}
+
+async function loadApiKeys(){
+  const tbody = document.getElementById("api-keys-tbody");
+  if (!tbody) return;
+
+  tbody.innerHTML = "<tr><td colspan='6'>Loading…</td></tr>";
+
+  try{
+    const snap = await getDocs(collection(db,"api_keys"));
+    tbody.innerHTML = "";
+
+    if (snap.empty) {
+      tbody.innerHTML = "<tr><td colspan='6'>No API keys yet.</td></tr>";
+      return;
+    }
+
+    snap.forEach(docSnap=>{
+      const d = docSnap.data();
+      const masked = d.key ? (d.key.slice(0,6)+"•••"+d.key.slice(-4)) : "(no key)";
+
+      const usage = `${d.usedToday || 0} / ${d.dailyLimit || 0}`;
+      const lastUsed = d.lastUsedAt?.toDate?.()?.toLocaleString() || "—";
+
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${masked}</td>
+        <td>${d.company || ""}</td>
+        <td>${d.status || "active"}</td>
+        <td>${usage}</td>
+        <td>${lastUsed}</td>
+        <td>
+          <button class="btn btn-yellow" data-action="toggle" data-id="${docSnap.id}" data-status="${d.status || "active"}">
+            ${d.status === "disabled" ? "Enable" : "Disable"}
+          </button>
+          <button class="btn" data-action="reset" data-id="${docSnap.id}">Reset Usage</button>
+          <button class="btn btn-red" data-action="delete" data-id="${docSnap.id}">Delete</button>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
+
+  } catch(err){
+    console.error(err);
+    tbody.innerHTML = "<tr><td colspan='6'>Failed to load API keys.</td></tr>";
+  }
+}
+
+async function toggleApiKeyStatus(id, currentStatus){
+  const newStatus = currentStatus === "disabled" ? "active" : "disabled";
+  await updateDoc(doc(db,"api_keys",id), { status:newStatus });
+  await logAudit("api_key_status_changed",{id,status:newStatus});
+  loadApiKeys();
+}
+
+async function resetApiUsage(id){
+  const today = new Date().toISOString().slice(0,10);
+  await updateDoc(doc(db,"api_keys",id), { usedToday:0, resetDate:today });
+  await logAudit("api_key_usage_reset",{id});
+  loadApiKeys();
+}
+
+async function deleteApiKey(id){
+  if (!confirm("Delete this API key?")) return;
+  await deleteDoc(doc(db,"api_keys",id));
+  await logAudit("api_key_deleted",{id});
+  loadApiKeys();
+}
 
 /* ============================================================
    ANALYTICS
