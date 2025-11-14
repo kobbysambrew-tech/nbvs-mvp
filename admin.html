@@ -337,6 +337,45 @@ input,select,textarea{
       </div>
     </div>
   </section>
+  <!-- API KEYS -->
+  <section id="section-apikeys" style="display:none">
+    <div class="panel">
+      <h3>API Keys (Companies)</h3>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px;">
+        <input id="api-company" placeholder="Company name (e.g. Zenith Bank)" />
+        <input id="api-email" placeholder="Contact email (optional)" />
+        <input id="api-limit" type="number" min="1" placeholder="Daily limit (e.g. 1000)" />
+      </div>
+
+      <button id="api-create" class="btn btn-green">Generate API Key</button>
+      <p class="small" style="margin-top:6px;">
+        Superadmin only. Keys are for companies that want to integrate NBVS via API.
+      </p>
+    </div>
+
+    <div class="panel">
+      <h3>Existing API Keys</h3>
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Key</th>
+            <th>Company</th>
+            <th>Status</th>
+            <th>Usage</th>
+            <th>Last Used</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="api-keys-tbody">
+          <tr><td colspan="6">Loading…</td></tr>
+        </tbody>
+      </table>
+      <p class="small" style="margin-top:6px;">
+        Usage = usedToday / dailyLimit. Reset happens automatically once per day in your API backend.
+      </p>
+    </div>
+  </section>
 
 </main>
 <script type="module">
