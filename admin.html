@@ -150,7 +150,7 @@ input,select,textarea{
     <button id="tab-audit">Audit Logs</button>
     <button id="tab-analytics">Analytics</button>
     <button id="tab-tools">Tools</button>
-      <button id="tab-apikeys">API Keys</button>
+    <button id="tab-apikeys">API Keys</button>
   </div>
 
   <!-- DASHBOARD -->
@@ -182,6 +182,7 @@ input,select,textarea{
       <div id="verify-results" style="margin-top:10px"></div>
     </div>
   </section>
+
   <!-- RECORDS -->
   <section id="section-records" style="display:none">
     <div class="panel">
@@ -337,6 +338,7 @@ input,select,textarea{
       </div>
     </div>
   </section>
+
   <!-- API KEYS -->
   <section id="section-apikeys" style="display:none">
     <div class="panel">
@@ -378,16 +380,10 @@ input,select,textarea{
   </section>
 
 </main>
+
 <script type="module">
 /* ============================================================
    NBVS ADMIN JS — CLEANED AND FIXED
-   No rewrite, only corrections.
-   Fully restores:
-   - Buttons not responding
-   - Staff restrictions
-   - Tab switching
-   - Role loading
-   - Verify search
    ============================================================ */
 
 /* === Firebase imports === */
@@ -420,17 +416,11 @@ let analytics;
 /* === Globals === */
 let currentUser = null;
 let currentUserRole = null;
-  
-// ===== FIX MISSING TOOL FUNCTIONS (IMPORTANT) =====
-function importCSV(){
-  console.log("importCSV stub");
-}
-function exportRecordsCSV(){
-  console.log("exportCSV stub");
-}
-function exportSelectedRecordPDF(){
-  console.log("exportPDF stub");
-}
+
+// Stubbed tools
+function importCSV(){ console.log("importCSV stub"); }
+function exportRecordsCSV(){ console.log("exportCSV stub"); }
+function exportSelectedRecordPDF(){ console.log("exportPDF stub"); }
 
 /* === Audit logger === */
 async function logAudit(action, meta = {}) {
@@ -445,10 +435,9 @@ async function logAudit(action, meta = {}) {
 }
 
 /* ============================================================
-   AUTH — FIXED
+   AUTH
    ============================================================ */
 onAuthStateChanged(auth, async (user) => {
-
   if (!user) return window.location.href = "dashboard.html";
 
   currentUser = user;
@@ -463,15 +452,15 @@ onAuthStateChanged(auth, async (user) => {
   currentUserRole = (uDoc.data().role || "user").toLowerCase();
   document.getElementById("admin-role").innerText = currentUserRole;
 
-  // Load these immediately
+  // Init UI
   setupTabs();
   setupButtons();
 
-  // FIX: wait for Firestore to fully load before applying role rules + stats
+  // After short delay, load data + apply role rules
   setTimeout(async () => {
     applyRoleRestrictions();
     await refreshAll();
-  }, 300);  // 300ms is perfect
+  }, 300);
 });
 
 /* ============================================================
@@ -483,27 +472,22 @@ document.getElementById("btn-logout").onclick = async () => {
 };
 
 /* ============================================================
-   FIXED STAFF RESTRICTIONS
+   ROLE RESTRICTIONS
    ============================================================ */
 function applyRoleRestrictions() {
   if (currentUserRole !== "staff") return;
 
-  // Hide restricted tabs
   document.getElementById("tab-users").style.display = "none";
   document.getElementById("tab-audit").style.display = "none";
   document.getElementById("tab-tools").style.display = "none";
   document.getElementById("tab-apikeys").style.display = "none";
 
-
-  // Hide Tools page fully
   document.getElementById("section-tools").style.display = "none";
   document.getElementById("section-apikeys").style.display = "none";
 
-  // Hide user creation card
   const userPanel = document.querySelector("#section-users .panel");
   if (userPanel) userPanel.style.display = "none";
 
-  // Hide dangerous buttons
   const style = document.createElement("style");
   style.innerHTML = `
     button[data-delete],
@@ -517,23 +501,21 @@ function applyRoleRestrictions() {
   document.head.appendChild(style);
 }
 
-
 /* ============================================================
-   TAB SWITCHING — FIXED
+   TABS
    ============================================================ */
 function setupTabs(){
-    const tabs = ["dashboard","verify","records","users","wallet","logs","audit","analytics","tools","apikeys"];
+  const tabs = ["dashboard","verify","records","users","wallet","logs","audit","analytics","tools","apikeys"];
   tabs.forEach(t=>{
     const btn = document.getElementById("tab-"+t);
     const sec = document.getElementById("section-"+t);
-
     if(!btn || !sec) return;
 
     btn.onclick = () => {
       tabs.forEach(x => document.getElementById("tab-"+x)?.classList.remove("active"));
       btn.classList.add("active");
 
-      document.querySelectorAll("section").forEach(s => s.style.display = "none");
+      document.querySelectorAll("main section").forEach(s => s.style.display = "none");
       sec.style.display = "block";
 
       if(t==="dashboard") renderAnalytics();
@@ -543,13 +525,12 @@ function setupTabs(){
       if(t==="wallet"){ loadWallets(); loadWalletTxs(); }
       if(t==="records") loadRecordsList();
       if(t==="apikeys") loadApiKeys();
-
     };
   });
 }
 
 /* ============================================================
-   BUTTON BINDINGS — FIXED
+   BUTTON BINDINGS
    ============================================================ */
 function setupButtons(){
 
@@ -604,9 +585,9 @@ function setupButtons(){
     document.getElementById("export-pdf").onclick = exportSelectedRecordPDF;
     document.getElementById("face-match").onclick = ()=>alert("Stub only");
     document.getElementById("manage-api").onclick = ()=>alert("Stub only");
+  }
 
-  };
-      /* API KEYS — superadmin only */
+  /* API KEYS — superadmin only */
   const apiCreateBtn = document.getElementById("api-create");
   const apiTbody = document.getElementById("api-keys-tbody");
 
@@ -638,10 +619,10 @@ function setupButtons(){
       if (action === "delete") deleteApiKey(id);
     };
   }
-
+}  /* ←← THIS } IS THE ONE YOU DELETED */
 
 /* ============================================================
-   VERIFY SEARCH — FIXED
+   VERIFY SEARCH
    ============================================================ */
 async function adminVerifySearch(forceNiaOnly){
   const q = document.getElementById("verify-query").value.trim();
@@ -1067,23 +1048,14 @@ async function loadAuditLogs(){
     tbody.appendChild(tr);
   });
 }
-/* ============================================================
-   API KEYS (Advanced)
-   Collection: api_keys
-   Fields:
-   - key: string
-   - company: string
-   - email: string
-   - status: "active" | "disabled"
-   - dailyLimit: number
-   - usedToday: number
-   - resetDate: "YYYY-MM-DD"
-   - createdAt: Timestamp
-   - lastUsedAt: Timestamp | null
-   ============================================================ */
 
+/* ============================================================
+   API KEYS
+   ============================================================ */
 function generateApiKeyString(){
-  const random = crypto.randomUUID ? crypto.randomUUID().replace(/-/g,"") : Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2);
+  const random = crypto.randomUUID
+    ? crypto.randomUUID().replace(/-/g,"")
+    : Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2);
   return "nbvs_" + random.slice(0,24);
 }
 
@@ -1279,11 +1251,9 @@ async function refreshAll(){
   await renderAnalytics();
 }
 
-/* Expose (optional) */
+/* Expose for console debug */
 window.loadRecordsList=loadRecordsList;
 
 </script>
-
-<!-- END OF PART 3 -->
 </body>
 </html>
