@@ -604,6 +604,41 @@ function setupButtons(){
     document.getElementById("export-pdf").onclick = exportSelectedRecordPDF;
     document.getElementById("face-match").onclick = ()=>alert("Stub only");
     document.getElementById("manage-api").onclick = ()=>alert("Stub only");
+
+  };
+      /* API KEYS — superadmin only */
+  const apiCreateBtn = document.getElementById("api-create");
+  const apiTbody = document.getElementById("api-keys-tbody");
+
+  if (apiCreateBtn) {
+    apiCreateBtn.onclick = () => {
+      if (currentUserRole !== "superadmin") {
+        alert("Only superadmin can create API keys.");
+        return;
+      }
+      createApiKey();
+    };
+  }
+
+  if (apiTbody) {
+    apiTbody.onclick = (ev)=>{
+      const btn = ev.target.closest("button[data-action]");
+      if (!btn) return;
+
+      if (currentUserRole !== "superadmin") {
+        alert("Only superadmin can manage API keys.");
+        return;
+      }
+
+      const id = btn.dataset.id;
+      const action = btn.dataset.action;
+
+      if (action === "toggle") toggleApiKeyStatus(id, btn.dataset.status);
+      if (action === "reset") resetApiUsage(id);
+      if (action === "delete") deleteApiKey(id);
+    };
+  }
+
   }
 }
 
