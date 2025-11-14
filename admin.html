@@ -519,7 +519,7 @@ function applyRoleRestrictions() {
    TAB SWITCHING — FIXED
    ============================================================ */
 function setupTabs(){
-  const tabs = ["dashboard","verify","records","users","wallet","logs","audit","analytics","tools"];
+    const tabs = ["dashboard","verify","records","users","wallet","logs","audit","analytics","tools","apikeys"];
   tabs.forEach(t=>{
     const btn = document.getElementById("tab-"+t);
     const sec = document.getElementById("section-"+t);
@@ -539,6 +539,8 @@ function setupTabs(){
       if(t==="users") loadUsersTable();
       if(t==="wallet"){ loadWallets(); loadWalletTxs(); }
       if(t==="records") loadRecordsList();
+      if(t==="apikeys") loadApiKeys();
+
     };
   });
 }
