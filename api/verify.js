@@ -1,5 +1,4 @@
 // /api/verify.js
-
 import admin from "firebase-admin";
 
 export default async function handler(req, res) {
@@ -12,7 +11,7 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: "Missing key or nia" });
     }
 
-    // Initialize Firebase Admin only once
+    // Initialize Firebase admin
     if (!admin.apps.length) {
       admin.initializeApp({
         credential: admin.credential.cert(
@@ -23,86 +22,79 @@ export default async function handler(req, res) {
 
     const db = admin.firestore();
 
-    // ---- RATE LIMIT SYSTEM ----
-    const apiKeyRef = db.collection("api_keys").doc(key);
-    const apiKeySnap = await apiKeyRef.get();
+    // --- STEP 1: Validate the API key (OPTION 1) ---
+    const apiKeySnap = await db
+      .collection("api_keys")
+      .where("key", "==", key) // match the "key" field
+      .limit(1)
+      .get();
 
-    if (!apiKeySnap.exists) {
+    if (apiKeySnap.empty) {
       return res.status(403).json({ error: "Invalid API key" });
     }
 
-    const apiData = apiKeySnap.data();
+    const apiDoc = apiKeySnap.docs[0];
+    const apiData = apiDoc.data();
 
-    const limitPerMinute = apiData.limitPerMinute || 10;
-    const limitPerDay = apiData.limitPerDay || 200;
+    // RATE LIMIT DATA
+    const dailyLimit = apiData.dailyLimit || 1000;
+    const usedToday = apiData.usedToday || 0;
+    const resetDate = apiData.resetDate;
 
-    let minuteCount = apiData.minuteCount || 0;
-    let dayCount = apiData.dayCount || 0;
-    let lastReset = apiData.lastReset?.toMillis() || 0;
-
-    const now = Date.now();
-
-    // Reset minute counter every 60 sec
-    if (now - lastReset >= 60 * 1000) {
-      minuteCount = 0;
-    }
-
-    // Reset daily counter every midnight
-    const midnight = new Date();
-    midnight.setHours(0, 0, 0, 0);
-
-    if (now >= midnight.getTime() && lastReset < midnight.getTime()) {
-      dayCount = 0;
-    }
-
-    // Enforce limits
-    if (minuteCount >= limitPerMinute) {
-      return res.status(429).json({ error: "Rate limit exceeded (per minute)" });
-    }
-
-    if (dayCount >= limitPerDay) {
-      return res.status(429).json({ error: "Daily rate limit exceeded" });
-    }
-
-    // Update counters
-    await apiKeyRef.update({
-      minuteCount: minuteCount + 1,
-      dayCount: dayCount + 1,
-      lastReset: new Date()
-    });
-
-    // ---- END RATE LIMIT SYSTEM ----
-
-    // Normal verification lookup
-    const snapshot = await db
-      .collection("verifications")
-      .where("key", "==", key)
-      .where("nia", "==", nia)
-      .get();
-
-    if (snapshot.empty) {
-      return res.status(404).json({ error: "Verification not found" });
-    }
-
-    const data = snapshot.docs[0].data();
-
-    if (debug === "1") {
-      return res.status(200).json({
-        debug: {
-          apiKey: key,
-          nia,
-          minuteCount: minuteCount + 1,
-          dayCount: dayCount + 1,
-          lastReset: new Date(),
-          found: data
-        }
+    // Reset daily usage
+    const today = new Date().toISOString().slice(0, 10);
+    if (resetDate !== today) {
+      await apiDoc.ref.update({
+        usedToday: 0,
+        resetDate: today,
       });
     }
 
-    return res.status(200).json(data);
+    // Apply rate limit
+    if (usedToday >= dailyLimit) {
+      return res.status(429).json({ error: "Daily limit reached" });
+    }
 
+    // Increment usage
+    await apiDoc.ref.update({
+      usedToday: usedToday + 1,
+      lastUsedAt: new Date(),
+    });
+
+    // --- STEP 2: Look up verification record ---
+    const personSnap = await db
+      .collection("verifications")
+      .where("key", "==", key)
+      .where("nia", "==", nia)
+      .limit(1)
+      .get();
+
+    if (personSnap.empty) {
+      return res.status(404).json({ error: "Verification not found" });
+    }
+
+    const data = personSnap.docs[0].data();
+
+    // Debug mode
+    if (debug === "1") {
+      return res.status(200).json({
+        debug: {
+          keyReceived: key,
+          niaReceived: nia,
+          apiKeyUsed: apiData.key,
+          docReturned: data,
+          rateLimitToday: usedToday + 1,
+        },
+      });
+    }
+
+    // Success
+    return res.status(200).json(data);
   } catch (err) {
-    console.error("SERVER ERROR:", err);
-    return res.status(500).json({ error: "Server failed", details: err.message });
+    console.error("🔥 Server error:", err);
+    return res.status(500).json({
+      error: "Server failed",
+      details: err.message,
+    });
   }
 }
