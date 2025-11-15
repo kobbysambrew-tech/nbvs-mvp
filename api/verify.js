@@ -11,7 +11,7 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: "Missing key or nia" });
     }
 
-    // Initialize Firebase admin
+    // Initialize Firebase Admin
     if (!admin.apps.length) {
       admin.initializeApp({
         credential: admin.credential.cert(
@@ -22,10 +22,12 @@ export default async function handler(req, res) {
 
     const db = admin.firestore();
 
-    // --- STEP 1: Validate the API key (OPTION 1) ---
+    // --------------------------------------------------------------------
+    // 1️⃣ LOAD API KEY DOCUMENT (OPTION 1)
+    // --------------------------------------------------------------------
     const apiKeySnap = await db
       .collection("api_keys")
-      .where("key", "==", key) // match the "key" field
+      .where("key", "==", key)
       .limit(1)
       .get();
 
@@ -36,62 +38,70 @@ export default async function handler(req, res) {
     const apiDoc = apiKeySnap.docs[0];
     const apiData = apiDoc.data();
 
-    // RATE LIMIT DATA
+    if (apiData.status !== "active") {
+      return res.status(403).json({ error: "API key disabled" });
+    }
+
+    // --------------------------------------------------------------------
+    // 2️⃣ RATE LIMIT LOGIC
+    // --------------------------------------------------------------------
+    const today = new Date().toISOString().split("T")[0]; // yyyy-mm-dd
+    let usedToday = apiData.usedToday || 0;
     const dailyLimit = apiData.dailyLimit || 1000;
-    const usedToday = apiData.usedToday || 0;
-    const resetDate = apiData.resetDate;
+    const resetDate = apiData.resetDate || today;
 
-    // Reset daily usage
-    const today = new Date().toISOString().slice(0, 10);
+    // If new day → reset counter
     if (resetDate !== today) {
-      await apiDoc.ref.update({
-        usedToday: 0,
-        resetDate: today,
-      });
+      usedToday = 0;
     }
 
-    // Apply rate limit
+    // Check if over limit
     if (usedToday >= dailyLimit) {
-      return res.status(429).json({ error: "Daily limit reached" });
+      return res.status(429).json({ error: "Daily API limit reached" });
     }
 
-    // Increment usage
+    // Update usage
     await apiDoc.ref.update({
       usedToday: usedToday + 1,
-      lastUsedAt: new Date(),
+      resetDate: today,
+      lastUsedAt: admin.firestore.Timestamp.now(),
     });
 
-    // --- STEP 2: Look up verification record ---
-    const personSnap = await db
+    // --------------------------------------------------------------------
+    // 3️⃣ LOOKUP VERIFICATION RECORD
+    // --------------------------------------------------------------------
+    const snapshot = await db
       .collection("verifications")
       .where("key", "==", key)
       .where("nia", "==", nia)
-      .limit(1)
       .get();
 
-    if (personSnap.empty) {
+    if (snapshot.empty) {
       return res.status(404).json({ error: "Verification not found" });
     }
 
-    const data = personSnap.docs[0].data();
+    const data = snapshot.docs[0].data();
 
-    // Debug mode
+    // --------------------------------------------------------------------
+    // 4️⃣ DEBUG MODE
+    // --------------------------------------------------------------------
     if (debug === "1") {
       return res.status(200).json({
         debug: {
-          keyReceived: key,
-          niaReceived: nia,
-          apiKeyUsed: apiData.key,
-          docReturned: data,
-          rateLimitToday: usedToday + 1,
+          request: { key, nia },
+          apiKeyDoc: apiData,
+          returnedRecord: data,
         },
       });
     }
 
-    // Success
+    // --------------------------------------------------------------------
+    // 5️⃣ SUCCESS
+    // --------------------------------------------------------------------
     return res.status(200).json(data);
+
   } catch (err) {
-    console.error("🔥 Server error:", err);
+    console.error("🔥 VERIFY API ERROR:", err);
     return res.status(500).json({
       error: "Server failed",
       details: err.message,
