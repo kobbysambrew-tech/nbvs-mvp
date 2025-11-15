@@ -12,7 +12,7 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: "Missing key or nia" });
     }
 
-    // Initialize Firebase Admin ONCE
+    // Initialize Firebase Admin only once
     if (!admin.apps.length) {
       admin.initializeApp({
         credential: admin.credential.cert(
@@ -23,10 +23,8 @@ export default async function handler(req, res) {
 
     const db = admin.firestore();
 
-    // --------------------------------------
-    // RATE LIMIT SYSTEM
-    // --------------------------------------
-    const apiKeyRef = db.collection("api_keys").doc(key.toString());
+    // ---- RATE LIMIT SYSTEM ----
+    const apiKeyRef = db.collection("api_keys").doc(key);
     const apiKeySnap = await apiKeyRef.get();
 
     if (!apiKeySnap.exists) {
@@ -35,24 +33,21 @@ export default async function handler(req, res) {
 
     const apiData = apiKeySnap.data();
 
-    const limitPerMinute = Number(apiData.limitPerMinute || 10);
-    const limitPerDay = Number(apiData.limitPerDay || 200);
+    const limitPerMinute = apiData.limitPerMinute || 10;
+    const limitPerDay = apiData.limitPerDay || 200;
 
-    let minuteCount = Number(apiData.minuteCount || 0);
-    let dayCount = Number(apiData.dayCount || 0);
-
-    const lastReset = apiData.lastReset
-      ? apiData.lastReset.toMillis()
-      : 0;
+    let minuteCount = apiData.minuteCount || 0;
+    let dayCount = apiData.dayCount || 0;
+    let lastReset = apiData.lastReset?.toMillis() || 0;
 
     const now = Date.now();
 
-    // Reset minute counter every 60 seconds
+    // Reset minute counter every 60 sec
     if (now - lastReset >= 60 * 1000) {
       minuteCount = 0;
     }
 
-    // Reset daily counter at midnight
+    // Reset daily counter every midnight
     const midnight = new Date();
     midnight.setHours(0, 0, 0, 0);
 
@@ -60,7 +55,7 @@ export default async function handler(req, res) {
       dayCount = 0;
     }
 
-    // Check limits
+    // Enforce limits
     if (minuteCount >= limitPerMinute) {
       return res.status(429).json({ error: "Rate limit exceeded (per minute)" });
     }
@@ -69,53 +64,45 @@ export default async function handler(req, res) {
       return res.status(429).json({ error: "Daily rate limit exceeded" });
     }
 
-    // Update rate limit counters
+    // Update counters
     await apiKeyRef.update({
       minuteCount: minuteCount + 1,
       dayCount: dayCount + 1,
-      lastReset: admin.firestore.Timestamp.now(),
+      lastReset: new Date()
     });
 
-    // --------------------------------------
-    // FIRESTORE QUERY
-    // --------------------------------------
+    // ---- END RATE LIMIT SYSTEM ----
+
+    // Normal verification lookup
     const snapshot = await db
       .collection("verifications")
       .where("key", "==", key)
       .where("nia", "==", nia)
       .get();
 
-    // Debug mode
-    if (debug === "1") {
-      return res.status(200).json({
-        debug: {
-          received: { key, nia },
-          rateLimits: {
-            limitPerMinute,
-            limitPerDay,
-            minuteCount,
-            dayCount,
-          },
-          results: snapshot.size,
-          docs: snapshot.docs.map((d) => ({
-            id: d.id,
-            data: d.data(),
-          })),
-        },
-      });
-    }
-
     if (snapshot.empty) {
       return res.status(404).json({ error: "Verification not found" });
     }
 
-    return res.status(200).json(snapshot.docs[0].data());
+    const data = snapshot.docs[0].data();
+
+    if (debug === "1") {
+      return res.status(200).json({
+        debug: {
+          apiKey: key,
+          nia,
+          minuteCount: minuteCount + 1,
+          dayCount: dayCount + 1,
+          lastReset: new Date(),
+          found: data
+        }
+      });
+    }
+
+    return res.status(200).json(data);
 
   } catch (err) {
-    console.error("🔥 API ERROR:", err);
-    return res.status(500).json({
-      error: "Server failed",
-      details: err.message,
-    });
+    console.error("SERVER ERROR:", err);
+    return res.status(500).json({ error: "Server failed", details: err.message });
   }
 }
