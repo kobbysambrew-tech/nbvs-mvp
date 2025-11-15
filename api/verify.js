@@ -47,6 +47,55 @@ export default async function handler(req, res) {
         dbg.documents.push({ id: doc.id, data: doc.data() });
       });
     }
+// ---- RATE LIMIT SYSTEM ----
+const apiKeyRef = db.collection("api_keys").doc(key);
+const apiKeySnap = await apiKeyRef.get();
+
+if (!apiKeySnap.exists) {
+  return res.status(403).json({ error: "Invalid API key" });
+}
+
+const apiData = apiKeySnap.data();
+
+// defaults if missing
+const limitPerMinute = apiData.limitPerMinute || 10;
+const limitPerDay = apiData.limitPerDay || 200;
+
+let minuteCount = apiData.minuteCount || 0;
+let dayCount = apiData.dayCount || 0;
+let lastReset = apiData.lastReset ? apiData.lastReset.toMillis() : 0;
+
+const now = Date.now();
+
+// Reset minute counter every 60s
+if (now - lastReset >= 60 * 1000) {
+  minuteCount = 0;
+}
+
+// Reset daily counter every 24 hours
+const midnight = new Date();
+midnight.setHours(0, 0, 0, 0);
+if (now >= midnight.getTime() && lastReset < midnight.getTime()) {
+  dayCount = 0;
+}
+
+// Check limits
+if (minuteCount >= limitPerMinute) {
+  return res.status(429).json({ error: "Rate limit exceeded (per minute)" });
+}
+
+if (dayCount >= limitPerDay) {
+  return res.status(429).json({ error: "Daily rate limit exceeded" });
+}
+
+// Increase counters
+await apiKeyRef.update({
+  minuteCount: minuteCount + 1,
+  dayCount: dayCount + 1,
+  lastReset: now
+});
+
+// ---- END RATE LIMIT SYSTEM ----
 
     // Debug mode
     if (debug === "1") {
