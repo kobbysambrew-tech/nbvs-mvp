@@ -1,35 +1,67 @@
-import { initializeApp, cert, getApps } from "firebase-admin/app";
-import { getFirestore } from "firebase-admin/firestore";
+// /api/verify.js
 
-const serviceAccount = JSON.parse(process.env.FIREBASE_ADMIN_KEY);
-
-if (!getApps().length) {
-  initializeApp({
-    credential: cert(serviceAccount)
-  });
-}
-
-const db = getFirestore();
+import admin from "firebase-admin";
 
 export default async function handler(req, res) {
   try {
-    const { key, nia } = req.query;
+    const key = req.query.key;
+    const nia = req.query.nia;
+    const debug = req.query.debug;
 
+    // Return error if missing
     if (!key || !nia) {
       return res.status(400).json({ error: "Missing key or nia" });
     }
 
-    const docRef = db.collection("verifications").doc(key);
-    const docSnap = await docRef.get();
+    // Initialize Firebase admin ONLY once
+    if (!admin.apps.length) {
+      admin.initializeApp({
+        credential: admin.credential.cert(JSON.parse(process.env.CLIENT_KEY)),
+      });
+    }
 
-    if (!docSnap.exists) {
+    const db = admin.firestore();
+
+    // Debug object to collect logs
+    const dbg = {
+      received: { key, nia },
+      firestoreProject: admin.app().options.credential.projectId,
+      query: "WHERE key == key AND nia == nia",
+      results: null,
+      documents: [],
+      error: null
+    };
+
+    // Run Firestore query
+    const snapshot = await db
+      .collection("verifications")
+      .where("key", "==", key)
+      .where("nia", "==", nia)
+      .get();
+
+    dbg.results = snapshot.size;
+
+    if (!snapshot.empty) {
+      snapshot.forEach((doc) => {
+        dbg.documents.push({ id: doc.id, data: doc.data() });
+      });
+    }
+
+    // If debug=1, return debug info
+    if (debug === "1") {
+      return res.status(200).json({ debug: dbg });
+    }
+
+    // If no match
+    if (snapshot.empty) {
       return res.status(404).json({ error: "Verification not found" });
     }
 
-    return res.status(200).json({ success: true, data: docSnap.data() });
+    // Return the first matched document normally
+    return res.status(200).json(snapshot.docs[0].data());
 
   } catch (err) {
-    console.error("SERVER ERROR:", err);
-    return res.status(500).json({ error: "SERVER_ERROR", details: err.message });
+    console.error("🔥 Server error:", err);
+    return res.status(500).json({ error: "Server failed", details: err.message });
   }
 }
