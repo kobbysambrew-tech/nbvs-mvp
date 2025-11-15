@@ -8,31 +8,32 @@ export default async function handler(req, res) {
     const nia = req.query.nia;
     const debug = req.query.debug;
 
-    // Return error if missing
     if (!key || !nia) {
       return res.status(400).json({ error: "Missing key or nia" });
     }
 
-    // Initialize Firebase admin ONLY once
+    // Initialize Firebase Admin only once
     if (!admin.apps.length) {
       admin.initializeApp({
-        credential: admin.credential.cert(JSON.parse(process.env.CLIENT_KEY)),
+        credential: admin.credential.cert(
+          JSON.parse(process.env.FIREBASE_ADMIN_KEY)
+        ),
       });
     }
 
     const db = admin.firestore();
 
-    // Debug object to collect logs
+    // Debug object
     const dbg = {
       received: { key, nia },
       firestoreProject: admin.app().options.credential.projectId,
       query: "WHERE key == key AND nia == nia",
       results: null,
       documents: [],
-      error: null
+      error: null,
     };
 
-    // Run Firestore query
+    // Query
     const snapshot = await db
       .collection("verifications")
       .where("key", "==", key)
@@ -47,21 +48,23 @@ export default async function handler(req, res) {
       });
     }
 
-    // If debug=1, return debug info
+    // Debug mode
     if (debug === "1") {
       return res.status(200).json({ debug: dbg });
     }
 
-    // If no match
+    // Not found
     if (snapshot.empty) {
       return res.status(404).json({ error: "Verification not found" });
     }
 
-    // Return the first matched document normally
+    // Return data
     return res.status(200).json(snapshot.docs[0].data());
-
   } catch (err) {
     console.error("🔥 Server error:", err);
-    return res.status(500).json({ error: "Server failed", details: err.message });
+    return res.status(500).json({
+      error: "Server failed",
+      details: err.message,
+    });
   }
 }
