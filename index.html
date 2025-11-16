@@ -1,245 +1,265 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>NBVS Ghana - National Background Verification System</title>
-  <link rel="icon" href="favicon.ico" />
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>NBVS Ghana — National Background Verification System</title>
+<link rel="icon" href="favicon.ico" />
 
-  <style>
-    :root{
-      --red:#ce1126;
-      --yellow:#fcd116;
-      --green:#006b3f;
-      --accent:#004f2e;
-      --card:#ffffff;
-      --bg:#f6f7f9;
-      --muted:#666;
-    }
+<style>
+:root{
+  --red:#ce1126;
+  --yellow:#fcd116;
+  --green:#006b3f;
+  --accent:#004f2e;
+  --card:#ffffff;
+  --bg:#f6f7f9;
+  --muted:#666;
+}
 
-    *{box-sizing:border-box;margin:0;padding:0}
-    body{
-      font-family:"Segoe UI",Roboto,Arial,sans-serif;
-      background:var(--bg);
-      color:#222;
-      overflow-x:hidden;
-    }
+*{margin:0;padding:0;box-sizing:border-box}
+body{
+  font-family:"Segoe UI",Roboto,Arial,sans-serif;
+  background:var(--bg);
+  color:#222;
+  overflow-x:hidden;
+}
 
-    /* HEADER */
-    header{
-      background:linear-gradient(90deg,var(--red),var(--yellow),var(--green));
-      padding:2.4rem 1rem 1.6rem;
-      text-align:center;
-      color:white;
-      box-shadow:0 3px 12px rgba(0,0,0,0.15);
-    }
-    header h1{
-      font-size:2rem;
-      margin-bottom:6px;
-      font-weight:800;
-    }
-    header p{
-      opacity:0.95;
-      margin-bottom:8px;
-      font-weight:600;
-    }
+/* HEADER */
+header{
+  background:linear-gradient(90deg,var(--red),var(--yellow),var(--green));
+  padding:2.2rem 1rem 1.6rem;
+  text-align:center;
+  color:white;
+  box-shadow:0 3px 12px rgba(0,0,0,0.15);
+}
+header h1{
+  font-size:2.1rem;
+  font-weight:900;
+}
+header p{
+  opacity:.95;
+  font-size:1.05rem;
+  font-weight:600;
+  margin-top:6px;
+}
+.flag-bar{
+  margin-top:14px;
+  width:240px;
+  height:26px;
+  border-radius:8px;
+  display:flex;
+  overflow:hidden;
+  margin-inline:auto;
+  box-shadow:0 5px 14px rgba(0,0,0,0.16);
+}
+.flag-bar div{flex:1}
+.flag-red{background:var(--red)}
+.flag-yellow{background:var(--yellow)}
+.flag-green{background:var(--green)}
 
-    .flag-bar{
-      margin-top:14px;
-      width:240px;
-      height:26px;
-      border-radius:8px;
-      overflow:hidden;
-      display:flex;
-      margin-inline:auto;
-      box-shadow:0 6px 18px rgba(0,0,0,0.12);
-    }
-    .flag-bar div{flex:1}
-    .flag-red{background:var(--red)}
-    .flag-yellow{background:var(--yellow)}
-    .flag-green{background:var(--green)}
+/* HERO */
+.hero{
+  max-width:1000px;
+  margin:2rem auto;
+  padding:0 1rem;
+}
+.hero-card{
+  text-align:center;
+  background:var(--card);
+  padding:2rem;
+  border-radius:16px;
+  box-shadow:0 8px 24px rgba(0,0,0,0.06);
+}
+.hero-title{
+  font-size:1.9rem;
+  font-weight:800;
+  color:var(--accent);
+  margin-bottom:10px;
+}
+.lead{
+  color:var(--muted);
+  max-width:700px;
+  margin:0 auto;
+  font-size:1.1rem;
+  line-height:1.55;
+}
 
-    /* HERO */
-    .hero{
-      max-width:960px;
-      margin:1.8rem auto 0;
-      padding:0 1rem;
-    }
-    .hero-card{
-      background:var(--card);
-      border-radius:14px;
-      padding:1.6rem;
-      box-shadow:0 8px 26px rgba(0,0,0,0.06);
-      text-align:center;
-    }
-    .hero-title{
-      font-size:1.7rem;
-      color:var(--accent);
-      font-weight:800;
-      margin-bottom:12px;
-    }
-    .lead{
-      color:var(--muted);
-      max-width:720px;
-      margin:0 auto;
-      font-size:1.05rem;
-      line-height:1.55;
-    }
+/* BUTTONS */
+.btns{
+  margin-top:1.5rem;
+  display:flex;
+  flex-wrap:wrap;
+  justify-content:center;
+  gap:14px;
+}
+.btn{
+  padding:12px 24px;
+  border-radius:10px;
+  font-weight:700;
+  text-decoration:none;
+  box-shadow:0 4px 14px rgba(0,0,0,0.10);
+  transition:0.25s;
+  font-size:1.05rem;
+}
+.btn-primary{
+  background:var(--green);
+  color:white;
+}
+.btn-primary:hover{background:var(--accent);transform:translateY(-3px)}
+.btn-yellow{
+  background:var(--yellow);
+  color:#111;
+}
+.btn-yellow:hover{filter:brightness(.92);transform:translateY(-3px)}
 
-    /* BUTTONS */
-    .btns{
-      margin-top:1.4rem;
-      display:flex;
-      flex-wrap:wrap;
-      gap:12px;
-      justify-content:center;
-    }
-    .btn{
-      padding:12px 22px;
-      border-radius:10px;
-      font-weight:700;
-      text-decoration:none;
-      box-shadow:0 4px 14px rgba(0,0,0,0.08);
-      transition:0.25s;
-      font-size:1rem;
-    }
-    .btn-primary{
-      background:var(--green);
-      color:white;
-    }
-    .btn-outlined{
-      background:var(--yellow);
-      color:#111;
-    }
+/* GRID */
+.section-title{
+  text-align:center;
+  font-weight:900;
+  font-size:1.6rem;
+  color:var(--accent);
+  margin-top:2.5rem;
+  margin-bottom:1.2rem;
+}
+.grid{
+  max-width:1100px;
+  margin:0 auto 3rem;
+  padding:0 1rem;
+  display:grid;
+  gap:18px;
+  grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+}
+.card{
+  background:var(--card);
+  padding:1.4rem;
+  border-radius:14px;
+  box-shadow:0 6px 20px rgba(0,0,0,0.05);
+}
+.card h3{
+  margin-bottom:8px;
+  font-size:1.25rem;
+  font-weight:800;
+  color:var(--accent);
+}
+.muted{
+  color:var(--muted);
+  line-height:1.5;
+}
 
-    /* GRID */
-    .grid{
-      max-width:960px;
-      margin:2rem auto;
-      padding:0 1rem;
-      display:grid;
-      gap:16px;
-      grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
-    }
-    .card{
-      background:var(--card);
-      padding:1.25rem;
-      border-radius:12px;
-      box-shadow:0 6px 20px rgba(0,0,0,0.04);
-    }
-    .card h3{
-      color:var(--accent);
-      margin-bottom:8px;
-      font-size:1.25rem;
-      font-weight:800;
-    }
-    .muted{color:var(--muted);line-height:1.5}
-
-    footer{
-      margin-top:2rem;
-      padding:1.3rem;
-      background:#ececec;
-      text-align:center;
-      font-size:.95rem;
-      color:#333;
-    }
-  </style>
+/* FOOTER */
+footer{
+  background:#e5e5e5;
+  padding:1.4rem;
+  text-align:center;
+  color:#333;
+  margin-top:2rem;
+  font-size:0.95rem;
+}
+</style>
 </head>
 
 <body>
 
-  <header>
-    <h1>NBVS Ghana</h1>
-    <p>National Background Verification System — Secure · Trusted · Nationwide</p>
+<header>
+  <h1>NBVS Ghana</h1>
+  <p>National Background Verification System — Secure • Trusted • Nationwide</p>
 
-    <div class="flag-bar">
-      <div class="flag-red"></div>
-      <div class="flag-yellow"></div>
-      <div class="flag-green"></div>
+  <div class="flag-bar">
+    <div class="flag-red"></div>
+    <div class="flag-yellow"></div>
+    <div class="flag-green"></div>
+  </div>
+</header>
+
+<main>
+
+  <!-- HERO SECTION -->
+  <section class="hero">
+    <div class="hero-card">
+      <h2 class="hero-title">Fast, Reliable Background Checks</h2>
+      <p class="lead">
+        Verify identity, criminal history, driving license, address, and more — trusted by employers,
+        agencies, and individuals across Ghana.
+      </p>
+
+      <div class="btns">
+        <a class="btn btn-primary" href="verify.html">🔍 Start Verification</a>
+        <a class="btn btn-yellow" href="dashboard.html">🔐 Admin Login</a>
+        <a class="btn btn-yellow" href="api.html">📘 API Documentation</a>
+      </div>
     </div>
-  </header>
+  </section>
 
-  <main>
+  <!-- FEATURES -->
+  <h2 class="section-title">Core Services</h2>
+  <section class="grid">
+    <div class="card">
+      <h3>Instant Verification</h3>
+      <p class="muted">Get identity and background results in seconds using national databases.</p>
+    </div>
 
-    <!-- HERO -->
-    <section class="hero">
-      <div class="hero-card">
-        <h2 class="hero-title">Fast, Reliable Background Checks</h2>
-        <p class="lead">
-          Verify identity, criminal history, driving license, address, and more — trusted across Ghana.
-        </p>
+    <div class="card">
+      <h3>Secure & Encrypted</h3>
+      <p class="muted">All searches are encrypted and logged to protect citizen privacy.</p>
+    </div>
 
-        <div class="btns">
-          <a class="btn btn-primary" href="verify.html">🔍 Start Verification</a>
-          <a class="btn btn-outlined" href="dashboard.html">🔐 Admin Login</a>
-          <a class="btn btn-outlined" href="api.html">📘 API Documentation</a>
-        </div>
-      </div>
-    </section>
+    <div class="card">
+      <h3>For Employers & Agencies</h3>
+      <p class="muted">Organizations rely on NBVS for fast, accurate, verified identity checks.</p>
+    </div>
 
-    <!-- FEATURES -->
-    <section class="grid">
-      <div class="card">
-        <h3>Instant Verification</h3>
-        <p class="muted">Get identity and background results in seconds.</p>
-      </div>
+    <div class="card">
+      <h3>Contact Us</h3>
+      <p class="muted">
+        Email: <a href="mailto:nbvsghana@nbvsghana.com">nbvsghana@nbvsghana.com</a><br>
+        Phone: +1 (651) 417-2324
+      </p>
+    </div>
+  </section>
 
-      <div class="card">
-        <h3>Secure & Encrypted</h3>
-        <p class="muted">Every search is encrypted and auditable.</p>
-      </div>
+  <!-- API / DEVELOPER SECTION -->
+  <h2 class="section-title">Developer & API Access</h2>
+  <section class="grid">
 
-      <div class="card">
-        <h3>For Employers & Agencies</h3>
-        <p class="muted">Used by organizations nationwide for accurate checks.</p>
-      </div>
+    <div class="card">
+      <h3>NBVS API Access</h3>
+      <p class="muted">
+        Integrate NBVS verification into your system. Perform secure identity and background validation.
+      </p>
+    </div>
 
-      <div class="card">
-        <h3>Contact Us</h3>
-        <p class="muted">
-          Email: <a href="mailto:nbvsghana@nbvsghana.com">nbvsghana@nbvsghana.com</a><br>
-          Phone: +1 (651) 417-2324
-        </p>
-      </div>
-    </section>
+    <div class="card">
+      <h3>Simple REST Endpoint</h3>
+      <p class="muted">
+        <b>GET:</b><br>
+        <code>/api/verify?key=YOUR_KEY&nia=2039485</code>
+      </p>
+    </div>
 
-    <!-- API SECTION (separate grid) -->
-    <section class="grid">
-      <div class="card">
-        <h3>NBVS API Access</h3>
-        <p class="muted">
-          Integrate NBVS verification into your applications.
-        </p>
-      </div>
+    <div class="card">
+      <h3>Rate-Limited & Safe</h3>
+      <p class="muted">
+        All API keys are protected with strict per-minute and daily rate limits.  
+        Only Superadmin can manage keys.
+      </p>
+    </div>
 
-      <div class="card">
-        <h3>Simple REST Endpoint</h3>
-        <p class="muted">
-          <code>/api/verify?key=YOUR_API_KEY&nia=123456789</code>
-        </p>
-      </div>
+    <div class="card">
+      <h3>Developer Docs</h3>
+      <p class="muted">
+        Full documentation, usage examples, and integration guides.<br>
+        <a href="api.html">📘 View API Documentation</a>
+      </p>
+    </div>
 
-      <div class="card">
-        <h3>Rate-Limited & Secure</h3>
-        <p class="muted">
-          API keys are protected with per-minute & daily limits.
-        </p>
-      </div>
+  </section>
 
-      <div class="card">
-        <h3>Developer Docs</h3>
-        <p class="muted">
-          Full API documentation & examples.<br>
-          <a href="api.html">Open Docs →</a>
-        </p>
-      </div>
-    </section>
+</main>
 
-  </main>
-
-  <footer>
-    © 2025 NBVS Ghana — National Background Verification System
-  </footer>
+<footer>
+  © 2025 NBVS Ghana — National Background Verification System
+</footer>
 
 </body>
 </html>
