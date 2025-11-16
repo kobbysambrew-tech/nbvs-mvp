@@ -1,44 +1,75 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>NBVS Ghana — API Documentation</title>
 
 <style>
   :root{
-    --red:#ce1126;--yellow:#fcd116;--green:#006b3f;
-    --bg:#f6f7f9;--card:#fff;--muted:#666;--accent:#004f2e;
+    --red:#ce1126;
+    --yellow:#fcd116;
+    --green:#006b3f;
+    --bg:#f6f7f9;
+    --card:#fff;
+    --dark:#111;
+    --muted:#555;
   }
-  body{font-family:"Segoe UI",Arial,sans-serif;margin:0;background:var(--bg);color:#222}
+  body{
+    font-family:"Segoe UI",Arial,sans-serif;
+    margin:0;
+    background:var(--bg);
+    color:#222;
+  }
   header{
     background:linear-gradient(90deg,var(--red),var(--yellow),var(--green));
-    padding:2rem 1rem;text-align:center;color:#fff;
-    font-weight:700;box-shadow:0 3px 12px rgba(0,0,0,0.15);
+    padding:30px 12px;
+    text-align:center;
+    color:#fff;
   }
-  h1{margin-bottom:6px;font-size:1.8rem}
-  main{max-width:900px;margin:1.5rem auto;padding:0 1rem}
+  header h1{margin:0;font-size:2rem;font-weight:800}
+  header p{margin-top:6px;font-size:1.1rem;font-weight:500}
+
+  main{
+    max-width:900px;
+    margin:24px auto;
+    padding:0 16px;
+  }
   .card{
-    background:var(--card);padding:1.4rem;border-radius:12px;
-    box-shadow:0 6px 18px rgba(0,0,0,0.06);margin-bottom:1rem;
+    background:var(--card);
+    padding:18px;
+    border-radius:12px;
+    margin-bottom:18px;
+    box-shadow:0 6px 20px rgba(0,0,0,0.06);
   }
+  h2{margin-bottom:10px;color:var(--green)}
   code{
-    background:#eee;padding:4px 6px;border-radius:6px;color:#c7254e;font-family:monospace;
+    display:block;
+    background:#eee;
+    padding:12px;
+    white-space:pre-wrap;
+    border-radius:8px;
+    margin-top:10px;
+    font-size:0.9rem;
   }
-  pre{
-    background:#111;color:#0f0;padding:12px;border-radius:10px;
-    overflow-x:auto;font-size:.9rem;
+  .btn{
+    display:inline-block;
+    background:var(--green);
+    color:white;
+    padding:10px 18px;
+    border-radius:8px;
+    text-decoration:none;
+    font-weight:700;
+    margin-top:10px;
   }
-  h2{color:var(--accent)}
-  .footer{text-align:center;margin-top:2rem;padding:1.2rem;background:#ececec;font-size:.9rem}
 </style>
 </head>
 
 <body>
 
 <header>
-  <h1>NBVS Ghana — Verification API</h1>
-  <p>Fast • Secure • Automated Background Checks for Developers & Agencies</p>
+  <h1>NBVS API Documentation</h1>
+  <p>National Background Verification System • Secure • Trusted • Fast</p>
 </header>
 
 <main>
@@ -47,103 +78,108 @@
   <div class="card">
     <h2>Overview</h2>
     <p>
-      The NBVS API allows approved businesses, employers, and government agencies
-      to verify Ghanaian identity, criminal history, credit score, and driving
-      status programmatically using a secure API key.
+      The NBVS API allows approved companies, employers, and government agencies 
+      to perform instant background verification using a secure API key.
     </p>
-    <p><b>Base URL:</b> <code>https://nbvsghana.com/api/verify</code></p>
-  </div>
-
-  <!-- AUTH -->
-  <div class="card">
-    <h2>Authentication</h2>
     <p>
-      All API requests require an <b>NBVS API Key</b>.
-      Keys are created in the NBVS Admin Dashboard by Superadmin only.
+      All requests are authenticated using your <b>API Key</b> generated in the admin dashboard.
     </p>
-
-    <p><b>Header format:</b></p>
-    <pre>{
-  "Authorization": "Bearer YOUR_API_KEY"
-}</pre>
+    <a class="btn" href="dashboard.html">Get API Key →</a>
   </div>
 
   <!-- ENDPOINT -->
   <div class="card">
-    <h2>Verify Person</h2>
-    <p><b>POST</b> <code>/api/verify</code></p>
+    <h2>Base Endpoint</h2>
+    <code>GET https://your-vercel-domain.vercel.app/api/verify?key=API_KEY&nia=NIA_NUMBER</code>
+  </div>
 
-    <p>Verify using either:</p>
-    <ul>
-      <li>Full name</li>
-      <li>NIA ID / Ghana Card number</li>
-    </ul>
+  <!-- PARAMETERS -->
+  <div class="card">
+    <h2>Parameters</h2>
+    <p><b>key</b> – Your assigned API key (required)</p>
+    <p><b>nia</b> – National ID number to verify (required)</p>
+    <p><b>debug</b> – Return detailed logs (optional)</p>
+  </div>
 
-    <h3>Example Request</h3>
-    <pre>
-POST https://nbvsghana.com/api/verify
-Headers:
-  Authorization: Bearer nbvs_6aJx91K...
-Body:
+  <!-- SAMPLE REQUEST -->
+  <div class="card">
+    <h2>Example Request (JavaScript)</h2>
+    <code>
+const url = "https://your-domain/api/verify?key=YOUR_KEY&nia=GHA-1234567";
+
+fetch(url)
+  .then(r => r.json())
+  .then(data => console.log(data));
+    </code>
+  </div>
+
+  <!-- SAMPLE RESPONSE -->
+  <div class="card">
+    <h2>Example Response</h2>
+    <code>
 {
-  "query": "Ama Serwaa"
+  "name": "Kofi Mensah",
+  "nia": "GHA-1234567",
+  "dob": "1995-02-17",
+  "region": "Greater Accra",
+  "criminal": "None",
+  "driving": "Valid",
+  "credit": "Good",
+  "status": "Verified"
 }
-    </pre>
-
-    <h3>Example Response</h3>
-    <pre>
-{
-  "success": true,
-  "result": {
-    "name": "Ama Serwaa",
-    "nia": "GHA-2039485",
-    "dob": "1994-07-12",
-    "region": "Greater Accra",
-    "criminal": "Clean",
-    "driving": "Valid",
-    "credit": 750,
-    "status": "Verified"
-  }
-}
-    </pre>
+    </code>
   </div>
 
   <!-- ERRORS -->
   <div class="card">
     <h2>Error Responses</h2>
-    <p><b>Invalid key:</b></p>
-    <pre>{
-  "success": false,
+    <code>
+{
   "error": "Invalid API key"
-}</pre>
+}
 
-    <p><b>No record found:</b></p>
-    <pre>{
-  "success": false,
-  "error": "No match found"
-}</pre>
+{
+  "error": "Verification not found"
+}
+
+{
+  "error": "Rate limit exceeded (per minute)"
+}
+    </code>
   </div>
 
-  <!-- PRICING -->
+  <!-- RATE LIMITS -->
   <div class="card">
-    <h2>API Pricing</h2>
-    <p>Each verification = <b>¢30</b></p>
-    <p>Billing deducts from organization wallet balance.</p>
-    <p>Wallet is managed inside the NBVS Admin Dashboard.</p>
+    <h2>Rate Limits</h2>
+    <p>
+      Each API key has system-level limits to prevent abuse:
+    </p>
+    <ul>
+      <li>10 requests / minute</li>
+      <li>200 requests / day</li>
+    </ul>
+    <p>Custom limits can be configured per client.</p>
   </div>
 
-  <!-- CONTACT -->
+  <!-- SECURITY -->
   <div class="card">
-    <h2>Support</h2>
-    <p>Email: <a href="mailto:nbvsghana@nbvsghana.com">nbvsghana@nbvsghana.com</a></p>
-    <p>Phone: +1 (651) 417-2324</p>
+    <h2>Security</h2>
+    <p>
+      All requests are logged in <b>audit_logs</b> and <b>search_logs</b>.  
+      Only the <b>Superadmin</b> can view client activity.
+    </p>
+    <p>
+      Private data is encrypted and served through HTTPS only.
+    </p>
+  </div>
+
+  <!-- FOOTER -->
+  <div class="card" style="text-align:center">
+    <p>Need help integrating the NBVS API?</p>
+    <a class="btn" href="mailto:nbvsghana@nbvsghana.com">Contact Support</a>
   </div>
 
 </main>
-
-<div class="footer">
-  © 2025 NBVS Ghana — Background Verification API
-</div>
 
 </body>
 </html>
