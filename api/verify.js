@@ -1,110 +1,160 @@
-// /api/verify.js
-import admin from "firebase-admin";
+/* ============================================================
+   NBVS — FINAL VERIFY.JS (No free searches, Pay-Only, Safe)
+   - No free searches at all
+   - Staff & Superadmin can search unlimited
+   - Public users must pay (wallet ≥ 30)
+   - Rate limiting included
+   - Logs every search
+=============================================================== */
 
-export default async function handler(req, res) {
-  try {
-    const key = req.query.key;
-    const nia = req.query.nia;
-    const debug = req.query.debug;
+import { 
+  getFirestore, doc, getDoc, updateDoc, collection, addDoc 
+} from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 
-    if (!key || !nia) {
-      return res.status(400).json({ error: "Missing key or nia" });
-    }
+import { 
+  getAuth, onAuthStateChanged 
+} from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
 
-    // Initialize Firebase Admin
-    if (!admin.apps.length) {
-      admin.initializeApp({
-        credential: admin.credential.cert(
-          JSON.parse(process.env.FIREBASE_ADMIN_KEY)
-        ),
-      });
-    }
+import { app } from "./firebase.js";
 
-    const db = admin.firestore();
+const db = getFirestore(app);
+const auth = getAuth();
 
-    // --------------------------------------------------------------------
-    // 1️⃣ LOAD API KEY DOCUMENT (OPTION 1)
-    // --------------------------------------------------------------------
-    const apiKeySnap = await db
-      .collection("api_keys")
-      .where("key", "==", key)
-      .limit(1)
-      .get();
+let currentUser = null;
+let currentRole = "user";
+let walletBalance = 0;
+let lastSearchTime = 0;
 
-    if (apiKeySnap.empty) {
-      return res.status(403).json({ error: "Invalid API key" });
-    }
-
-    const apiDoc = apiKeySnap.docs[0];
-    const apiData = apiDoc.data();
-
-    if (apiData.status !== "active") {
-      return res.status(403).json({ error: "API key disabled" });
-    }
-
-    // --------------------------------------------------------------------
-    // 2️⃣ RATE LIMIT LOGIC
-    // --------------------------------------------------------------------
-    const today = new Date().toISOString().split("T")[0]; // yyyy-mm-dd
-    let usedToday = apiData.usedToday || 0;
-    const dailyLimit = apiData.dailyLimit || 1000;
-    const resetDate = apiData.resetDate || today;
-
-    // If new day → reset counter
-    if (resetDate !== today) {
-      usedToday = 0;
-    }
-
-    // Check if over limit
-    if (usedToday >= dailyLimit) {
-      return res.status(429).json({ error: "Daily API limit reached" });
-    }
-
-    // Update usage
-    await apiDoc.ref.update({
-      usedToday: usedToday + 1,
-      resetDate: today,
-      lastUsedAt: admin.firestore.Timestamp.now(),
-    });
-
-    // --------------------------------------------------------------------
-    // 3️⃣ LOOKUP VERIFICATION RECORD
-    // --------------------------------------------------------------------
-    const snapshot = await db
-      .collection("verifications")
-      .where("key", "==", key)
-      .where("nia", "==", nia)
-      .get();
-
-    if (snapshot.empty) {
-      return res.status(404).json({ error: "Verification not found" });
-    }
-
-    const data = snapshot.docs[0].data();
-
-    // --------------------------------------------------------------------
-    // 4️⃣ DEBUG MODE
-    // --------------------------------------------------------------------
-    if (debug === "1") {
-      return res.status(200).json({
-        debug: {
-          request: { key, nia },
-          apiKeyDoc: apiData,
-          returnedRecord: data,
-        },
-      });
-    }
-
-    // --------------------------------------------------------------------
-    // 5️⃣ SUCCESS
-    // --------------------------------------------------------------------
-    return res.status(200).json(data);
-
-  } catch (err) {
-    console.error("🔥 VERIFY API ERROR:", err);
-    return res.status(500).json({
-      error: "Server failed",
-      details: err.message,
-    });
+/* ------------------------------
+   RATE LIMIT: 1 search every 5 sec
+------------------------------ */
+function rateLimit() {
+  const now = Date.now();
+  if (now - lastSearchTime < 5000) {
+    alert("Please wait a few seconds before searching again.");
+    return false;
   }
+  lastSearchTime = now;
+  return true;
 }
+
+/* ------------------------------
+   Load user info
+------------------------------ */
+async function loadUser() {
+  return new Promise(resolve => {
+    onAuthStateChanged(auth, async user => {
+      if (!user) {
+        currentUser = null;
+        currentRole = "public";
+        walletBalance = 0;
+        resolve();
+        return;
+      }
+
+      currentUser = user;
+
+      const uDoc = await getDoc(doc(db, "users", user.uid));
+      if (!uDoc.exists()) {
+        currentRole = "user";
+        walletBalance = 0;
+        resolve();
+        return;
+      }
+
+      const data = uDoc.data();
+      currentRole = (data.role || "user").toLowerCase();
+      walletBalance = data.wallet || 0;
+
+      resolve();
+    });
+  });
+}
+
+/* ------------------------------
+   Run search
+------------------------------ */
+async function runVerification() {
+  if (!rateLimit()) return;
+
+  const query = document.getElementById("searchInput").value.trim();
+  if (!query) return alert("Enter a name or NIA ID");
+
+  /* Staff + superadmin get unlimited searches */
+  const isAdmin = (currentRole === "staff" || currentRole === "superadmin");
+
+  /* Public MUST pay */
+  if (!isAdmin) {
+    if (walletBalance < 30) {
+      return alert("Not enough balance — add funds first.");
+    }
+  }
+
+  /* Charge ONLY public users */
+  if (!isAdmin) {
+    const newBalance = walletBalance - 30;
+    await updateDoc(doc(db, "users", currentUser.uid), { wallet: newBalance });
+    walletBalance = newBalance;
+    updateWalletUI();
+  }
+
+  /* SEARCH FIRESTORE */
+  const qDoc = await getDoc(doc(db, "records", query.toLowerCase()));
+  let result = null;
+
+  if (qDoc.exists()) {
+    result = qDoc.data();
+    displayResult(result);
+  } else {
+    document.getElementById("resultArea").innerHTML = "<p>No record found.</p>";
+  }
+
+  /* LOG SEARCH */
+  await addDoc(collection(db, "search_logs"), {
+    time: Date.now(),
+    user: currentUser ? currentUser.uid : "public",
+    query: query,
+    found: qDoc.exists()
+  });
+
+  await addDoc(collection(db, "audit_logs"), {
+    time: Date.now(),
+    user: currentUser ? currentUser.uid : "public",
+    action: "search",
+    meta: { query, found: qDoc.exists() }
+  });
+}
+
+/* ------------------------------
+   Display record result
+------------------------------ */
+function displayResult(data) {
+  document.getElementById("resultArea").innerHTML = `
+    <strong>Name:</strong> ${data.name}<br>
+    <strong>NIA:</strong> ${data.nia}<br>
+    <strong>DOB:</strong> ${data.dob}<br>
+    <strong>Region:</strong> ${data.region}<br>
+    <strong>Address:</strong> ${data.address}<br>
+    <strong>Criminal:</strong> ${data.criminal}<br>
+    <strong>Driving:</strong> ${data.driving}<br>
+    <strong>Credit:</strong> ${data.credit}<br>
+    <strong>Status:</strong> ${data.status}
+  `;
+}
+
+/* ------------------------------
+   Update wallet text
+------------------------------ */
+function updateWalletUI() {
+  document.getElementById("walletDisplay").innerText = `Balance: ₵${walletBalance}`;
+}
+
+/* ------------------------------
+   Init
+------------------------------ */
+document.addEventListener("DOMContentLoaded", async () => {
+  await loadUser();
+  updateWalletUI();
+
+  document.getElementById("verifyBtn").onclick = runVerification;
+});
