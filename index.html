@@ -25,6 +25,7 @@
       overflow-x:hidden;
     }
 
+    /* HEADER */
     header{
       background:linear-gradient(90deg,var(--red),var(--yellow),var(--green));
       padding:2.4rem 1rem 1.6rem;
@@ -34,7 +35,7 @@
       animation:fadeIn 0.8s ease-in-out forwards;
     }
     header h1{
-      font-size:1.9rem;
+      font-size:2rem;
       margin-bottom:6px;
       font-weight:800;
     }
@@ -61,6 +62,7 @@
     .flag-yellow{background:var(--yellow)}
     .flag-green{background:var(--green)}
 
+    /* HERO */
     .hero{
       max-width:960px;
       margin:1.8rem auto 0;
@@ -76,10 +78,10 @@
       animation:zoomIn 0.5s ease-out forwards;
     }
     .hero-title{
-      font-size:1.6rem;
+      font-size:1.7rem;
       color:var(--accent);
       font-weight:800;
-      margin-bottom:10px;
+      margin-bottom:12px;
     }
     .lead{
       color:var(--muted);
@@ -89,6 +91,7 @@
       line-height:1.55;
     }
 
+    /* BUTTONS */
     .btns{
       margin-top:1.4rem;
       display:flex;
@@ -103,6 +106,7 @@
       text-decoration:none;
       box-shadow:0 4px 14px rgba(0,0,0,0.08);
       transition:0.25s;
+      font-size:1rem;
     }
     .btn-primary{
       background:var(--green);
@@ -115,9 +119,10 @@
     }
     .btn-outlined:hover{filter:brightness(.93);transform:translateY(-3px)}
 
+    /* GRID */
     .grid{
       max-width:960px;
-      margin:2rem auto;
+      margin:2.2rem auto;
       padding:0 1rem;
       display:grid;
       gap:16px;
@@ -134,10 +139,12 @@
     .card h3{
       color:var(--accent);
       margin-bottom:8px;
-      font-size:1.2rem;
+      font-size:1.25rem;
+      font-weight:800;
     }
-    .muted{color:var(--muted)}
+    .muted{color:var(--muted);line-height:1.5}
 
+    /* FOOTER */
     footer{
       margin-top:2rem;
       padding:1.3rem;
@@ -147,19 +154,10 @@
       color:#333;
     }
 
-    .admin-btn{
-      display:inline-block;
-      background:var(--green);
-      color:white;
-      padding:10px 16px;
-      border-radius:10px;
-      text-decoration:none;
-      font-weight:700;
-      margin-top:16px;
-      transition:0.28s;
-      box-shadow:0 4px 14px rgba(0,0,0,0.15);
-    }
-    .admin-btn:hover{background:var(--accent);transform:translateY(-3px)}
+    @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+    @keyframes zoomIn{from{opacity:0;transform:scale(.9)}to{opacity:1;transform:scale(1)}}
+    @keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+    @keyframes slideInUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
   </style>
 </head>
 
@@ -181,37 +179,34 @@
       <div class="hero-card">
         <h2 class="hero-title">Fast, Reliable Background Checks</h2>
         <p class="lead">
-          Verify identity, criminal history, and driving status instantly — trusted by employers, agencies, and individuals across Ghana.
+          Verify identity, criminal history, driving license, address, and more — trusted by employers, agencies, and individuals across Ghana.
         </p>
 
         <div class="btns">
           <a class="btn btn-primary" href="verify.html">🔍 Start Verification</a>
-
-          <!-- ✅ FIXED BUTTON -->
           <a class="btn btn-outlined" href="dashboard.html">🔐 Admin Login</a>
         </div>
-
       </div>
     </section>
 
     <section class="grid">
       <div class="card">
         <h3>Instant Verification</h3>
-        <p class="muted">Get identity and background results in seconds using national databases.</p>
+        <p class="muted">Get identity and background results in seconds through national records.</p>
       </div>
 
       <div class="card">
-        <h3>Trusted Security</h3>
-        <p class="muted">Encrypted systems ensure your searches and results remain confidential and auditable.</p>
+        <h3>Secure & Encrypted</h3>
+        <p class="muted">Every search is encrypted and logged to protect citizen privacy.</p>
       </div>
 
       <div class="card">
         <h3>For Employers & Agencies</h3>
-        <p class="muted">Businesses and government offices rely on NBVS for fast, accurate checks.</p>
+        <p class="muted">Organizations rely on NBVS for fast, accurate, verified identity checks.</p>
       </div>
 
       <div class="card">
-        <h3>Contact</h3>
+        <h3>Contact Us</h3>
         <p class="muted">
           Email: <a href="mailto:nbvsghana@nbvsghana.com">nbvsghana@nbvsghana.com</a><br>
           Phone: +1 (651) 417-2324
