@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>NBVS API Documentation</title>
+
+<style>
+:root{
+  --red:#ce1126;
+  --yellow:#fcd116;
+  --green:#006b3f;
+  --bg:#f6f7f9;
+  --card:#fff;
+  --text:#222;
+  --muted:#555;
+}
+
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  font-family:"Segoe UI",Arial,sans-serif;
+  background:var(--bg);
+  color:var(--text);
+}
+
+header{
+  background:linear-gradient(90deg,var(--red),var(--yellow),var(--green));
+  padding:26px 10px;
+  text-align:center;
+  color:#fff;
+  font-weight:700;
+  box-shadow:0 4px 14px rgba(0,0,0,0.15);
+}
+
+main{
+  max-width:900px;
+  margin:20px auto;
+  padding:0 16px;
+}
+
+h1,h2,h3{
+  font-weight:800;
+  color:var(--green);
+}
+
+.card{
+  background:var(--card);
+  padding:18px;
+  border-radius:14px;
+  box-shadow:0 6px 20px rgba(0,0,0,0.06);
+  margin-bottom:16px;
+}
+
+code, pre {
+  background:#111;
+  color:#0f0;
+  padding:12px;
+  border-radius:8px;
+  display:block;
+  overflow-x:auto;
+  margin-top:10px;
+  font-size:.9rem;
+}
+
+.btn{
+  display:inline-block;
+  margin-top:12px;
+  padding:10px 16px;
+  background:var(--green);
+  color:white;
+  text-decoration:none;
+  border-radius:10px;
+  font-weight:700;
+}
+.btn:hover{background:#004f2e}
+</style>
+</head>
+
+<body>
+
+<header>
+  <h1>NBVS Ghana — Developer API</h1>
+  <p>Secure · Encrypted · Verified Identity Access</p>
+</header>
+
+<main>
+
+  <div class="card">
+    <h2>Overview</h2>
+    <p>
+      The NBVS API allows approved partners (employers, agencies, platforms)
+      to verify Ghanaian identity data such as:
+    </p>
+    <ul style="margin:12px 0 0 18px; color:var(--muted)">
+      <li>Full Name</li>
+      <li>NIA Number</li>
+      <li>Date of Birth</li>
+      <li>Driving Status</li>
+      <li>Criminal Status</li>
+      <li>Region / Address</li>
+      <li>Credit Score</li>
+      <li>Verification Status</li>
+    </ul>
+
+    <p style="margin-top:10px;">
+      Access requires an <b>API key</b> generated inside your NBVS Admin panel.
+    </p>
+
+    <a href="/admin.html" class="btn">Open Admin Panel</a>
+  </div>
+
+  <div class="card">
+    <h2>Authentication</h2>
+    <p>All requests must include this header:</p>
+
+<pre>
+Authorization: Bearer YOUR_API_KEY
+</pre>
+
+    <p style="margin-top:8px; color:var(--muted);">
+      Never share your API key publicly.
+    </p>
+  </div>
+
+  <div class="card">
+    <h2>Endpoint: Search Record</h2>
+    <p><b>GET</b> https://nbvsghana.com/api/search?query=ama%20serwaa</p>
+
+<pre>
+Example Request:
+curl -X GET "https://nbvsghana.com/api/search?query=ama serwaa" \
+  -H "Authorization: Bearer nbvs_6a8f9example"
+</pre>
+
+<pre>
+Example Response:
+{
+  "success": true,
+  "results": [
+    {
+      "name": "Ama Serwaa",
+      "nia": "GHA-2039485",
+      "dob": "1994-07-12",
+      "region": "Greater Accra",
+      "address": "Accra, Ghana",
+      "criminal": "Clean",
+      "driving": "Valid",
+      "credit": 750,
+      "status": "Verified"
+    }
+  ]
+}
+</pre>
+
+  </div>
+
+  <div class="card">
+    <h2>Error Responses</h2>
+<pre>
+401 — Missing or invalid API key
+403 — Permission denied (wrong role)
+429 — Rate limit exceeded
+500 — Server error
+</pre>
+  </div>
+
+  <div class="card">
+    <h2>Rate Limits</h2>
+    <p>
+      Each API key has a rate limit of:
+    </p>
+    <ul style="margin:10px 0 0 18px; color:var(--muted)">
+      <li>60 requests per minute</li>
+      <li>2,000 requests per day</li>
+    </ul>
+    <p style="margin-top:8px;">
+      Higher limits available upon request.
+    </p>
+  </div>
+
+  <div class="card">
+    <h2>Regions Supported</h2>
+    <p>NBVS supports all regions of Ghana:</p>
+    <ul style="margin:12px 0 0 18px; color:var(--muted)">
+      <li>Greater Accra</li>
+      <li>Ashanti</li>
+      <li>E. Region</li>
+      <li>Northern</li>
+      <li>Upper East / West</li>
+      <li>Central</li>
+      <li>Volta</li>
+      <li>Western North + more</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h2>Support</h2>
+    <p class="muted">
+      Email: <a href="mailto:nbvsghana@nbvsghana.com">nbvsghana@nbvsghana.com</a><br>
+      Phone: +1 (651) 417-2324<br>
+      API Issues: support@nbvsghana.com
+    </p>
+  </div>
+
+</main>
+
+</body>
+</html>
