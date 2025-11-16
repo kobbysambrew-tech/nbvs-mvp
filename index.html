@@ -20,7 +20,7 @@
       --black:#111111;
       --card:#ffffff;
       --bg:#f3f4f6;
-      --muted:#444;     /* UPDATED darker text */
+      --muted:#6b7280;
       --border:#e5e7eb;
     }
 
@@ -33,7 +33,7 @@
     body{
       font-family:"Inter",system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
       background:var(--bg);
-      color:#111;        /* UPDATED main text to black */
+      color:#111827;
       overflow-x:hidden;
     }
 
@@ -42,7 +42,7 @@
       text-decoration:none;
     }
 
-    /* TOP BAR */
+    /* HEADER / NAVBAR */
     .top-bar{
       width:100%;
       background:rgba(17,24,39,0.92);
@@ -54,8 +54,13 @@
       gap:1.5rem;
       align-items:center;
     }
+    .top-bar span{
+      opacity:0.85;
+      display:flex;
+      align-items:center;
+      gap:6px;
+    }
 
-    /* HEADER */
     header{
       background:
         radial-gradient(circle at top left, rgba(212,175,55,0.18), transparent 55%),
@@ -85,7 +90,6 @@
       z-index:1;
     }
 
-    /* NAVIGATION */
     .nav-row{
       display:flex;
       justify-content:space-between;
@@ -98,149 +102,562 @@
       align-items:center;
       gap:10px;
     }
-
     .brand-mark{
       width:34px;
       height:34px;
       border-radius:10px;
-      background:conic-gradient(from 200deg,var(--red),var(--yellow),var(--green),var(--red));
+      background:
+        conic-gradient(from 200deg,var(--red),var(--yellow),var(--green),var(--red));
+      position:relative;
+      box-shadow:0 0 0 2px rgba(0,0,0,0.4);
       display:flex;
       align-items:center;
       justify-content:center;
     }
-
     .brand-mark span{
+      width:20px;
+      height:20px;
+      border-radius:6px;
+      background:#020617;
+      display:flex;
+      align-items:center;
+      justify-content:center;
       font-size:0.7rem;
       font-weight:800;
-      color:#fff;
-      background:#000;
-      padding:4px 6px;
-      border-radius:6px;
+      color:#f9fafb;
     }
 
+    .brand-text{
+      display:flex;
+      flex-direction:column;
+      gap:2px;
+    }
     .brand-text .title{
       font-weight:800;
       letter-spacing:0.06em;
       font-size:1rem;
       text-transform:uppercase;
-      color:#fff;
     }
-
     .brand-text .subtitle{
       font-size:0.78rem;
       opacity:0.8;
-      color:#eee;
     }
 
-    .nav-links a{
-      color:#e5e5e5;
+    .nav-links{
+      display:flex;
+      gap:1.2rem;
+      align-items:center;
       font-size:0.9rem;
+    }
+    .nav-links a{
       opacity:0.9;
+      padding:6px 0;
+    }
+    .nav-links a:hover{
+      opacity:1;
+    }
+    .nav-badge{
+      padding:5px 10px;
+      border-radius:999px;
+      background:rgba(22,163,74,0.15);
+      border:1px solid rgba(22,163,74,0.6);
+      color:#a7f3d0;
+      font-size:0.78rem;
+      display:flex;
+      align-items:center;
+      gap:6px;
     }
 
-    /* HERO AREA */
+    /* HERO */
     .hero{
       max-width:1120px;
       margin:0 auto;
       display:grid;
-      grid-template-columns:1.3fr 1.1fr;
+      grid-template-columns:minmax(0,1.3fr) minmax(0,1.1fr);
       gap:2rem;
       align-items:center;
     }
 
+    @media (max-width:900px){
+      .hero{
+        grid-template-columns:minmax(0,1fr);
+      }
+    }
+
+    .hero-main{
+      padding-right:0.75rem;
+    }
+
+    .hero-kicker{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:4px 10px;
+      border-radius:999px;
+      background:rgba(148,163,184,0.12);
+      border:1px solid rgba(148,163,184,0.4);
+      color:#e5e7eb;
+      font-size:0.78rem;
+      margin-bottom:0.8rem;
+    }
+    .hero-kicker span.badge-dot{
+      width:8px;
+      height:8px;
+      border-radius:999px;
+      background:#22c55e;
+      box-shadow:0 0 0 4px rgba(34,197,94,0.35);
+    }
+
     .hero-title{
       font-size:2.1rem;
+      line-height:1.15;
       font-weight:800;
-      color:#fff;
+      letter-spacing:0.01em;
+      margin-bottom:0.75rem;
+    }
+    .hero-title span.highlight{
+      background:linear-gradient(90deg,var(--gold),#facc15);
+      -webkit-background-clip:text;
+      color:transparent;
     }
 
     .hero-sub{
-      color:#f0f0f0;
+      color:#e5e7eb;
+      opacity:0.9;
       font-size:0.98rem;
-      opacity:0.95;
+      line-height:1.6;
+      max-width:34rem;
+      margin-bottom:1.3rem;
     }
 
-    /* BUTTONS */
+    .hero-meta{
+      display:flex;
+      flex-wrap:wrap;
+      gap:1.2rem;
+      align-items:center;
+      margin-bottom:1.4rem;
+      font-size:0.86rem;
+      color:#d1d5db;
+    }
+    .hero-meta strong{
+      color:#fefce8;
+    }
+    .hero-meta .divider{
+      width:1px;
+      height:16px;
+      background:rgba(148,163,184,0.55);
+    }
+
+    .hero-actions{
+      display:flex;
+      flex-wrap:wrap;
+      gap:0.85rem;
+      align-items:center;
+    }
+
+    .btn{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap:8px;
+      padding:10px 18px;
+      border-radius:999px;
+      font-weight:600;
+      font-size:0.95rem;
+      text-decoration:none;
+      border:1px solid transparent;
+      transition:all 0.22s ease;
+      cursor:pointer;
+      white-space:nowrap;
+    }
     .btn-primary{
       background:linear-gradient(135deg,var(--green),#16a34a);
-      color:#fff;
+      color:#ecfdf5;
+      box-shadow:0 16px 30px rgba(22,163,74,0.45);
     }
-
+    .btn-primary:hover{
+      filter:brightness(1.05);
+      transform:translateY(-2px);
+      box-shadow:0 20px 40px rgba(22,163,74,0.5);
+    }
     .btn-ghost{
-      border-color:#999;
-      color:#eee;
+      background:rgba(15,23,42,0.3);
+      border-color:rgba(148,163,184,0.45);
+      color:#e5e7eb;
+    }
+    .btn-ghost:hover{
+      background:rgba(15,23,42,0.65);
+      transform:translateY(-2px);
+    }
+    .btn span.icon{
+      font-size:1.1rem;
     }
 
-    /* CARD SECTION */
-    .section-title{
-      font-size:1.35rem;
-      font-weight:800;
-      color:#111;
+    /* HERO RIGHT CARD */
+    .hero-card{
+      background:rgba(15,23,42,0.92);
+      border-radius:18px;
+      padding:1.4rem 1.3rem 1.3rem;
+      border:1px solid rgba(148,163,184,0.55);
+      box-shadow:0 18px 45px rgba(0,0,0,0.55);
+      backdrop-filter:blur(10px);
+      color:#e5e7eb;
     }
 
-    .section-sub{
-      font-size:0.95rem;
-      color:var(--gold);       /* UPDATED – gold for readability */
+    .hero-card-header{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      margin-bottom:0.9rem;
+    }
+    .hero-card-title{
       font-weight:600;
+      font-size:0.9rem;
+      display:flex;
+      align-items:center;
+      gap:8px;
+    }
+    .pill{
+      font-size:0.72rem;
+      padding:4px 9px;
+      border-radius:999px;
+      border:1px solid rgba(34,197,94,0.6);
+      background:rgba(22,163,74,0.18);
+      color:#bbf7d0;
+    }
+
+    .stat-row{
+      display:flex;
+      gap:0.75rem;
+      margin-bottom:1rem;
+      flex-wrap:wrap;
+    }
+    .stat{
+      flex:1;
+      min-width:120px;
+      background:rgba(15,23,42,0.9);
+      border-radius:12px;
+      padding:0.65rem 0.7rem;
+      border:1px solid rgba(55,65,81,0.9);
+    }
+    .stat-label{
+      font-size:0.7rem;
+      text-transform:uppercase;
+      letter-spacing:0.06em;
+      color:#9ca3af;
+      margin-bottom:0.2rem;
+    }
+    .stat-value{
+      font-size:1rem;
+      font-weight:700;
+      color:#fefce8;
+    }
+    .stat-sub{
+      font-size:0.72rem;
+      color:#9ca3af;
+      margin-top:2px;
+    }
+
+    .divider-line{
+      margin:0.7rem 0;
+      height:1px;
+      background:linear-gradient(90deg,transparent,rgba(148,163,184,0.8),transparent);
+    }
+
+    .list{
+      list-style:none;
+      display:flex;
+      flex-direction:column;
+      gap:0.45rem;
+      margin:0.7rem 0 0.4rem;
+      font-size:0.82rem;
+      color:#d1d5db;
+    }
+    .list li{
+      display:flex;
+      align-items:flex-start;
+      gap:6px;
+    }
+    .list li span.dot{
+      margin-top:4px;
+      width:6px;
+      height:6px;
+      border-radius:999px;
+      background:var(--gold);
+      flex-shrink:0;
+    }
+
+    .hero-card-footer{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      margin-top:0.6rem;
+      font-size:0.75rem;
+      color:#9ca3af;
+    }
+    .badge-ghana{
+      display:inline-flex;
+      align-items:center;
+      gap:4px;
+      padding:4px 8px;
+      border-radius:999px;
+      border:1px solid rgba(148,163,184,0.7);
+      background:rgba(15,23,42,0.8);
+    }
+    .badge-colors{
+      display:flex;
+      gap:2px;
+    }
+    .badge-colors span{
+      width:10px;
+      height:7px;
+      border-radius:2px;
+    }
+    .badge-colors .r{background:var(--red)}
+    .badge-colors .y{background:var(--yellow)}
+    .badge-colors .g{background:var(--green)}
+
+    /* MAIN GRID SECTIONS */
+    main{
+      padding:2.3rem 1rem 2.5rem;
+    }
+
+    .section{
+      max-width:1120px;
+      margin:0 auto 2.2rem;
+    }
+
+    .section-header{
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-end;
+      margin-bottom:1rem;
+      gap:1rem;
+    }
+    .section-title{
+      font-size:1.3rem;
+      font-weight:700;
+      color:#111827;
+    }
+    .section-sub{
+      font-size:0.9rem;
+      color:var(--muted);
+      max-width:420px;
+    }
+
+    .grid{
+      display:grid;
+      gap:16px;
+      grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
     }
 
     .card{
-      background:white;
-      padding:1.25rem;
-      border-radius:12px;
+      background:var(--card);
+      padding:1.2rem 1.1rem;
+      border-radius:14px;
+      box-shadow:0 8px 24px rgba(15,23,42,0.06);
       border:1px solid var(--border);
+      position:relative;
+      overflow:hidden;
+    }
+    .card::before{
+      content:"";
+      position:absolute;
+      inset:0;
+      background:radial-gradient(circle at top left,rgba(212,175,55,0.12),transparent 55%);
+      opacity:0;
+      transition:opacity 0.2s;
+      pointer-events:none;
+    }
+    .card:hover::before{
+      opacity:1;
+    }
+    .card h3{
+      color:var(--black);
+      margin-bottom:6px;
+      font-size:1.05rem;
+      font-weight:700;
+    }
+    .muted{
+      color:var(--muted);
+      line-height:1.5;
+      font-size:0.9rem;
     }
 
     .card-pill{
-      text-transform:uppercase;
       font-size:0.75rem;
-      color:var(--red);        /* UPDATED – red category labels */
-      font-weight:700;
-      letter-spacing:0.05em;
+      color:var(--muted);
       margin-bottom:0.4rem;
+      text-transform:uppercase;
+      letter-spacing:0.08em;
     }
 
-    .card h3{
-      color:#000;            /* UPDATED – solid black headers */
-      font-size:1.1rem;
-      font-weight:800;
-      margin-bottom:5px;
+    .pill-api{
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      font-size:0.8rem;
+      padding:4px 9px;
+      border-radius:999px;
+      background:rgba(15,23,42,0.03);
+      border:1px dashed rgba(107,114,128,0.7);
+      margin-top:0.6rem;
+      color:#374151;
     }
-
-    .muted{
-      color:#222;            /* UPDATED – darker subtext */
-      font-size:0.92rem;
-      line-height:1.55;
-    }
-
-    /* API CODE PILL */
     .pill-api code{
-      background:#000;
-      color:#fff;
+      font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,"Liberation Mono","Courier New",monospace;
+      font-size:0.75rem;
+      padding:3px 6px;
+      border-radius:6px;
+      background:#111827;
+      color:#e5e7eb;
     }
 
-    footer{
-      background:#fff;
-      border-top:1px solid var(--border);
-      color:#333;
+    .two-col{
+      display:grid;
+      grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);
+      gap:16px;
     }
+    @media (max-width:900px){
+      .two-col{
+        grid-template-columns:minmax(0,1fr);
+      }
+    }
+
+    .mini-list{
+      font-size:0.86rem;
+      color:var(--muted);
+      display:flex;
+      flex-direction:column;
+      gap:0.3rem;
+      margin-top:0.5rem;
+    }
+    .mini-list span{
+      display:flex;
+      align-items:center;
+      gap:6px;
+    }
+    .mini-list span::before{
+      content:"•";
+      color:var(--green);
+      font-size:1.1rem;
+      line-height:1;
+    }
+
+    /* FOOTER */
+    footer{
+      border-top:1px solid var(--border);
+      background:#f9fafb;
+      padding:1rem 1.2rem 1.4rem;
+      font-size:0.85rem;
+      color:#6b7280;
+    }
+    .footer-inner{
+      max-width:1120px;
+      margin:0 auto;
+      display:flex;
+      flex-wrap:wrap;
+      justify-content:space-between;
+      gap:0.75rem;
+      align-items:center;
+    }
+    .footer-links{
+      display:flex;
+      gap:0.9rem;
+      flex-wrap:wrap;
+    }
+    .footer-links a{
+      color:#4b5563;
+    }
+
+    /* RESPONSIVE */
+    @media (max-width:640px){
+      header{
+        padding-bottom:2rem;
+      }
+      .nav-links{
+        display:none;
+      }
+      .hero{
+        margin-top:0.8rem;
+      }
+    }
+    /* NEW upgraded colored section backgrounds */
+.nbvs-section{
+  background:linear-gradient(135deg,#ffffff, #fafafa);
+  border-radius:18px;
+  padding:2rem 1.5rem 2.5rem;
+  box-shadow:0 14px 32px rgba(0,0,0,0.05);
+  margin-bottom:2.5rem;
+}
+
+.api-section{
+  background:linear-gradient(135deg,#fef9c3,#fafafa);
+  border-radius:18px;
+  padding:2rem 1.5rem 2.5rem;
+  box-shadow:0 14px 32px rgba(0,0,0,0.05);
+  margin-bottom:2.5rem;
+}
+
+.contact-section{
+  background:linear-gradient(135deg,#ecfdf5,#f8fafc);
+  border-radius:18px;
+  padding:2rem 1.5rem 2.5rem;
+  box-shadow:0 14px 32px rgba(0,0,0,0.05);
+}
+
+/* Better cards in these sections */
+.feature-card,
+.api-card,
+.contact-card{
+  border:1px solid rgba(0,0,0,0.05);
+  background:white;
+  transition:all 0.25s ease;
+}
+
+.feature-card:hover,
+.api-card:hover,
+.contact-card:hover{
+  transform:translateY(-4px);
+  box-shadow:0 12px 26px rgba(0,0,0,0.08);
+}
+
+.feature-grid .card-pill{
+  background:#fef08a;
+  color:#78350f;
+  border:1px solid rgba(0,0,0,0.08);
+}
+
+.api-btn{
+  border-color:#fef9c3 !important;
+}
+
+/* Improve code pill for API */
+.pill-api{
+  background:rgba(0,0,0,0.07);
+  border:1px dashed rgba(0,0,0,0.2);
+}
+
+
   </style>
 </head>
 
 <body>
 
+  <!-- Thin strip at top -->
   <div class="top-bar">
     <span>🇬🇭 Serving employers, banks, and agencies across Ghana</span>
     <span>🔐 AES-256 encrypted · Audit-logged</span>
   </div>
 
-  <!-- HEADER -->
+  <!-- HEADER + HERO -->
   <header>
     <div class="header-inner">
-
       <div class="nav-row">
         <div class="brand">
-          <div class="brand-mark"><span>NB</span></div>
+          <div class="brand-mark">
+            <span>NB</span>
+          </div>
           <div class="brand-text">
             <div class="title">NBVS Ghana</div>
             <div class="subtitle">National Background Verification System</div>
@@ -252,114 +669,243 @@
           <a href="verify.html">Verification</a>
           <a href="api.html">API</a>
           <a href="dashboard.html">Admin</a>
+          <div class="nav-badge">
+            <span>Live sandbox</span>
+          </div>
         </nav>
       </div>
 
       <div class="hero">
-        <!-- LEFT -->
+        <!-- Left -->
         <div class="hero-main">
+          <div class="hero-kicker">
+            <span class="badge-dot"></span>
+            Real-time checks · Under 3 seconds
+          </div>
           <h1 class="hero-title">
             National-scale background checks<br>
-            <span style="color:var(--gold)">for modern Ghana.</span>
+            <span class="highlight">for modern Ghana.</span>
           </h1>
-
           <p class="hero-sub">
             NBVS centralizes identity, criminal, and driving status data into one secure system —
-            enabling employers, banks, landlords, and agencies to verify people in seconds.
+            allowing employers, banks, landlords, and agencies to verify people in seconds, not days.
           </p>
 
-          <div class="hero-actions" style="margin-top:1rem;">
-            <a class="btn btn-primary" href="verify.html">🔍 Start Verification</a>
-            <a class="btn btn-ghost" href="dashboard.html">🔐 Admin Login</a>
+          <div class="hero-meta">
+            <span><strong>Records:</strong> citizens, drivers, employment</span>
+            <span class="divider"></span>
+            <span><strong>Access:</strong> Web portal · API</span>
+          </div>
+
+          <div class="hero-actions">
+            <a class="btn btn-primary" href="verify.html">
+              <span class="icon">🔍</span> Start a Verification
+            </a>
+            <a class="btn btn-ghost" href="dashboard.html">
+              <span class="icon">🔐</span> Admin & Staff Login
+            </a>
           </div>
         </div>
 
-        <!-- RIGHT CARD stays same -->
+        <!-- Right / system snapshot -->
         <aside class="hero-card">
-          <!-- (unchanged content) -->
+          <div class="hero-card-header">
+            <div class="hero-card-title">
+              System Snapshot
+            </div>
+            <span class="pill">NBVS Sandbox</span>
+          </div>
+
+          <div class="stat-row">
+            <div class="stat">
+              <div class="stat-label">Daily Searches</div>
+              <div class="stat-value">●●●</div>
+              <div class="stat-sub">Tracked and audit-logged</div>
+            </div>
+            <div class="stat">
+              <div class="stat-label">Organizations</div>
+              <div class="stat-value">Banks · Employers · Agencies</div>
+              <div class="stat-sub">Role-based access (user, staff, superadmin)</div>
+            </div>
+          </div>
+
+          <div class="divider-line"></div>
+
+          <ul class="list">
+            <li>
+              <span class="dot"></span>
+              <span>Admin dashboard for records, wallets, logs, and API keys.</span>
+            </li>
+            <li>
+              <span class="dot"></span>
+              <span>Public verification portal with wallet + credit-based searches.</span>
+            </li>
+            <li>
+              <span class="dot"></span>
+              <span>REST API endpoint for enterprise integrations.</span>
+            </li>
+          </ul>
+
+          <div class="hero-card-footer">
+            <span class="badge-ghana">
+              <span class="badge-colors">
+                <span class="r"></span><span class="y"></span><span class="g"></span>
+              </span>
+              National focus: Ghana
+            </span>
+            <span>Built as MVP · Ready to demo</span>
+          </div>
         </aside>
       </div>
-
     </div>
   </header>
 
   <!-- MAIN CONTENT -->
   <main>
 
-    <!-- WHAT NBVS PROVIDES -->
-    <section class="section">
-      <h2 class="section-title">What NBVS Provides</h2>
-      <p class="section-sub">A complete identity & verification ecosystem.</p>
-
-      <div class="grid" style="margin-top:1rem;">
-        
-        <div class="card">
-          <div class="card-pill">For Employers & Agencies</div>
-          <h3>Instant background checks</h3>
-          <p class="muted">
-            Verify identity, NIA number, criminal status, driving status, and flags before onboarding.
-          </p>
-        </div>
-
-        <div class="card">
-          <div class="card-pill">Citizen Data</div>
-          <h3>Single source of truth</h3>
-          <p class="muted">
-            A unified national dataset synced and audit-logged automatically.
-          </p>
-        </div>
-
-        <div class="card">
-          <div class="card-pill">Wallet & Plans</div>
-          <h3>Prepaid & subscriptions</h3>
-          <p class="muted">
-            Users can top up wallets or buy plans. All searches are logged for compliance.
-          </p>
-        </div>
-
-        <div class="card">
-          <div class="card-pill">Admin Controls</div>
-          <h3>Role-based access</h3>
-          <p class="muted">
-            Superadmin manages records, wallets, logs, and API keys. Staff can verify only.
-          </p>
-        </div>
-
+  <!-- Section: What NBVS Provides -->
+  <section class="section nbvs-section">
+    <div class="section-header">
+      <div>
+        <h2 class="section-title">What NBVS Provides</h2>
+        <p class="section-sub">
+          A complete end-to-end flow: from citizens being verified, to staff reviewing records,
+          to companies connecting via API — all on a single platform.
+        </p>
       </div>
-    </section>
+    </div>
 
-    <!-- API SECTION stays same but with updated colors -->
-    <section class="section">
-      <h2 class="section-title">NBVS API Integration</h2>
-      <p class="section-sub">Connect NBVS to banks, HR systems, or apps.</p>
-
-      <div class="two-col" style="margin-top:1rem;">
-        
-        <div class="card">
-          <h3>Simple REST endpoint</h3>
-          <p class="muted">Use your API key + NIA to verify records instantly.</p>
-          <div class="pill-api"><code>/api/verify?key=YOUR_KEY&nia=1234567</code></div>
-        </div>
-
-        <div class="card">
-          <h3>Managed keys & rate limits</h3>
-          <p class="muted">Superadmin controls usage limits and tracking.</p>
-        </div>
-
+    <div class="grid feature-grid">
+      <div class="card feature-card">
+        <div class="card-pill">For Employers & Agencies</div>
+        <h3>Instant background checks</h3>
+        <p class="muted">
+          Verify identity, NIA number, criminal status, driving status, and credit-style flags.
+          Results display in a clean, structured view.
+        </p>
       </div>
-    </section>
 
-  </main>
+      <div class="card feature-card">
+        <div class="card-pill">Citizen Data</div>
+        <h3>Single source of truth</h3>
+        <p class="muted">
+          A unified national dataset with fields like name, NIA, region, DOB, address,
+          driving status, and more — synced and audit-logged.
+        </p>
+      </div>
+
+      <div class="card feature-card">
+        <div class="card-pill">Wallet & Plans</div>
+        <h3>Prepaid & subscription options</h3>
+        <p class="muted">
+          Public users top up wallets or buy plans (Basic / Pro). All searches are logged for compliance.
+        </p>
+      </div>
+
+      <div class="card feature-card">
+        <div class="card-pill">Admin Controls</div>
+        <h3>Role-based access control</h3>
+        <p class="muted">
+          Superadmin manages records, API keys, logs, and wallets. Staff access is isolated and safe.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section: API Overview -->
+  <section class="section api-section">
+    <div class="section-header">
+      <div>
+        <h2 class="section-title">NBVS API Integration</h2>
+        <p class="section-sub">
+          Banks, HR systems, and partner platforms can verify NIA records through a secure REST API.
+        </p>
+      </div>
+      <a href="api.html" class="btn btn-ghost api-btn">
+        📘 API Documentation
+      </a>
+    </div>
+
+    <div class="two-col">
+      <div class="card api-card">
+        <h3>Simple REST endpoint</h3>
+        <p class="muted">
+          Use your API key and a citizen’s NIA to perform secure verification.
+        </p>
+
+        <div class="pill-api">
+          <span>GET</span>
+          <code>/api/verify?key=YOUR_API_KEY&amp;nia=GHA-1234567</code>
+        </div>
+
+        <div class="mini-list">
+          <span>JSON response with verification details.</span>
+          <span>4xx responses for invalid keys or missing data.</span>
+          <span>Rate limits enforced automatically.</span>
+        </div>
+      </div>
+
+      <div class="card api-card">
+        <h3>Managed keys & rate limits</h3>
+        <p class="muted">
+          API keys are created in the admin dashboard, each with usage tracking.
+        </p>
+        <div class="mini-list">
+          <span>Create keys per business or integration.</span>
+          <span>View daily usage & last-used history.</span>
+          <span>Disable or delete keys instantly.</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section: Contact -->
+  <section class="section contact-section">
+    <div class="section-header">
+      <div>
+        <h2 class="section-title">Contact & Next Steps</h2>
+        <p class="section-sub">
+          NBVS is in MVP/sandbox mode and ready for stakeholder demos, pilots, and partnerships.
+        </p>
+      </div>
+    </div>
+
+    <div class="grid feature-grid">
+      <div class="card contact-card">
+        <h3>Contact</h3>
+        <p class="muted">
+          Email:<br>
+          <a href="mailto:nbvsghana@nbvsghana.com">nbvsghana@nbvsghana.com</a><br><br>
+          Phone:<br>
+          +1 (651) 417-2324
+        </p>
+      </div>
+
+      <div class="card contact-card">
+        <h3>System Access</h3>
+        <p class="muted">
+          Try the full MVP:
+        </p>
+        <div class="mini-list">
+          <span><a href="verify.html">Public verification portal</a></span>
+          <span><a href="dashboard.html">Admin & Staff dashboard</a></span>
+          <span><a href="api.html">API documentation</a></span>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
 
   <footer>
-    <div class="footer-inner" style="max-width:1120px;margin:auto;">
-      <span>© 2025 NBVS Ghana</span>
-      <span>
-        <a href="index.html">Overview</a> ·
-        <a href="verify.html">Verify</a> ·
-        <a href="api.html">API</a> ·
+    <div class="footer-inner">
+      <div>© 2025 NBVS Ghana — National Background Verification System</div>
+      <div class="footer-links">
+        <a href="index.html">Overview</a>
+        <a href="verify.html">Verify</a>
+        <a href="api.html">API</a>
         <a href="dashboard.html">Admin</a>
-      </span>
+      </div>
     </div>
   </footer>
 
