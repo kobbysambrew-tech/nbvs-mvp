@@ -705,142 +705,140 @@
 
   <!-- MAIN CONTENT -->
   <main>
-    <!-- Section: What NBVS Does -->
-    <section class="section">
-      <div class="section-header">
-        <div>
-          <h2 class="section-title">What NBVS Provides</h2>
-          <p class="section-sub">
-            A complete end-to-end flow: from citizens being verified, to staff reviewing records,
-            to companies connecting via API — all on a single platform.
-          </p>
+
+  <!-- Section: What NBVS Provides -->
+  <section class="section nbvs-section">
+    <div class="section-header">
+      <div>
+        <h2 class="section-title">What NBVS Provides</h2>
+        <p class="section-sub">
+          A complete end-to-end flow: from citizens being verified, to staff reviewing records,
+          to companies connecting via API — all on a single platform.
+        </p>
+      </div>
+    </div>
+
+    <div class="grid feature-grid">
+      <div class="card feature-card">
+        <div class="card-pill">For Employers & Agencies</div>
+        <h3>Instant background checks</h3>
+        <p class="muted">
+          Verify identity, NIA number, criminal status, driving status, and credit-style flags.
+          Results display in a clean, structured view.
+        </p>
+      </div>
+
+      <div class="card feature-card">
+        <div class="card-pill">Citizen Data</div>
+        <h3>Single source of truth</h3>
+        <p class="muted">
+          A unified national dataset with fields like name, NIA, region, DOB, address,
+          driving status, and more — synced and audit-logged.
+        </p>
+      </div>
+
+      <div class="card feature-card">
+        <div class="card-pill">Wallet & Plans</div>
+        <h3>Prepaid & subscription options</h3>
+        <p class="muted">
+          Public users top up wallets or buy plans (Basic / Pro). All searches are logged for compliance.
+        </p>
+      </div>
+
+      <div class="card feature-card">
+        <div class="card-pill">Admin Controls</div>
+        <h3>Role-based access control</h3>
+        <p class="muted">
+          Superadmin manages records, API keys, logs, and wallets. Staff access is isolated and safe.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section: API Overview -->
+  <section class="section api-section">
+    <div class="section-header">
+      <div>
+        <h2 class="section-title">NBVS API Integration</h2>
+        <p class="section-sub">
+          Banks, HR systems, and partner platforms can verify NIA records through a secure REST API.
+        </p>
+      </div>
+      <a href="api.html" class="btn btn-ghost api-btn">
+        📘 API Documentation
+      </a>
+    </div>
+
+    <div class="two-col">
+      <div class="card api-card">
+        <h3>Simple REST endpoint</h3>
+        <p class="muted">
+          Use your API key and a citizen’s NIA to perform secure verification.
+        </p>
+
+        <div class="pill-api">
+          <span>GET</span>
+          <code>/api/verify?key=YOUR_API_KEY&amp;nia=GHA-1234567</code>
+        </div>
+
+        <div class="mini-list">
+          <span>JSON response with verification details.</span>
+          <span>4xx responses for invalid keys or missing data.</span>
+          <span>Rate limits enforced automatically.</span>
         </div>
       </div>
 
-      <div class="grid">
-        <div class="card">
-          <div class="card-pill">For Employers & Agencies</div>
-          <h3>Instant background checks</h3>
-          <p class="muted">
-            Verify identity, NIA number, criminal status, driving status, and credit-style flags
-            before hiring or onboarding. Results display in a clean, structured view.
-          </p>
-        </div>
-
-        <div class="card">
-          <div class="card-pill">Citizen Data</div>
-          <h3>Single source of truth</h3>
-          <p class="muted">
-            Records are stored in a central database with fields like name, NIA, region, DOB,
-            address, criminal history, driving status, and verification status.
-          </p>
-        </div>
-
-        <div class="card">
-          <div class="card-pill">Wallet & Plans</div>
-          <h3>Prepaid & subscription options</h3>
-          <p class="muted">
-            Public users can top up a wallet or buy plans (Basic / Pro) and convert funds into searches.
-            Every search is logged to maintain transparency.
-          </p>
-        </div>
-
-        <div class="card">
-          <div class="card-pill">Admin Controls</div>
-          <h3>Role-based access control</h3>
-          <p class="muted">
-            Superadmin can manage records, view audit logs, adjust wallets, and create API keys.
-            Staff can verify and view data without dangerous permissions.
-          </p>
+      <div class="card api-card">
+        <h3>Managed keys & rate limits</h3>
+        <p class="muted">
+          API keys are created in the admin dashboard, each with usage tracking.
+        </p>
+        <div class="mini-list">
+          <span>Create keys per business or integration.</span>
+          <span>View daily usage & last-used history.</span>
+          <span>Disable or delete keys instantly.</span>
         </div>
       </div>
-    </section>
+    </div>
+  </section>
 
-    <!-- Section: API Overview -->
-    <section class="section">
-      <div class="section-header">
-        <div>
-          <h2 class="section-title">NBVS API Integration</h2>
-          <p class="section-sub">
-            Let banks, HR systems, and partner platforms verify NIA records directly from
-            their own applications using a simple REST endpoint.
-          </p>
-        </div>
-        <a href="api.html" class="btn btn-ghost" style="font-size:0.85rem;">
-          📘 View API Documentation
-        </a>
+  <!-- Section: Contact -->
+  <section class="section contact-section">
+    <div class="section-header">
+      <div>
+        <h2 class="section-title">Contact & Next Steps</h2>
+        <p class="section-sub">
+          NBVS is in MVP/sandbox mode and ready for stakeholder demos, pilots, and partnerships.
+        </p>
+      </div>
+    </div>
+
+    <div class="grid feature-grid">
+      <div class="card contact-card">
+        <h3>Contact</h3>
+        <p class="muted">
+          Email:<br>
+          <a href="mailto:nbvsghana@nbvsghana.com">nbvsghana@nbvsghana.com</a><br><br>
+          Phone:<br>
+          +1 (651) 417-2324
+        </p>
       </div>
 
-      <div class="two-col">
-        <div class="card">
-          <h3>Simple REST endpoint</h3>
-          <p class="muted">
-            Use your issued API key and a citizen’s NIA to perform secure verification.
-          </p>
-          <div class="pill-api" style="margin-top:0.8rem;">
-            <span>GET</span>
-            <code>/api/verify?key=YOUR_API_KEY&amp;nia=GHA-1234567</code>
-          </div>
-
-          <div class="mini-list">
-            <span>JSON responses with verification details.</span>
-            <span>HTTP 4xx for invalid keys or not found.</span>
-            <span>Rate limits per minute &amp; per day enforced.</span>
-          </div>
-        </div>
-
-        <div class="card">
-          <h3>Managed keys &amp; rate limits</h3>
-          <p class="muted">
-            API keys are created and managed from the NBVS admin dashboard.
-            Each key has limits and usage tracking.
-          </p>
-          <div class="mini-list">
-            <span>Create API keys per company or department.</span>
-            <span>Track daily usage and last-used timestamps.</span>
-            <span>Disable or delete keys instantly if needed.</span>
-          </div>
+      <div class="card contact-card">
+        <h3>System Access</h3>
+        <p class="muted">
+          Try the full MVP:
+        </p>
+        <div class="mini-list">
+          <span><a href="verify.html">Public verification portal</a></span>
+          <span><a href="dashboard.html">Admin & Staff dashboard</a></span>
+          <span><a href="api.html">API documentation</a></span>
         </div>
       </div>
-    </section>
+    </div>
+  </section>
+</main>
 
-    <!-- Section: Contact / Next Steps -->
-    <section class="section">
-      <div class="section-header">
-        <div>
-          <h2 class="section-title">Contact & Next Steps</h2>
-          <p class="section-sub">
-            NBVS is currently in MVP/sandbox mode and ready for demos, pilots, and stakeholder review.
-            Use the contacts below to discuss integration or deployment.
-          </p>
-        </div>
-      </div>
-
-      <div class="grid">
-        <div class="card">
-          <h3>Contact</h3>
-          <p class="muted">
-            Email:<br>
-            <a href="mailto:nbvsghana@nbvsghana.com">nbvsghana@nbvsghana.com</a><br><br>
-            Phone:<br>
-            +1 (651) 417-2324
-          </p>
-        </div>
-
-        <div class="card">
-          <h3>Access the system</h3>
-          <p class="muted">
-            Try the full MVP:
-          </p>
-          <div class="mini-list" style="margin-top:0.5rem;">
-            <span><a href="verify.html">Public verification portal</a></span>
-            <span><a href="dashboard.html">Admin &amp; staff dashboard</a></span>
-            <span><a href="api.html">API documentation &amp; examples</a></span>
-          </div>
-        </div>
-      </div>
-    </section>
-  </main>
 
   <footer>
     <div class="footer-inner">
