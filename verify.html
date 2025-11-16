@@ -3,23 +3,25 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>NBVS — Verify (Anonymous)</title>
+<title>NBVS — Verify</title>
 
 <style>
 :root{--red:#ce1126;--yellow:#fcd116;--green:#006b3f;--bg:#f6f7f9;--muted:#555}
 body{font-family:"Segoe UI",Arial,sans-serif;background:var(--bg);margin:0;color:#222}
-header{background:linear-gradient(90deg,var(--red),var(--yellow),var(--green));padding:18px;text-align:center;color:#fff;font-weight:700}
+header{background:linear-gradient(90deg,var(--red),var(--yellow),var(--green));
+padding:18px;text-align:center;color:#fff;font-weight:700}
 main{max-width:900px;margin:18px auto;padding:0 16px}
-.panel{background:#fff;padding:16px;border-radius:10px;box-shadow:0 6px 20px rgba(0,0,0,0.06);margin-bottom:16px}
+.panel{background:#fff;padding:16px;border-radius:10px;
+box-shadow:0 6px 20px rgba(0,0,0,0.06);margin-bottom:16px}
 label{display:block;font-size:0.9rem;color:var(--muted);margin-bottom:6px}
-input{width:100%;padding:12px;border-radius:8px;border:1px solid #ccc;margin-bottom:12px;font-size:1rem}
+input{width:100%;padding:12px;border-radius:8px;border:1px solid #ccc;
+margin-bottom:12px;font-size:1rem}
 button{padding:12px;border-radius:8px;border:none;cursor:pointer;font-weight:700}
 .btn-green{background:var(--green);color:#fff}
 .btn-yellow{background:var(--yellow);color:#111}
 .btn-red{background:#ce1126;color:#fff}
-.record{background:#fff;border-left:5px solid var(--green);padding:12px;border-radius:8px;margin-top:12px}
-.row{display:flex;gap:10px}
-.pill{padding:6px 10px;border-radius:10px;background:var(--green);color:#fff;font-weight:700}
+.record{background:#fff;border-left:5px solid var(--green);padding:12px;
+border-radius:8px;margin-top:12px}
 .small{font-size:.9rem;color:var(--muted)}
 </style>
 </head>
@@ -29,20 +31,18 @@ button{padding:12px;border-radius:8px;border:none;cursor:pointer;font-weight:700
 
 <main id="app" style="display:none">
   <div class="panel">
-    <p class="small">Each verification costs ¢30. New devices get <b>3 free</b> searches.</p>
 
     <label for="searchInput">Search by full name or NIA</label>
     <input id="searchInput" placeholder="e.g. Ama Serwaa or GHA-2039485" />
 
+    <div style="display:flex;gap:12px;margin-top:12px;align-items:center">
+      <div class="small" id="planLabel">Plan: —</div>
+      <div class="small" id="walletLabel" style="margin-left:auto">Balance: ¢—</div>
+    </div>
+
     <div class="row">
       <button id="searchBtn" class="btn-green" style="flex:1">Start Verification</button>
       <button id="openWallet" class="btn-yellow" style="width:160px">Open Wallet</button>
-    </div>
-
-    <div style="display:flex;gap:12px;margin-top:12px;align-items:center">
-      <div class="pill" id="freeBadge">Free: —</div>
-      <div class="small" id="planLabel">Plan: —</div>
-      <div class="small" id="walletLabel" style="margin-left:auto">Balance: ¢—</div>
     </div>
   </div>
 
@@ -51,23 +51,31 @@ button{padding:12px;border-radius:8px;border:none;cursor:pointer;font-weight:700
   <div class="panel">
     <h3>Plans & Conversion</h3>
     <div style="display:flex;gap:10px;margin-bottom:8px">
-      <button id="buyBasic" class="btn-green" style="flex:1">Buy BASIC — 10 searches — $3.99</button>
-      <button id="buyPro" class="btn-red" style="flex:1">Buy PRO — 30 days — $14.99</button>
+      <button id="buyBasic" class="btn-green" style="flex:1">
+        Buy BASIC — 10 searches — $3.99
+      </button>
+      <button id="buyPro" class="btn-red" style="flex:1">
+        Buy PRO — 30 days — $14.99
+      </button>
     </div>
 
     <div style="display:flex;gap:10px">
-      <button id="convertWallet" class="btn-yellow" style="flex:1">Convert Wallet → Searches (¢30 each)</button>
+      <button id="convertWallet" class="btn-yellow" style="flex:1">
+        Convert Wallet → Searches (¢30 each)
+      </button>
       <button id="refreshBtn" style="flex:1">Refresh</button>
     </div>
 
-    <p class="small" style="margin-top:8px">Conversion uses whole multiples of ¢30; remainder stays in wallet.</p>
+    <p class="small" style="margin-top:8px">
+      Conversion uses whole multiples of ¢30; remainder stays in wallet.
+    </p>
   </div>
 </main>
 
 
 <script type="module">
 /* --------------------------------------------------
-   ✅ FIREBASE
+   FIREBASE
 -------------------------------------------------- */
 import {
   initializeApp
@@ -90,7 +98,7 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
 /* --------------------------------------------------
-   ✅ CONSTANTS / DEVICE
+   CONSTANTS
 -------------------------------------------------- */
 const SEARCH_COST = 30;
 const DEVICE_KEY = "nbvs_deviceId";
@@ -103,12 +111,10 @@ if (!deviceId){
 
 const walletRef = doc(db, "wallet", deviceId);
 
-/* DOM elements */
 const appEl        = document.getElementById("app");
 const searchInput  = document.getElementById("searchInput");
 const searchBtn    = document.getElementById("searchBtn");
 const openWallet   = document.getElementById("openWallet");
-const freeBadge    = document.getElementById("freeBadge");
 const planLabel    = document.getElementById("planLabel");
 const walletLabel  = document.getElementById("walletLabel");
 const resultsArea  = document.getElementById("resultsArea");
@@ -117,98 +123,82 @@ const buyPro       = document.getElementById("buyPro");
 const convertWallet= document.getElementById("convertWallet");
 const refreshBtn   = document.getElementById("refreshBtn");
 
-function toNum(n){
-  const x = Number(n);
-  return Number.isFinite(x) ? x : 0;
-}
+function toNum(n){ return Number(n) || 0; }
 
 /* --------------------------------------------------
-   ✅ Initialize wallet doc
+   INIT WALLET  (no free searches at all)
 -------------------------------------------------- */
 async function ensureWallet(){
   const snap = await getDoc(walletRef);
   if (!snap.exists()){
     await setDoc(walletRef,{
       balance:0,
-      freeSearchesRemaining:3,
-      plan:"free",
       monthlyRemaining:0,
+      plan:"none",
       planExpires:null,
       createdAt:new Date()
     });
   } else {
-    // backfill missing fields
     const u = snap.data();
     const update = {};
-    if (u.freeSearchesRemaining === undefined) update.freeSearchesRemaining = 3;
-    if (u.balance === undefined) update.balance = 0;
-    if (u.plan === undefined) update.plan = "free";
     if (u.monthlyRemaining === undefined) update.monthlyRemaining = 0;
+    if (u.balance === undefined) update.balance = 0;
+    if (!u.plan) update.plan = "none";
     if (Object.keys(update).length) await updateDoc(walletRef, update);
   }
 }
 
-/* --------------------------------------------------
-   ✅ Load wallet
--------------------------------------------------- */
 async function loadWallet(){
   const snap = await getDoc(walletRef);
   return snap.exists() ? snap.data() : null;
 }
 
-/* --------------------------------------------------
-   ✅ UI REFRESH — shows total searches available
--------------------------------------------------- */
 async function refreshUI(){
   const u = await loadWallet();
   if (!u) return;
 
-  const free = toNum(u.freeSearchesRemaining);
-  const basic = toNum(u.monthlyRemaining);
-  const total = free + basic;
-
-  freeBadge.innerText = `Searches: ${total} (free ${free}, basic ${basic})`;
-  planLabel.innerText = `Plan: ${u.plan || "free"}`;
+  planLabel.innerText   = `Plan: ${u.plan}`;
   walletLabel.innerText = `Balance: ¢${toNum(u.balance)}`;
 
   appEl.style.display = "block";
 }
 
 /* --------------------------------------------------
-   ✅ DEDUCTION LOGIC
+   DEDUCTION LOGIC  (PRO → BASIC → WALLET)
 -------------------------------------------------- */
 async function deductSearch(){
   const snap = await getDoc(walletRef);
   if (!snap.exists()) return false;
+
   const u = snap.data();
 
-  // PRO plan
+  // PRO
   if (u.plan === "pro" && u.planExpires){
-    const exp = u.planExpires.toDate ? u.planExpires.toDate() : new Date(u.planExpires);
+    const exp = new Date(u.planExpires);
     if (exp > new Date()) return true;
   }
 
   // BASIC
   if (toNum(u.monthlyRemaining) > 0){
-    await updateDoc(walletRef,{ monthlyRemaining: u.monthlyRemaining - 1 });
-    return true;
-  }
-
-  // FREE
-  if (toNum(u.freeSearchesRemaining) > 0){
-    await updateDoc(walletRef,{ freeSearchesRemaining: u.freeSearchesRemaining - 1 });
+    await updateDoc(walletRef,{
+      monthlyRemaining: u.monthlyRemaining - 1
+    });
     return true;
   }
 
   // WALLET
   if (toNum(u.balance) >= SEARCH_COST){
-    await updateDoc(walletRef,{ balance: u.balance - SEARCH_COST });
+    await updateDoc(walletRef,{
+      balance: u.balance - SEARCH_COST
+    });
+
     await addDoc(collection(db,"wallet_transactions"),{
       deviceId,
       type:"search deduction",
       amount:-SEARCH_COST,
       timestamp:new Date()
     });
+
     return true;
   }
 
@@ -216,11 +206,7 @@ async function deductSearch(){
 }
 
 /* --------------------------------------------------
-   ✅ FIXED SEARCH ENGINE
-      - case-insensitive name
-      - name_lower support
-      - exact NIA
-      - numeric-only NIA
+   SEARCH ENGINE (unchanged)
 -------------------------------------------------- */
 async function performSearch(term){
   const out = [];
@@ -229,53 +215,49 @@ async function performSearch(term){
 
   const recordsRef = collection(db,"records");
 
-  /* 1 — exact NIA */
-  const qNia = query(recordsRef, where("nia","==", trimmed), limit(50));
-  const snapNia = await getDocs(qNia);
-  snapNia.forEach(d => out.push(d));
+  // NIA
+  const snapNia = await getDocs(
+    query(recordsRef, where("nia","==", trimmed), limit(50))
+  );
+  snapNia.forEach(d=> out.push(d));
 
-  /* 2 — name_lower */
+  // Lowercase name
   const lower = trimmed.toLowerCase();
-  const qName = query(recordsRef, where("name_lower","==", lower), limit(200));
-  const snapName = await getDocs(qName);
+  const snapName = await getDocs(
+    query(recordsRef, where("name_lower","==", lower), limit(200))
+  );
   snapName.forEach(d=>{
-    if(!out.find(x=>x.id===d.id)) out.push(d);
+    if (!out.find(x=>x.id===d.id)) out.push(d);
   });
 
-  /* 3 — fallback scan (for old records missing name_lower) */
+  // Scan 500
   const snapAll = await getDocs(query(recordsRef, limit(500)));
   const digits = trimmed.replace(/\D/g,'');
+
   snapAll.forEach(d=>{
     const r = d.data();
 
-    // Case-insensitive name match
-    if ((r.name || "").toLowerCase() === lower){
-      if(!out.find(x=>x.id===d.id)) out.push(d);
-    }
+    if ((r.name || "").toLowerCase() === lower)
+      if (!out.find(x=>x.id===d.id)) out.push(d);
 
-    // Numeric-only NIA match
-    if (digits && (r.nia || "").replace(/\D/g,'') === digits){
-      if(!out.find(x=>x.id===d.id)) out.push(d);
-    }
+    if (digits && (r.nia||"").replace(/\D/g,'') === digits)
+      if (!out.find(x=>x.id===d.id)) out.push(d);
   });
 
   return out;
 }
 
-/* --------------------------------------------------
-   ✅ Render Results
--------------------------------------------------- */
-function renderResults(docs){
+function renderResults(list){
   resultsArea.innerHTML = "";
-  if (!docs.length){
-    resultsArea.innerHTML = `<p class="small">❌ No record found.</p>`;
+  if (!list.length){
+    resultsArea.innerHTML = `<p class="small">No record found.</p>`;
     return;
   }
 
-  docs.forEach(d=>{
+  list.forEach(d=>{
     const r = d.data();
     const div = document.createElement("div");
-    div.className = "record";
+    div.className="record";
     div.innerHTML = `
       <p><b>Name:</b> ${r.name||""}</p>
       <p><b>NIA:</b> ${r.nia||""}</p>
@@ -292,92 +274,72 @@ function renderResults(docs){
 }
 
 /* --------------------------------------------------
-   ✅ Search Button
+   SEARCH BUTTON
 -------------------------------------------------- */
 searchBtn.onclick = async () => {
-  const term = searchInput.value || "";
-  resultsArea.innerHTML = `<p class="small">Checking credits…</p>`;
+  const term = searchInput.value.trim();
+  if (!term){
+    resultsArea.innerHTML = `<p class="small">Enter a value.</p>`;
+    return;
+  }
+
+  resultsArea.innerHTML = `<p class="small">Checking plan…</p>`;
 
   const ok = await deductSearch();
   if (!ok){
-    resultsArea.innerHTML = `<p class="small">Not enough credits. Open wallet to add funds.</p>`;
+    resultsArea.innerHTML = `<p class="small">Not enough credits.</p>`;
     await refreshUI();
     return;
   }
 
   await refreshUI();
-
   resultsArea.innerHTML = `<p class="small">Searching…</p>`;
+
   const docs = await performSearch(term);
   renderResults(docs);
 
   await addDoc(collection(db,"search_logs"),{
     term,
     deviceId,
-    found: docs.length > 0,
-    timestamp:new Date(),
-    platform:"web"
+    found: docs.length>0,
+    timestamp:new Date()
   });
 };
 
 /* --------------------------------------------------
-   ✅ OPEN WALLET PAGE
+   WALLET, BASIC, PRO, CONVERSION
 -------------------------------------------------- */
 openWallet.onclick = ()=> window.location.href = "wallet.html";
 
-/* --------------------------------------------------
-   ✅ BASIC PLAN (adds 10 to monthlyRemaining)
--------------------------------------------------- */
 buyBasic.onclick = async ()=>{
   const snap = await getDoc(walletRef);
-  const u = snap.exists() ? snap.data() : {};
-  const newVal = toNum(u.monthlyRemaining) + 10;
+  const u = snap.data();
 
   await updateDoc(walletRef,{
     plan:"basic",
-    monthlyRemaining:newVal
-  });
-
-  await addDoc(collection(db,"wallet_transactions"),{
-    deviceId,
-    type:"purchase_basic",
-    amount:3.99,
-    timestamp:new Date()
+    monthlyRemaining: toNum(u.monthlyRemaining) + 10
   });
 
   alert("Basic activated: +10 searches");
   await refreshUI();
 };
 
-/* --------------------------------------------------
-   ✅ PRO PLAN
--------------------------------------------------- */
 buyPro.onclick = async ()=>{
   const exp = new Date(Date.now() + 30*24*60*60*1000);
+
   await updateDoc(walletRef,{
     plan:"pro",
-    planExpires:exp.toISOString()
+    planExpires: exp.toISOString()
   });
 
-  await addDoc(collection(db,"wallet_transactions"),{
-    deviceId,
-    type:"purchase_pro",
-    amount:14.99,
-    timestamp:new Date()
-  });
-
-  alert("Pro plan activated (30 days)");
+  alert("Pro plan activated");
   await refreshUI();
 };
 
-/* --------------------------------------------------
-   ✅ Wallet Conversion
--------------------------------------------------- */
 convertWallet.onclick = async ()=>{
   const snap = await getDoc(walletRef);
-  if (!snap.exists()) return alert("Wallet not found");
-
   const u = snap.data();
+
   const bal = toNum(u.balance);
   if (bal < SEARCH_COST) return alert("Not enough to convert");
 
@@ -386,33 +348,20 @@ convertWallet.onclick = async ()=>{
 
   await updateDoc(walletRef,{
     balance: bal - spent,
-    freeSearchesRemaining: toNum(u.freeSearchesRemaining) + searches
-  });
-
-  await addDoc(collection(db,"wallet_transactions"),{
-    deviceId,
-    type:"convert_to_searches",
-    amount:-spent,
-    searchesAdded:searches,
-    timestamp:new Date()
+    monthlyRemaining: toNum(u.monthlyRemaining) + searches
   });
 
   alert(`Converted ¢${spent} → ${searches} searches`);
   await refreshUI();
 };
 
-/* --------------------------------------------------
-   ✅ Refresh Button
--------------------------------------------------- */
 refreshBtn.onclick = async ()=>{
-  resultsArea.innerHTML = "<p class='small'>Refreshing…</p>";
-  await ensureWallet();
+  resultsArea.innerHTML="";
   await refreshUI();
-  resultsArea.innerHTML = "";
 };
 
 /* --------------------------------------------------
-   ✅ INIT
+   INIT
 -------------------------------------------------- */
 (async()=>{
   await ensureWallet();
