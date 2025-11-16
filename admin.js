@@ -231,6 +231,12 @@ async function saveNewRecord() {
     return;
   }
 
+  // 🔒 SUPERADMIN ONLY
+  if (currentUserRole !== "superadmin") {
+    showToast("Only superadmin can add records", { type: "error" });
+    return;
+  }
+
   try {
     await addDoc(collection(db, "records"), { name, nia, status });
     showToast("Record added");
@@ -244,6 +250,12 @@ async function saveNewRecord() {
 }
 
 async function deleteRecord(id) {
+  // 🔒 SUPERADMIN ONLY
+  if (currentUserRole !== "superadmin") {
+    showToast("Only superadmin can delete records", { type: "error" });
+    return;
+  }
+
   try {
     await deleteDoc(doc(db, "records", id));
     showToast("Record deleted");
@@ -413,7 +425,7 @@ async function loadAuditLogs() {
       tr.innerHTML = `
         <td>${escapeHtml(date)}</td>
         <td>${escapeHtml(row.user || "—")}</td>
-        <td>${escapeHtml(row.action || "—")}</td>
+        <td">${escapeHtml(row.action || "—")}</td>
         <td>${escapeHtml(JSON.stringify(row.meta || {}))}</td>
       `;
       tbody.appendChild(tr);
@@ -450,8 +462,12 @@ function setupBindings() {
     adminVerify("email")
   );
 
-  // Staff can view but not do destructive admin-only stuff
+  // Staff can view, but not do destructive admin-only stuff
   if (currentUserRole === "staff") {
+    // Hide add-record button + any admin-only bits
+    const addBtn = $("#btn-add-user");
+    if (addBtn) addBtn.style.display = "none";
+
     $$(".admin-only, .delete-btn").forEach((el) => {
       el.style.display = "none";
     });
