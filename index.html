@@ -32,7 +32,6 @@
       text-align:center;
       color:white;
       box-shadow:0 3px 12px rgba(0,0,0,0.15);
-      animation:fadeIn 0.8s ease-in-out forwards;
     }
     header h1{
       font-size:2rem;
@@ -43,7 +42,6 @@
       opacity:0.95;
       margin-bottom:8px;
       font-weight:600;
-      letter-spacing:.2px;
     }
 
     .flag-bar{
@@ -55,7 +53,6 @@
       display:flex;
       margin-inline:auto;
       box-shadow:0 6px 18px rgba(0,0,0,0.12);
-      animation:slideInUp 0.7s ease-out forwards;
     }
     .flag-bar div{flex:1}
     .flag-red{background:var(--red)}
@@ -67,7 +64,6 @@
       max-width:960px;
       margin:1.8rem auto 0;
       padding:0 1rem;
-      animation:fadeIn 1s ease-in-out forwards;
     }
     .hero-card{
       background:var(--card);
@@ -75,7 +71,6 @@
       padding:1.6rem;
       box-shadow:0 8px 26px rgba(0,0,0,0.06);
       text-align:center;
-      animation:zoomIn 0.5s ease-out forwards;
     }
     .hero-title{
       font-size:1.7rem;
@@ -112,29 +107,25 @@
       background:var(--green);
       color:white;
     }
-    .btn-primary:hover{background:var(--accent);transform:translateY(-3px)}
     .btn-outlined{
       background:var(--yellow);
       color:#111;
     }
-    .btn-outlined:hover{filter:brightness(.93);transform:translateY(-3px)}
 
     /* GRID */
     .grid{
       max-width:960px;
-      margin:2.2rem auto;
+      margin:2rem auto;
       padding:0 1rem;
       display:grid;
       gap:16px;
       grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
-      animation:fadeIn 1.2s ease-in-out forwards;
     }
     .card{
       background:var(--card);
       padding:1.25rem;
       border-radius:12px;
       box-shadow:0 6px 20px rgba(0,0,0,0.04);
-      animation:fadeUp .6s ease-out;
     }
     .card h3{
       color:var(--accent);
@@ -144,7 +135,6 @@
     }
     .muted{color:var(--muted);line-height:1.5}
 
-    /* FOOTER */
     footer{
       margin-top:2rem;
       padding:1.3rem;
@@ -153,11 +143,6 @@
       font-size:.95rem;
       color:#333;
     }
-
-    @keyframes fadeIn{from{opacity:0}to{opacity:1}}
-    @keyframes zoomIn{from{opacity:0;transform:scale(.9)}to{opacity:1;transform:scale(1)}}
-    @keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
-    @keyframes slideInUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
   </style>
 </head>
 
@@ -175,11 +160,13 @@
   </header>
 
   <main>
+
+    <!-- HERO -->
     <section class="hero">
       <div class="hero-card">
         <h2 class="hero-title">Fast, Reliable Background Checks</h2>
         <p class="lead">
-          Verify identity, criminal history, driving license, address, and more — trusted by employers, agencies, and individuals across Ghana.
+          Verify identity, criminal history, driving license, address, and more — trusted across Ghana.
         </p>
 
         <div class="btns">
@@ -190,20 +177,21 @@
       </div>
     </section>
 
+    <!-- FEATURES -->
     <section class="grid">
       <div class="card">
         <h3>Instant Verification</h3>
-        <p class="muted">Get identity and background results in seconds through national records.</p>
+        <p class="muted">Get identity and background results in seconds.</p>
       </div>
 
       <div class="card">
         <h3>Secure & Encrypted</h3>
-        <p class="muted">Every search is encrypted and logged to protect citizen privacy.</p>
+        <p class="muted">Every search is encrypted and auditable.</p>
       </div>
 
       <div class="card">
         <h3>For Employers & Agencies</h3>
-        <p class="muted">Organizations rely on NBVS for fast, accurate, verified identity checks.</p>
+        <p class="muted">Used by organizations nationwide for accurate checks.</p>
       </div>
 
       <div class="card">
@@ -213,41 +201,40 @@
           Phone: +1 (651) 417-2324
         </p>
       </div>
-      <section class="grid">
-  <div class="card">
-    <h3>NBVS API Access</h3>
-    <p class="muted">
-      Integrate NBVS verification into your application or system.  
-      Use your API key to perform secure identity and background validation.
-    </p>
-  </div>
-
-  <div class="card">
-    <h3>Simple REST Endpoint</h3>
-    <p class="muted">
-      Query our verification API using a secure GET request:<br><br>
-      <code>/api/verify?key=YOUR_API_KEY&nia=123456789</code>
-    </p>
-  </div>
-
-  <div class="card">
-    <h3>Rate-Limited & Secure</h3>
-    <p class="muted">
-      All API keys are protected with per-minute and daily rate limits.  
-      Superadmin can generate and manage keys from the dashboard.
-    </p>
-  </div>
-
-  <div class="card">
-    <h3>Developer Docs</h3>
-    <p class="muted">
-      View technical documentation and sample integrations.<br>
-      <a href="api.html">📄 API Documentation</a>
-    </p>
-  </div>
-</section>
-
     </section>
+
+    <!-- API SECTION (separate grid) -->
+    <section class="grid">
+      <div class="card">
+        <h3>NBVS API Access</h3>
+        <p class="muted">
+          Integrate NBVS verification into your applications.
+        </p>
+      </div>
+
+      <div class="card">
+        <h3>Simple REST Endpoint</h3>
+        <p class="muted">
+          <code>/api/verify?key=YOUR_API_KEY&nia=123456789</code>
+        </p>
+      </div>
+
+      <div class="card">
+        <h3>Rate-Limited & Secure</h3>
+        <p class="muted">
+          API keys are protected with per-minute & daily limits.
+        </p>
+      </div>
+
+      <div class="card">
+        <h3>Developer Docs</h3>
+        <p class="muted">
+          Full API documentation & examples.<br>
+          <a href="api.html">Open Docs →</a>
+        </p>
+      </div>
+    </section>
+
   </main>
 
   <footer>
