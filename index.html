@@ -570,7 +570,6 @@
       color:#4b5563;
     }
 
-    /* RESPONSIVE */
     @media (max-width:640px){
       header{
         padding-bottom:2rem;
@@ -582,63 +581,60 @@
         margin-top:0.8rem;
       }
     }
+
     /* NEW upgraded colored section backgrounds */
-.nbvs-section{
-  background:linear-gradient(135deg,#ffffff, #fafafa);
-  border-radius:18px;
-  padding:2rem 1.5rem 2.5rem;
-  box-shadow:0 14px 32px rgba(0,0,0,0.05);
-  margin-bottom:2.5rem;
-}
+    .nbvs-section{
+      background:linear-gradient(135deg,#ffffff, #fafafa);
+      border-radius:18px;
+      padding:2rem 1.5rem 2.5rem;
+      box-shadow:0 14px 32px rgba(0,0,0,0.05);
+      margin-bottom:2.5rem;
+    }
 
-.api-section{
-  background:linear-gradient(135deg,#fef9c3,#fafafa);
-  border-radius:18px;
-  padding:2rem 1.5rem 2.5rem;
-  box-shadow:0 14px 32px rgba(0,0,0,0.05);
-  margin-bottom:2.5rem;
-}
+    .api-section{
+      background:linear-gradient(135deg,#fef9c3,#fafafa);
+      border-radius:18px;
+      padding:2rem 1.5rem 2.5rem;
+      box-shadow:0 14px 32px rgba(0,0,0,0.05);
+      margin-bottom:2.5rem;
+    }
 
-.contact-section{
-  background:linear-gradient(135deg,#ecfdf5,#f8fafc);
-  border-radius:18px;
-  padding:2rem 1.5rem 2.5rem;
-  box-shadow:0 14px 32px rgba(0,0,0,0.05);
-}
+    .contact-section{
+      background:linear-gradient(135deg,#ecfdf5,#f8fafc);
+      border-radius:18px;
+      padding:2rem 1.5rem 2.5rem;
+      box-shadow:0 14px 32px rgba(0,0,0,0.05);
+    }
 
-/* Better cards in these sections */
-.feature-card,
-.api-card,
-.contact-card{
-  border:1px solid rgba(0,0,0,0.05);
-  background:white;
-  transition:all 0.25s ease;
-}
+    .feature-card,
+    .api-card,
+    .contact-card{
+      border:1px solid rgba(0,0,0,0.05);
+      background:white;
+      transition:all 0.25s ease;
+    }
 
-.feature-card:hover,
-.api-card:hover,
-.contact-card:hover{
-  transform:translateY(-4px);
-  box-shadow:0 12px 26px rgba(0,0,0,0.08);
-}
+    .feature-card:hover,
+    .api-card:hover,
+    .contact-card:hover{
+      transform:translateY(-4px);
+      box-shadow:0 12px 26px rgba(0,0,0,0.08);
+    }
 
-.feature-grid .card-pill{
-  background:#fef08a;
-  color:#78350f;
-  border:1px solid rgba(0,0,0,0.08);
-}
+    .feature-grid .card-pill{
+      background:#fef08a;
+      color:#78350f;
+      border:1px solid rgba(0,0,0,0.08);
+    }
 
-.api-btn{
-  border-color:#fef9c3 !important;
-}
+    .api-btn{
+      border-color:#fef9c3 !important;
+    }
 
-/* Improve code pill for API */
-.pill-api{
-  background:rgba(0,0,0,0.07);
-  border:1px dashed rgba(0,0,0,0.2);
-}
-
-
+    .pill-api{
+      background:rgba(0,0,0,0.07);
+      border:1px dashed rgba(0,0,0,0.2);
+    }
   </style>
 </head>
 
@@ -697,12 +693,22 @@
             <span><strong>Access:</strong> Web portal · API</span>
           </div>
 
+          <!-- ⭐ UPDATED BUTTON GROUP WITH EMPLOYER + USER BUTTONS -->
           <div class="hero-actions">
             <a class="btn btn-primary" href="verify.html">
               <span class="icon">🔍</span> Start a Verification
             </a>
+
             <a class="btn btn-ghost" href="dashboard.html">
               <span class="icon">🔐</span> Admin & Staff Login
+            </a>
+
+            <a class="btn btn-ghost" href="employer.html">
+              <span class="icon">🏢</span> Employer Login
+            </a>
+
+            <a class="btn btn-ghost" href="user.html">
+              <span class="icon">🧍</span> User Portal
             </a>
           </div>
         </div>
@@ -763,138 +769,138 @@
   <!-- MAIN CONTENT -->
   <main>
 
-  <!-- Section: What NBVS Provides -->
-  <section class="section nbvs-section">
-    <div class="section-header">
-      <div>
-        <h2 class="section-title">What NBVS Provides</h2>
-        <p class="section-sub">
-          A complete end-to-end flow: from citizens being verified, to staff reviewing records,
-          to companies connecting via API — all on a single platform.
-        </p>
-      </div>
-    </div>
-
-    <div class="grid feature-grid">
-      <div class="card feature-card">
-        <div class="card-pill">For Employers & Agencies</div>
-        <h3>Instant background checks</h3>
-        <p class="muted">
-          Verify identity, NIA number, criminal status, driving status, and credit-style flags.
-          Results display in a clean, structured view.
-        </p>
-      </div>
-
-      <div class="card feature-card">
-        <div class="card-pill">Citizen Data</div>
-        <h3>Single source of truth</h3>
-        <p class="muted">
-          A unified national dataset with fields like name, NIA, region, DOB, address,
-          driving status, and more — synced and audit-logged.
-        </p>
-      </div>
-
-      <div class="card feature-card">
-        <div class="card-pill">Wallet & Plans</div>
-        <h3>Prepaid & subscription options</h3>
-        <p class="muted">
-          Public users top up wallets or buy plans (Basic / Pro). All searches are logged for compliance.
-        </p>
-      </div>
-
-      <div class="card feature-card">
-        <div class="card-pill">Admin Controls</div>
-        <h3>Role-based access control</h3>
-        <p class="muted">
-          Superadmin manages records, API keys, logs, and wallets. Staff access is isolated and safe.
-        </p>
-      </div>
-    </div>
-  </section>
-
-  <!-- Section: API Overview -->
-  <section class="section api-section">
-    <div class="section-header">
-      <div>
-        <h2 class="section-title">NBVS API Integration</h2>
-        <p class="section-sub">
-          Banks, HR systems, and partner platforms can verify NIA records through a secure REST API.
-        </p>
-      </div>
-      <a href="api.html" class="btn btn-ghost api-btn">
-        📘 API Documentation
-      </a>
-    </div>
-
-    <div class="two-col">
-      <div class="card api-card">
-        <h3>Simple REST endpoint</h3>
-        <p class="muted">
-          Use your API key and a citizen’s NIA to perform secure verification.
-        </p>
-
-        <div class="pill-api">
-          <span>GET</span>
-          <code>/api/verify?key=YOUR_API_KEY&amp;nia=GHA-1234567</code>
-        </div>
-
-        <div class="mini-list">
-          <span>JSON response with verification details.</span>
-          <span>4xx responses for invalid keys or missing data.</span>
-          <span>Rate limits enforced automatically.</span>
+    <!-- Section: What NBVS Provides -->
+    <section class="section nbvs-section">
+      <div class="section-header">
+        <div>
+          <h2 class="section-title">What NBVS Provides</h2>
+          <p class="section-sub">
+            A complete end-to-end flow: from citizens being verified, to staff reviewing records,
+            to companies connecting via API — all on a single platform.
+          </p>
         </div>
       </div>
 
-      <div class="card api-card">
-        <h3>Managed keys & rate limits</h3>
-        <p class="muted">
-          API keys are created in the admin dashboard, each with usage tracking.
-        </p>
-        <div class="mini-list">
-          <span>Create keys per business or integration.</span>
-          <span>View daily usage & last-used history.</span>
-          <span>Disable or delete keys instantly.</span>
+      <div class="grid feature-grid">
+        <div class="card feature-card">
+          <div class="card-pill">For Employers & Agencies</div>
+          <h3>Instant background checks</h3>
+          <p class="muted">
+            Verify identity, NIA number, criminal status, driving status, and credit-style flags.
+            Results display in a clean, structured view.
+          </p>
+        </div>
+
+        <div class="card feature-card">
+          <div class="card-pill">Citizen Data</div>
+          <h3>Single source of truth</h3>
+          <p class="muted">
+            A unified national dataset with fields like name, NIA, region, DOB, address,
+            driving status, and more — synced and audit-logged.
+          </p>
+        </div>
+
+        <div class="card feature-card">
+          <div class="card-pill">Wallet & Plans</div>
+          <h3>Prepaid & subscription options</h3>
+          <p class="muted">
+            Public users top up wallets or buy plans (Basic / Pro). All searches are logged for compliance.
+          </p>
+        </div>
+
+        <div class="card feature-card">
+          <div class="card-pill">Admin Controls</div>
+          <h3>Role-based access control</h3>
+          <p class="muted">
+            Superadmin manages records, API keys, logs, and wallets. Staff access is isolated and safe.
+          </p>
         </div>
       </div>
-    </div>
-  </section>
+    </section>
 
-  <!-- Section: Contact -->
-  <section class="section contact-section">
-    <div class="section-header">
-      <div>
-        <h2 class="section-title">Contact & Next Steps</h2>
-        <p class="section-sub">
-          NBVS is in MVP/sandbox mode and ready for stakeholder demos, pilots, and partnerships.
-        </p>
-      </div>
-    </div>
-
-    <div class="grid feature-grid">
-      <div class="card contact-card">
-        <h3>Contact</h3>
-        <p class="muted">
-          Email:<br>
-          <a href="mailto:nbvsghana@nbvsghana.com">nbvsghana@nbvsghana.com</a><br><br>
-          Phone:<br>
-          +1 (651) 417-2324
-        </p>
+    <!-- Section: API Overview -->
+    <section class="section api-section">
+      <div class="section-header">
+        <div>
+          <h2 class="section-title">NBVS API Integration</h2>
+          <p class="section-sub">
+            Banks, HR systems, and partner platforms can verify NIA records through a secure REST API.
+          </p>
+        </div>
+        <a href="api.html" class="btn btn-ghost api-btn">
+          📘 API Documentation
+        </a>
       </div>
 
-      <div class="card contact-card">
-        <h3>System Access</h3>
-        <p class="muted">
-          Try the full MVP:
-        </p>
-        <div class="mini-list">
-          <span><a href="verify.html">Public verification portal</a></span>
-          <span><a href="dashboard.html">Admin & Staff dashboard</a></span>
-          <span><a href="api.html">API documentation</a></span>
+      <div class="two-col">
+        <div class="card api-card">
+          <h3>Simple REST endpoint</h3>
+          <p class="muted">
+            Use your API key and a citizen’s NIA to perform secure verification.
+          </p>
+
+          <div class="pill-api">
+            <span>GET</span>
+            <code>/api/verify?key=YOUR_API_KEY&amp;nia=GHA-1234567</code>
+          </div>
+
+          <div class="mini-list">
+            <span>JSON response with verification details.</span>
+            <span>4xx responses for invalid keys or missing data.</span>
+            <span>Rate limits enforced automatically.</span>
+          </div>
+        </div>
+
+        <div class="card api-card">
+          <h3>Managed keys & rate limits</h3>
+          <p class="muted">
+            API keys are created in the admin dashboard, each with usage tracking.
+          </p>
+          <div class="mini-list">
+            <span>Create keys per business or integration.</span>
+            <span>View daily usage & last-used history.</span>
+            <span>Disable or delete keys instantly.</span>
+          </div>
         </div>
       </div>
-    </div>
-  </section>
-</main>
+    </section>
+
+    <!-- Section: Contact -->
+    <section class="section contact-section">
+      <div class="section-header">
+        <div>
+          <h2 class="section-title">Contact & Next Steps</h2>
+          <p class="section-sub">
+            NBVS is in MVP/sandbox mode and ready for stakeholder demos, pilots, and partnerships.
+          </p>
+        </div>
+      </div>
+
+      <div class="grid feature-grid">
+        <div class="card contact-card">
+          <h3>Contact</h3>
+          <p class="muted">
+            Email:<br>
+            <a href="mailto:nbvsghana@nbvsghana.com">nbvsghana@nbvsghana.com</a><br><br>
+            Phone:<br>
+            +1 (651) 417-2324
+          </p>
+        </div>
+
+        <div class="card contact-card">
+          <h3>System Access</h3>
+          <p class="muted">
+            Try the full MVP:
+          </p>
+          <div class="mini-list">
+            <span><a href="verify.html">Public verification portal</a></span>
+            <span><a href="dashboard.html">Admin & Staff dashboard</a></span>
+            <span><a href="api.html">API documentation</a></span>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
 
 
   <footer>
