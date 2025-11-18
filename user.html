@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>User Verification - NBVS</title>
+
+  <style>
+    body {
+      margin: 0;
+      background: #eef1f5;
+      font-family: "Inter", sans-serif;
+    }
+
+    #nav {
+      background: #0b3d91;
+      padding: 15px 20px;
+      color: white;
+      font-size: 18px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    }
+
+    #logoutBtn {
+      background: #fff;
+      color: #0b3d91;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    #container {
+      max-width: 900px;
+      margin: 30px auto;
+      padding: 20px;
+    }
+
+    .card {
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+      margin-bottom: 25px;
+    }
+
+    h2 {
+      margin: 0 0 10px;
+      color: #0b3d91;
+    }
+
+    input, textarea, button {
+      width: 100%;
+      padding: 12px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      margin-top: 10px;
+      font-size: 15px;
+      font-family: inherit;
+    }
+
+    button {
+      background: #0b3d91;
+      color: white;
+      font-weight: 600;
+      border: none;
+      cursor: pointer;
+      margin-top: 15px;
+    }
+
+    button:hover {
+      background: #083271;
+    }
+
+    #statusBox {
+      background: #f7f9ff;
+      padding: 15px;
+      border-left: 5px solid #0b3d91;
+      border-radius: 10px;
+      font-size: 16px;
+    }
+  </style>
+</head>
+
+<body>
+
+<div id="nav">
+  <div>NBVS Verification Center</div>
+  <button id="logoutBtn">Logout</button>
+</div>
+
+<div id="container">
+
+  <!-- Verification Form -->
+  <div class="card">
+    <h2>Your Verification Details</h2>
+
+    <input id="fullName" placeholder="Full Name">
+    <input id="niaNumber" placeholder="NIA Number">
+    <input id="phoneNumber" placeholder="Phone Number">
+    <textarea id="address" placeholder="Home Address"></textarea>
+
+    <textarea id="education" placeholder="Education History (School, Cert, etc)"></textarea>
+    <textarea id="workHistory" placeholder="Work/Job History"></textarea>
+
+    <textarea id="notes" placeholder="Other Notes (Optional)"></textarea>
+
+    <button id="saveBtn">Save / Update Profile</button>
+  </div>
+
+  <!-- Verification Status -->
+  <div class="card">
+    <h2>Your Verification Status</h2>
+    <div id="statusBox">Loading...</div>
+  </div>
+
+</div>
+
+<script type="module">
+/* =============== FIREBASE IMPORTS ================== */
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
+import { 
+  getAuth, onAuthStateChanged, signOut 
+} from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
+import { 
+  getFirestore, doc, getDoc, setDoc, serverTimestamp 
+} from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
+
+
+/* =============== FIREBASE CONFIG ================== */
+const firebaseConfig = {
+  apiKey: "...",
+  authDomain: "...",
+  projectId: "...",
+  storageBucket: "...",
+  messagingSenderId: "...",
+  appId: "..."
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+
+/* =============== AUTH CHECK ================== */
+onAuthStateChanged(auth, async user => {
+  if (!user) return window.location = "dashboard.html";
+
+  loadUserData(user.uid);
+});
+
+
+/* =============== LOGOUT ================== */
+document.getElementById("logoutBtn").onclick = () => signOut(auth);
+
+
+/* =============== LOAD USER VERIFICATION DATA ================== */
+async function loadUserData(uid) {
+  const ref = doc(db, "users", uid);
+  const snap = await getDoc(ref);
+
+  if (snap.exists()) {
+    const d = snap.data();
+
+    fullName.value   = d.fullName   || "";
+    niaNumber.value  = d.niaNumber  || "";
+    phoneNumber.value = d.phoneNumber || "";
+    address.value    = d.address    || "";
+    education.value  = d.education  || "";
+    workHistory.value = d.workHistory || "";
+    notes.value      = d.notes      || "";
+
+    document.getElementById("statusBox").innerHTML =
+      `<strong>Status:</strong> ${d.status || "Not Submitted"}<br>
+       <strong>Last Updated:</strong> ${d.updatedAt ? d.updatedAt.toDate().toLocaleString() : "N/A"}`;
+  } 
+  else {
+    document.getElementById("statusBox").innerHTML =
+      "You have not submitted your verification information yet.";
+  }
+}
+
+
+/* =============== SAVE / UPDATE USER PROFILE ================== */
+document.getElementById("saveBtn").onclick = async () => {
+  const user = auth.currentUser;
+  if (!user) return;
+
+  const data = {
+    fullName: fullName.value.trim(),
+    niaNumber: niaNumber.value.trim(),
+    phoneNumber: phoneNumber.value.trim(),
+    address: address.value.trim(),
+    education: education.value.trim(),
+    workHistory: workHistory.value.trim(),
+    notes: notes.value.trim(),
+    status: "pending",               // admin can update later
+    updatedAt: serverTimestamp(),
+    role: "user"
+  };
+
+  await setDoc(doc(db, "users", user.uid), data, { merge: true });
+
+  alert("Verification Profile Updated!");
+  loadUserData(user.uid);
+};
+
+</script>
+
+</body>
+</html>
