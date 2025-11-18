@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Employer Dashboard - NBVS</title>
+
+  <style>
+    body {
+      margin: 0;
+      background: #eef1f5;
+      font-family: "Inter", sans-serif;
+    }
+
+    /* Top Navigation */
+    #nav {
+      background: #0b3d91;
+      padding: 15px 20px;
+      color: white;
+      font-size: 18px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    }
+
+    #logoutBtn {
+      background: #fff;
+      color: #0b3d91;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    /* Main Container */
+    #container {
+      max-width: 900px;
+      margin: 30px auto;
+      padding: 20px;
+    }
+
+    /* Card */
+    .card {
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+      margin-bottom: 25px;
+    }
+
+    h2, h3 {
+      margin-top: 0;
+      color: #0b3d91;
+      font-weight: 700;
+    }
+
+    input, textarea, button {
+      width: 100%;
+      padding: 12px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      margin-top: 10px;
+      font-size: 15px;
+      font-family: inherit;
+    }
+
+    button {
+      background: #0b3d91;
+      color: white;
+      font-weight: 600;
+      border: none;
+      cursor: pointer;
+      margin-top: 15px;
+    }
+
+    button:hover {
+      background: #083271;
+    }
+
+    .check-item {
+      background: #f8f9fc;
+      padding: 15px;
+      border-radius: 10px;
+      margin-bottom: 15px;
+      border-left: 4px solid #0b3d91;
+    }
+
+    .status {
+      margin-top: 5px;
+      font-weight: 600;
+    }
+  </style>
+</head>
+
+<body>
+<div id="nav">
+  <div>NBVS Employer Dashboard</div>
+  <button id="logoutBtn">Logout</button>
+</div>
+
+<div id="container">
+
+  <!-- Submit Check -->
+  <div class="card">
+    <h2>Run a Background Check</h2>
+    <input id="empName" placeholder="Employee Full Name" />
+    <input id="empNIA" placeholder="NIA Number (optional)" />
+    <input id="empPhone" placeholder="Phone Number" />
+    <textarea id="empNotes" placeholder="Extra Notes (Role, Dept, etc)"></textarea>
+    <button id="submitCheckBtn">Submit Background Check</button>
+  </div>
+
+  <!-- Previous Checks -->
+  <div class="card">
+    <h3>Your Previous Checks</h3>
+    <div id="checksList">Loading...</div>
+  </div>
+
+</div>
+
+
+<script type="module">
+/* =============== FIREBASE IMPORTS ================== */
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
+import { 
+  getAuth, onAuthStateChanged, signOut 
+} from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
+import { 
+  getFirestore, collection, addDoc, query, where, getDocs, serverTimestamp 
+} from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
+
+
+/* =============== FIREBASE CONFIG ================== */
+/* REPLACE with your real Firebase config */
+const firebaseConfig = {
+  apiKey: "...",
+  authDomain: "...",
+  projectId: "...",
+  storageBucket: "...",
+  messagingSenderId: "...",
+  appId: "..."
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+
+/* =============== AUTH CHECK ================== */
+onAuthStateChanged(auth, async user => {
+  if (!user) return window.location = "dashboard.html";
+
+  loadPreviousChecks(user.uid);
+});
+
+
+/* =============== LOGOUT ================== */
+document.getElementById("logoutBtn").onclick = () => signOut(auth);
+
+
+/* =============== SUBMIT CHECK ================== */
+document.getElementById("submitCheckBtn").onclick = async () => {
+  const user = auth.currentUser;
+  if (!user) return;
+
+  const empName = empName.value.trim();
+  const empNIA = empNIA.value.trim();
+  const empPhone = empPhone.value.trim();
+  const empNotes = empNotes.value.trim();
+
+  if (!empName || !empPhone) {
+    return alert("Employee name and phone number are required.");
+  }
+
+  await addDoc(collection(db, "backgroundChecks"), {
+    employerId: user.uid,
+    empName,
+    empNIA,
+    empPhone,
+    empNotes,
+    status: "pending",
+    createdAt: serverTimestamp()
+  });
+
+  alert("Background Check Submitted!");
+
+  empName.value = "";
+  empNIA.value = "";
+  empPhone.value = "";
+  empNotes.value = "";
+
+  loadPreviousChecks(user.uid);
+};
+
+
+/* =============== LOAD CHECKS ================== */
+async function loadPreviousChecks(uid) {
+  const q = query(collection(db, "backgroundChecks"), where("employerId", "==", uid));
+  const snap = await getDocs(q);
+
+  const container = document.getElementById("checksList");
+
+  if (snap.empty) {
+    container.innerHTML = "No checks submitted yet.";
+    return;
+  }
+
+  container.innerHTML = "";
+
+  snap.forEach(docSnap => {
+    const d = docSnap.data();
+
+    container.innerHTML += `
+      <div class="check-item">
+        <strong>${d.empName}</strong><br>
+        NIA: ${d.empNIA || "N/A"}<br>
+        Phone: ${d.empPhone}<br>
+        <div class="status">Status: ${d.status}</div>
+      </div>
+    `;
+  });
+}
+
+</script>
+
+</body>
+</html>
