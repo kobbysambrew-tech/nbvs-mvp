@@ -693,8 +693,14 @@
             <span><strong>Access:</strong> Web portal · API</span>
           </div>
 
+.hero-actions {
+  display: flex;
+  flex-wrap: wrap;     /* 💥 THIS is the line that makes the extra buttons visible */
+  gap: 0.85rem;
+  align-items: center;
+}
        
-  <!-- Public Verification (your original verify button) -->
+<!-- HERO ACTION BUTTONS -->
 <div class="hero-actions">
 
   <!-- Public Verification -->
@@ -716,17 +722,21 @@
   <a class="btn btn-ghost" href="dashboard.html">
     <span class="icon">🔐</span> Admin Login
   </a>
-<!-- Employer Signup -->
-<a class="btn btn-ghost" href="employer-signup.html">
-  <span class="icon">➕</span> Employer Sign Up
-</a>
 
-<!-- User Signup -->
-<a class="btn btn-ghost" href="user-signup.html">
-  <span class="icon">➕</span> User Sign Up
-</a>
+  <!-- Employer Signup -->
+  <a class="btn btn-ghost" href="employer-signup.html">
+    <span class="icon">➕</span> Employer Sign Up
+  </a>
+
+  <!-- User Signup -->
+  <a class="btn btn-ghost" href="user-signup.html">
+    <span class="icon">➕</span> User Sign Up
+  </a>
 
 </div>
+
+
+
 
         </div>
         <!-- Right / system snapshot -->
