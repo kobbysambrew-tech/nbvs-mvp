@@ -1,128 +1,164 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Employer Login - NBVS</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>NBVS – Employer Login</title>
 
   <style>
-    body {
-      margin: 0;
-      background: #f4f6fa;
-      font-family: "Inter", sans-serif;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
+    :root {
+      --red:#ce1126;
+      --yellow:#fcd116;
+      --green:#046c4e;
+      --bg:#f3f4f6;
+      --card:#ffffff;
+      --text:#111;
     }
 
-    .card {
-      background: white;
-      padding: 30px;
-      width: 90%;
-      max-width: 400px;
-      border-radius: 14px;
-      box-shadow: 0 5px 15px rgba(0,0,0,0.15);
-      text-align: center;
+    body{
+      margin:0;
+      font-family:"Inter",sans-serif;
+      background:var(--bg);
     }
 
-    h2 {
-      color: #003a70;
-      margin-bottom: 20px;
-      font-weight: 700;
+    .wrapper{
+      max-width:420px;
+      margin:60px auto;
+      background:var(--card);
+      padding:28px;
+      border-radius:14px;
+      box-shadow:0 10px 32px rgba(0,0,0,0.12);
     }
 
-    input {
-      width: 100%;
-      padding: 12px;
-      margin: 8px 0;
-      border-radius: 8px;
-      border: 1px solid #ccc;
-      font-size: 15px;
+    h2{
+      margin:0 0 16px;
+      text-align:center;
+      font-weight:700;
+      color:var(--green);
     }
 
-    button {
-      width: 100%;
-      padding: 12px;
-      background: #003a70;
-      color: white;
-      border: none;
-      border-radius: 8px;
-      margin-top: 12px;
-      cursor: pointer;
-      font-weight: 600;
-      font-size: 16px;
+    label{
+      font-size:0.9rem;
+      color:#444;
+      margin-top:12px;
+      display:block;
     }
 
-    .note {
-      margin-top: 10px;
-      color: #444;
-      font-size: 14px;
+    input{
+      width:100%;
+      padding:12px;
+      border-radius:8px;
+      border:1px solid #ccc;
+      font-size:1rem;
+      margin-top:6px;
+    }
+
+    button{
+      width:100%;
+      padding:12px;
+      border:none;
+      border-radius:8px;
+      background:linear-gradient(90deg,var(--green),#0f5132);
+      color:white;
+      font-size:1rem;
+      font-weight:600;
+      cursor:pointer;
+      margin-top:18px;
+    }
+
+    button:hover{
+      filter:brightness(1.08);
+    }
+
+    .note{
+      margin-top:12px;
+      font-size:0.85rem;
+      color:#b91c1c;
+      text-align:center;
+      min-height:18px;
     }
   </style>
 </head>
 
 <body>
+  <div class="wrapper">
+    <h2>Employer Login</h2>
 
-<div class="card">
-  <h2>Employer Login</h2>
+    <label>Email</label>
+    <input id="email" autocomplete="username" />
 
-  <input id="email" placeholder="Email" autocomplete="username" />
-  <input id="password" type="password" placeholder="Password" autocomplete="current-password" />
+    <label>Password</label>
+    <input id="password" type="password" autocomplete="current-password" />
 
-  <button id="btn-login">Sign In</button>
+    <button id="loginBtn">Sign In</button>
 
-  <div class="note" id="note"></div>
-</div>
-
+    <div class="note" id="note"></div>
+  </div>
 
 <script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
-import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
-import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
+  import { 
+    getAuth, signInWithEmailAndPassword, onAuthStateChanged 
+  } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
+  import { 
+    getFirestore, doc, getDoc 
+  } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 
-const firebaseConfig = {
-  apiKey: "AIzaSyCDh_qL3jiCMHROK0_Soul2Wsv3t3y4wv0",
-  authDomain: "nbvs-ghana.firebaseapp.com",
-  projectId: "nbvs-ghana",
-  storageBucket: "nbvs-ghana.firebasestorage.app",
-  messagingSenderId: "702636577113",
-  appId: "1:702636577113:web:8369b43a2aa43aeb95fc48"
-};
+  const firebaseConfig = {
+    apiKey:"AIzaSyCDh_qL3jiCMHROK0_Soul2Wsv3t3y4wv0",
+    authDomain:"nbvs-ghana.firebaseapp.com",
+    projectId:"nbvs-ghana",
+    storageBucket:"nbvs-ghana.firebasestorage.app",
+    messagingSenderId:"702636577113",
+    appId:"1:702636577113:web:8369b43a2aa43aeb95fc48"
+  };
 
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db   = getFirestore(app);
 
-document.getElementById("btn-login").onclick = async () => {
-  const email = document.getElementById("email").value.trim();
-  const password = document.getElementById("password").value.trim();
-  const note = document.getElementById("note");
+  const emailEl = document.getElementById("email");
+  const passEl  = document.getElementById("password");
+  const noteEl  = document.getElementById("note");
+  const btn     = document.getElementById("loginBtn");
 
-  if (!email || !password) return note.textContent = "Enter email and password.";
+  btn.onclick = async () => {
+    noteEl.textContent = "";
+    const email = emailEl.value.trim();
+    const pass  = passEl.value.trim();
 
-  try {
-    await signInWithEmailAndPassword(auth, email, password);
-  } catch (err) {
-    note.textContent = err.message || "Login failed.";
-  }
-};
+    if (!email || !pass){
+      noteEl.textContent = "Enter email & password.";
+      return;
+    }
 
-// Role-based redirect
-onAuthStateChanged(auth, async (user) => {
-  if (!user) return;
+    try {
+      await signInWithEmailAndPassword(auth, email, pass);
+    } catch (err){
+      console.error(err);
+      noteEl.textContent = err.message || "Login failed.";
+    }
+  };
 
-  const snap = await getDoc(doc(db, "users", user.uid));
+  // Only EMPLOYERS are allowed
+  onAuthStateChanged(auth, async (user)=>{
+    if (!user) return;
 
-  if (!snap.exists() || snap.data().role !== "employer") {
-    document.getElementById("note").textContent = "Not an employer account.";
-    await auth.signOut();
-    return;
-  }
+    const uDoc = await getDoc(doc(db, "users", user.uid));
 
-  window.location.href = "employer-dashboard.html";
-});
+    if (!uDoc.exists()){
+      noteEl.textContent = "No user record found.";
+      return;
+    }
+
+    const role = (uDoc.data().role || "").toLowerCase();
+
+    if (role === "employer"){
+      window.location.href = "employer-dashboard.html";
+    } else {
+      noteEl.textContent = "Not an employer account.";
+    }
+  });
 </script>
-
 </body>
 </html>
