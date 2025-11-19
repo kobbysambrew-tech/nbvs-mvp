@@ -1,126 +1,172 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>User Login - NBVS</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>NBVS — User Login</title>
 
-  <style>
-    body {
-      margin: 0;
-      background: #f4f6fa;
-      font-family: "Inter", sans-serif;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-    }
+<style>
+  :root {
+    --red:#ce1126;
+    --yellow:#fcd116;
+    --green:#046c4e;
+    --bg:#f6f7f9;
+    --card:#ffffff;
+    --muted:#6b7280;
+  }
 
-    .card {
-      background: white;
-      padding: 30px;
-      width: 90%;
-      max-width: 400px;
-      border-radius: 14px;
-      box-shadow: 0 5px 15px rgba(0,0,0,0.15);
-      text-align: center;
-    }
+  body{
+    margin:0;
+    background:var(--bg);
+    font-family:"Inter",sans-serif;
+    color:#111;
+  }
 
-    h2 {
-      color: #003a70;
-      margin-bottom: 20px;
-      font-weight: 700;
-    }
+  header{
+    background:linear-gradient(90deg,var(--red),var(--yellow),var(--green));
+    padding:22px;
+    color:#fff;
+    text-align:center;
+    font-weight:700;
+    font-size:1.5rem;
+  }
 
-    input {
-      width: 100%;
-      padding: 12px;
-      margin: 8px 0;
-      border-radius: 8px;
-      border: 1px solid #ccc;
-      font-size: 15px;
-    }
+  .container{
+    max-width:400px;
+    margin:40px auto;
+    background:var(--card);
+    padding:24px;
+    border-radius:12px;
+    box-shadow:0 8px 24px rgba(0,0,0,0.1);
+  }
 
-    button {
-      width: 100%;
-      padding: 12px;
-      background: #003a70;
-      color: white;
-      border: none;
-      border-radius: 8px;
-      margin-top: 12px;
-      cursor: pointer;
-      font-weight: 600;
-      font-size: 16px;
-    }
+  h2{
+    margin:0 0 10px;
+    font-weight:700;
+    color:var(--green);
+    text-align:center;
+  }
 
-    .note {
-      margin-top: 10px;
-      color: #444;
-      font-size: 14px;
-    }
-  </style>
+  label{
+    font-size:0.9rem;
+    color:var(--muted);
+    margin-top:12px;
+    display:block;
+  }
+
+  input{
+    width:100%;
+    padding:12px;
+    margin-top:6px;
+    border-radius:8px;
+    border:1px solid #ccc;
+    font-size:1rem;
+  }
+
+  button{
+    margin-top:18px;
+    width:100%;
+    padding:12px;
+    border:none;
+    border-radius:8px;
+    background:var(--green);
+    color:#fff;
+    cursor:pointer;
+    font-weight:700;
+    font-size:1rem;
+  }
+
+  button:hover{
+    filter:brightness(1.08);
+  }
+
+  .link{
+    margin-top:14px;
+    text-align:center;
+    font-size:0.9rem;
+  }
+
+  .link a{
+    color:var(--green);
+    font-weight:600;
+    text-decoration:none;
+  }
+</style>
 </head>
 
 <body>
 
-<div class="card">
-  <h2>User Login</h2>
+<header>NBVS — User Login</header>
 
-  <input id="email" placeholder="Email" autocomplete="username" />
-  <input id="password" type="password" placeholder="Password" autocomplete="current-password" />
+<div class="container">
+  <h2>Sign In</h2>
 
-  <button id="btn-login">Sign In</button>
+  <label>Email</label>
+  <input id="email" type="email" placeholder="you@example.com" />
 
-  <div class="note" id="note"></div>
+  <label>Password</label>
+  <input id="password" type="password" placeholder="••••••••" />
+
+  <button id="loginBtn">Login</button>
+
+  <div class="link">
+    Don’t have an account? <a href="user-signup.html">Create one</a>
+  </div>
 </div>
-
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
-import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
-import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
+import { 
+  getAuth, signInWithEmailAndPassword 
+} from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
+import {
+  getFirestore, doc, getDoc
+} from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyCDh_qL3jiCMHROK0_Soul2Wsv3t3y4wv0",
-  authDomain: "nbvs-ghana.firebaseapp.com",
-  projectId: "nbvs-ghana",
-  storageBucket: "nbvs-ghana.firebasestorage.app",
-  messagingSenderId: "702636577113",
-  appId: "1:702636577113:web:8369b43a2aa43aeb95fc48"
+  apiKey:"AIzaSyCDh_qL3jiCMHROK0_Soul2Wsv3t3y4wv0",
+  authDomain:"nbvs-ghana.firebaseapp.com",
+  projectId:"nbvs-ghana",
+  storageBucket:"nbvs-ghana.firebasestorage.app",
+  messagingSenderId:"702636577113",
+  appId:"1:702636577113:web:8369b43a2aa43aeb95fc48"
 };
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-document.getElementById("btn-login").onclick = async () => {
+document.getElementById("loginBtn").onclick = async ()=>{
   const email = document.getElementById("email").value.trim();
   const password = document.getElementById("password").value.trim();
-  const note = document.getElementById("note");
 
-  if (!email || !password) return note.textContent = "Enter email and password.";
-
-  try {
-    await signInWithEmailAndPassword(auth, email, password);
-  } catch (err) {
-    note.textContent = err.message || "Login failed.";
-  }
-};
-
-onAuthStateChanged(auth, async (user) => {
-  if (!user) return;
-
-  const snap = await getDoc(doc(db, "users", user.uid));
-
-  if (!snap.exists() || snap.data().role !== "user") {
-    document.getElementById("note").textContent = "Not a user account.";
-    await auth.signOut();
+  if(!email || !password){
+    alert("Enter email + password");
     return;
   }
 
-  window.location.href = "user-dashboard.html";
-});
+  try{
+    const res = await signInWithEmailAndPassword(auth,email,password);
+    const user = res.user;
+
+    const snap = await getDoc(doc(db,"users",user.uid));
+    if(!snap.exists()){
+      alert("Account not found.");
+      return;
+    }
+
+    const role = (snap.data().role || "").toLowerCase();
+    if(role !== "user"){
+      alert("This login is for regular users only.");
+      return;
+    }
+
+    window.location.href = "user-dashboard.html";
+
+  }catch(err){
+    alert(err.message);
+  }
+};
 </script>
 
 </body>
