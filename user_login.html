@@ -1,153 +1,134 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>User Portal Login</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>User Login – NBVS</title>
 
-<style>
-  body {
-    margin: 0;
-    font-family: "Inter", sans-serif;
-    background: linear-gradient(135deg, #0a1a12, #0f2718, #102d1c);
-    color: white;
-    height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
+  <style>
+    body {
+      margin: 0;
+      font-family: Inter, sans-serif;
+      background: linear-gradient(140deg, #0d1f1f, #001a12 50%, #002c1c);
+      color: white;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
 
-  .card {
-    width: 92%;
-    max-width: 420px;
-    background: rgba(255,255,255,0.05);
-    backdrop-filter: blur(10px);
-    padding: 30px;
-    border-radius: 14px;
-    box-shadow: 0 8px 25px rgba(0,0,0,0.4);
-    border: 1px solid rgba(255,255,255,0.1);
-  }
+    .card {
+      background: rgba(255,255,255,0.06);
+      backdrop-filter: blur(8px);
+      padding: 32px;
+      width: 90%;
+      max-width: 420px;
+      border-radius: 14px;
+      box-shadow: 0 12px 30px rgba(0,0,0,0.35);
+    }
 
-  h2 {
-    margin-bottom: 14px;
-    font-weight: 700;
-  }
+    h2 {
+      text-align: center;
+      margin-bottom: 20px;
+      font-size: 24px;
+    }
 
-  input {
-    width: 100%;
-    padding: 12px;
-    margin-top: 10px;
-    background: rgba(255,255,255,0.08);
-    border: none;
-    border-radius: 10px;
-    color: white;
-    outline: none;
-  }
+    input {
+      width: 100%;
+      margin-top: 10px;
+      padding: 14px;
+      border-radius: 8px;
+      border: none;
+      background: rgba(255,255,255,0.12);
+      color: white;
+    }
 
-  input::placeholder {
-    color: #cfcfcf;
-  }
+    button {
+      width: 100%;
+      margin-top: 18px;
+      padding: 14px;
+      background: #00d46a;
+      color: #002012;
+      font-weight: 700;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    button:hover {
+      background: #00b85a;
+    }
 
-  button {
-    width: 100%;
-    padding: 12px;
-    margin-top: 20px;
-    background: #e9c334;
-    border: none;
-    border-radius: 10px;
-    font-weight: 700;
-    font-size: 16px;
-    color: #0f1a12;
-    cursor: pointer;
-    transition: 0.2s;
-  }
-
-  button:hover {
-    background: #f5d24d;
-  }
-
-  .note {
-    margin-top: 10px;
-    font-size: 14px;
-    color: #ffb84d;
-    min-height: 18px;
-  }
-
-  .top-title {
-    text-align: center;
-    margin-bottom: 18px;
-    font-size: 14px;
-    opacity: 0.8;
-  }
-</style>
+    .note { margin-top: 10px; font-size: 14px; color: #ddd; }
+  </style>
 </head>
 
 <body>
   <div class="card">
-    <div class="top-title">NBVS GHANA — User Portal</div>
-    <h2>User Login</h2>
+    <h2>NBVS User Login</h2>
 
-    <input id="email" placeholder="Email" autocomplete="username">
-    <input id="password" type="password" placeholder="Password" autocomplete="current-password">
-
-    <button id="btn-login">Sign In</button>
+    <input id="email" placeholder="Email">
+    <input id="password" type="password" placeholder="Password">
+    <button id="loginBtn">Sign In</button>
 
     <div class="note" id="note"></div>
   </div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
-import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
-import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
+import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } 
+  from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
+import { getFirestore, doc, getDoc } 
+  from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 
-const firebaseConfig = {
-  apiKey:"AIzaSyCDh_qL3jiCMHROK0_Soul2Wsv3t3y4wv0",
-  authDomain:"nbvs-ghana.firebaseapp.com",
-  projectId:"nbvs-ghana",
-  storageBucket:"nbvs-ghana.firebasestorage.app",
-  messagingSenderId:"702636577113",
-  appId:"1:702636577113:web:8369b43a2aa43aeb95fc48"
+const firebaseConfig = {  
+  apiKey: "AIzaSyCDh_qL3jiCMHROK0_Soul2Wsv3t3y4wv0",
+  authDomain: "nbvs-ghana.firebaseapp.com",
+  projectId: "nbvs-ghana",
+  storageBucket: "nbvs-ghana.firebasestorage.app",
+  messagingSenderId: "702636577113",
+  appId: "1:702636577113:web:8369b43a2aa43aeb95fc48",
+  measurementId: "G-2FHFSQRMZX"
 };
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-document.getElementById("btn-login").onclick = async () => {
-  const emailV = email.value.trim();
-  const passV = password.value.trim();
-  const note = document.getElementById("note");
-  note.textContent = "";
+const emailEl = document.getElementById("email");
+const passEl = document.getElementById("password");
+const noteEl = document.getElementById("note");
+const btn = document.getElementById("loginBtn");
 
-  if (!emailV || !passV) {
-    note.textContent = "Enter your email and password.";
+btn.onclick = async () => {
+  noteEl.textContent = "";
+  try {
+    const email = emailEl.value.trim();
+    const pwd = passEl.value.trim();
+    if(!email || !pwd) return noteEl.textContent = "Enter email + password.";
+
+    const res = await signInWithEmailAndPassword(auth, email, pwd);
+
+  } catch(err) {
+    noteEl.textContent = err.message;
+  }
+};
+
+onAuthStateChanged(auth, async user => {
+  if(!user) return;
+
+  const snap = await getDoc(doc(db,"users",user.uid));
+  if(!snap.exists()) return noteEl.textContent = "No user record found.";
+
+  const role = snap.data().role;
+
+  if(role !== "user") {
+    noteEl.textContent = "Not a user account.";
     return;
   }
 
-  try {
-    const cred = await signInWithEmailAndPassword(auth, emailV, passV);
-    const user = cred.user;
-
-    const uDoc = await getDoc(doc(db, "users", user.uid));
-    if (!uDoc.exists()) {
-      note.textContent = "Account not found.";
-      return;
-    }
-
-    const role = (uDoc.data().role || "").toLowerCase();
-
-    if (role !== "user") {
-      note.textContent = "This portal is for normal users only.";
-      return;
-    }
-
-    // Redirect user
-    window.location.href = "user-dashboard.html";
-
-  } catch (err) {
-    note.textContent = err.message || "Login failed.";
-  }
-};
+  window.location.href = "user-dashboard.html";
+});
 </script>
 </body>
 </html>
