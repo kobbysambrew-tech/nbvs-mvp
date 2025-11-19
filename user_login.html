@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>User Portal Login — NBVS</title>
+
+<style>
+  body {
+    margin:0;
+    font-family:"Inter", sans-serif;
+    background: linear-gradient(135deg, #0d1f12, #0f2d1d, #143a28);
+    height:100vh;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    padding:20px;
+    color:#fff;
+  }
+
+  .card {
+    width:100%;
+    max-width:420px;
+    background: rgba(255,255,255,0.08);
+    backdrop-filter: blur(10px);
+    border-radius:16px;
+    padding:32px 28px;
+    box-shadow:0 8px 30px rgba(0,0,0,0.25);
+  }
+
+  h1 {
+    margin:0 0 20px;
+    font-size:26px;
+    font-weight:700;
+    text-align:center;
+  }
+
+  input {
+    width:100%;
+    padding:12px;
+    margin:10px 0;
+    border-radius:8px;
+    border:1px solid #cfcfcf;
+    background:#fff;
+    font-size:15px;
+    color:#222;
+  }
+
+  button {
+    width:100%;
+    padding:12px;
+    margin-top:10px;
+    background:#0096ff;
+    border:none;
+    border-radius:8px;
+    font-size:16px;
+    font-weight:700;
+    cursor:pointer;
+    color:#fff;
+    transition:0.2s;
+  }
+  button:hover {
+    background:#007fe0;
+  }
+
+  .note { margin-top:14px; font-size:14px; text-align:center; color:#ddd; }
+</style>
+</head>
+
+<body>
+
+<div class="card">
+  <h1>User Portal Login</h1>
+
+  <input id="email" placeholder="Email">
+  <input id="password" type="password" placeholder="Password">
+
+  <button id="btn-login">Sign In</button>
+  <div class="note" id="note"></div>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
+  import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
+  import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey:"AIzaSyCDh_qL3jiCMHROK0_Soul2Wsv3t3y4wv0",
+    authDomain:"nbvs-ghana.firebaseapp.com",
+    projectId:"nbvs-ghana",
+    storageBucket:"nbvs-ghana.firebasestorage.app",
+    messagingSenderId:"702636577113",
+    appId:"1:702636577113:web:8369b43a2aa43aeb95fc48"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  document.getElementById("btn-login").onclick = async () => {
+    note.textContent = "";
+    const email = email.value.trim();
+    const pwd = password.value.trim();
+
+    try {
+      await signInWithEmailAndPassword(auth, email, pwd);
+    } catch(err) {
+      note.textContent = err.message;
+    }
+  };
+
+  onAuthStateChanged(auth, async user => {
+    if (!user) return;
+
+    const d = await getDoc(doc(db,"users",user.uid));
+    if (!d.exists()) return note.textContent = "Account not found.";
+
+    const role = (d.data().role || "").toLowerCase();
+
+    if (role !== "user") {
+      note.textContent = "Not a user account.";
+      auth.signOut();
+      return;
+    }
+
+    window.location.href = "user.html";
+  });
+</script>
+
+</body>
+</html>
