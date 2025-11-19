@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>User Signup - NBVS</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    body{
+      margin:0;
+      font-family:"Inter",sans-serif;
+      background:linear-gradient(135deg,#0f172a,#022c22);
+      color:#f1f5f9;
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      height:100vh;
+      padding:20px;
+    }
+    .card{
+      background:rgba(15,23,42,0.7);
+      padding:30px;
+      border-radius:16px;
+      max-width:420px;
+      width:100%;
+      box-shadow:0 12px 32px rgba(0,0,0,0.45);
+      border:1px solid rgba(255,255,255,0.08);
+      backdrop-filter:blur(8px);
+    }
+    h2{
+      margin:0 0 20px;
+      font-size:1.4rem;
+      font-weight:700;
+      text-align:center;
+    }
+    input{
+      width:100%;
+      padding:12px;
+      margin:8px 0;
+      border-radius:8px;
+      border:1px solid #475569;
+      background:rgba(255,255,255,0.08);
+      color:#f1f5f9;
+      font-size:15px;
+    }
+    button{
+      width:100%;
+      padding:12px;
+      margin-top:14px;
+      border:none;
+      border-radius:8px;
+      background:linear-gradient(135deg,#ce1126,#046c4e);
+      color:white;
+      font-weight:600;
+      font-size:1rem;
+      cursor:pointer;
+      transition:0.2s;
+    }
+    button:hover{
+      transform:translateY(-2px);
+      filter:brightness(1.1);
+    }
+    .link{
+      margin-top:14px;
+      font-size:0.85rem;
+      color:#cbd5e1;
+      text-align:center;
+    }
+    .link a{
+      color:#a7f3d0;
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="card">
+  <h2>User Signup</h2>
+
+  <input id="fullName" placeholder="Full Name" />
+  <input id="niaNumber" placeholder="NIA Number (Optional)" />
+  <input id="email" placeholder="Email" />
+  <input id="password" type="password" placeholder="Password" />
+
+  <button id="signupBtn">Create User Account</button>
+
+  <div class="link">Already have an account? <a href="user_login.html">Login</a></div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
+import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
+import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey:"AIzaSyCDh_qL3jiCMHROK0_Soul2Wsv3t3y4wv0",
+  authDomain:"nbvs-ghana.firebaseapp.com",
+  projectId:"nbvs-ghana",
+  storageBucket:"nbvs-ghana.firebasestorage.app",
+  messagingSenderId:"702636577113",
+  appId:"1:702636577113:web:8369b43a2aa43aeb95fc48"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+document.getElementById("signupBtn").onclick = async () => {
+  const fullName = document.getElementById("fullName").value.trim();
+  const niaNumber = document.getElementById("niaNumber").value.trim();
+  const email = document.getElementById("email").value.trim();
+  const password = document.getElementById("password").value.trim();
+
+  if (!fullName || !email || !password)
+    return alert("Full name, email, and password required.");
+
+  try {
+    const cred = await createUserWithEmailAndPassword(auth,email,password);
+
+    await setDoc(doc(db,"users",cred.user.uid),{
+      fullName,
+      niaNumber,
+      email,
+      role:"user",
+      status:"not_submitted",
+      wallet:0,
+      createdAt:new Date()
+    });
+
+    alert("User account created!");
+    window.location.href = "user_login.html";
+
+  } catch (e) {
+    alert(e.message);
+  }
+};
+</script>
+
+</body>
+</html>
