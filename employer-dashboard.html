@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>NBVS — Employer Dashboard</title>
+
+  <style>
+    :root{
+      --bg:#050b08;
+      --bg-soft:#0c1711;
+      --sidebar:#050f0b;
+      --accent:#16a34a;
+      --accent-soft:#15803d;
+      --text:#f9fafb;
+      --muted:#9ca3af;
+      --card:#0f1f17;
+      --border:#1f2933;
+    }
+
+    *{ box-sizing:border-box; margin:0; padding:0; font-family:"Inter",system-ui,sans-serif; }
+
+    body{
+      background: radial-gradient(circle at top left,#064e3b,#020617);
+      color:var(--text);
+      min-height:100vh;
+      display:flex;
+    }
+
+    /* SIDEBAR */
+    .sidebar{
+      width:230px;
+      background:var(--sidebar);
+      border-right:1px solid #111827;
+      padding:18px 14px;
+      display:flex;
+      flex-direction:column;
+      gap:18px;
+    }
+
+    .brand{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      margin-bottom:6px;
+    }
+    .brand-mark{
+      width:32px;height:32px;border-radius:10px;
+      background:conic-gradient(from 200deg,#ce1126,#fcd116,#006b3f,#ce1126);
+      display:flex;align-items:center;justify-content:center;
+      box-shadow:0 0 0 2px rgba(0,0,0,0.5);
+    }
+    .brand-mark span{
+      width:20px;height:20px;border-radius:6px;
+      background:#020617;color:#f9fafb;font-size:11px;
+      display:flex;align-items:center;justify-content:center;
+      font-weight:800;
+    }
+    .brand-text{
+      display:flex;flex-direction:column;
+      font-size:13px;
+    }
+    .brand-text strong{ letter-spacing:0.08em;font-size:11px;text-transform:uppercase; }
+    .brand-text span{ color:var(--muted);font-size:11px; }
+
+    .sidebar-label{
+      font-size:11px;
+      text-transform:uppercase;
+      color:var(--muted);
+      margin-top:10px;
+      letter-spacing:0.08em;
+    }
+
+    .nav-group{
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+      margin-top:6px;
+    }
+
+    .nav-btn{
+      width:100%;
+      text-align:left;
+      padding:9px 10px;
+      border-radius:9px;
+      border:none;
+      background:transparent;
+      color:var(--muted);
+      font-size:14px;
+      display:flex;
+      align-items:center;
+      gap:8px;
+      cursor:pointer;
+      transition:0.15s;
+    }
+    .nav-btn span.icon{ font-size:15px; }
+    .nav-btn.active,
+    .nav-btn:hover{
+      background:rgba(22,163,74,0.15);
+      color:#bbf7d0;
+    }
+
+    .sidebar-footer{
+      margin-top:auto;
+      font-size:11px;
+      color:var(--muted);
+    }
+
+    /* MAIN LAYOUT */
+    .main{
+      flex:1;
+      padding:18px 18px 28px;
+      display:flex;
+      flex-direction:column;
+      gap:16px;
+    }
+
+    .topbar{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:10px;
+    }
+
+    .top-title{
+      font-size:18px;
+      font-weight:600;
+    }
+    .top-sub{
+      font-size:13px;
+      color:var(--muted);
+    }
+
+    #employer-name{
+      font-weight:500;
+    }
+
+    .btn-out{
+      border:none;
+      border-radius:999px;
+      padding:8px 13px;
+      font-size:13px;
+      display:flex;
+      align-items:center;
+      gap:6px;
+      cursor:pointer;
+      background:#111827;
+      color:var(--text);
+    }
+    .btn-out:hover{
+      background:#020617;
+    }
+
+    /* CARDS */
+    .cards-row{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+      gap:12px;
+    }
+    .card{
+      background:var(--card);
+      border-radius:14px;
+      padding:14px 14px 12px;
+      border:1px solid var(--border);
+      box-shadow:0 8px 24px rgba(0,0,0,0.4);
+    }
+    .card-label{
+      font-size:11px;
+      color:var(--muted);
+      text-transform:uppercase;
+      letter-spacing:0.08em;
+      margin-bottom:4px;
+    }
+    .card-main{
+      font-size:20px;
+      font-weight:600;
+    }
+    .card-small{
+      font-size:12px;
+      color:var(--muted);
+      margin-top:4px;
+    }
+
+    /* SECTIONS */
+    .section{
+      display:none;
+      gap:14px;
+    }
+    .section.active{
+      display:block;
+    }
+
+    .section h2{
+      font-size:17px;
+      margin-bottom:6px;
+    }
+    .section p.sub{
+      font-size:13px;
+      color:var(--muted);
+      margin-bottom:10px;
+    }
+
+    /* FORM + LIST */
+    .grid-2{
+      display:grid;
+      grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);
+      gap:14px;
+    }
+    @media(max-width:900px){
+      body{flex-direction:column;}
+      .sidebar{flex-direction:row;width:100%;overflow-x:auto;}
+      .sidebar-footer{display:none;}
+      .grid-2{grid-template-columns:1fr;}
+    }
+
+    label{
+      font-size:12px;
+      color:var(--muted);
+      display:block;
+      margin-bottom:4px;
+    }
+    input,textarea{
+      width:100%;
+      border-radius:10px;
+      border:1px solid #1f2933;
+      background:#030712;
+      color:var(--text);
+      padding:9px 10px;
+      font-size:13px;
+      outline:none;
+      resize:vertical;
+      min-height:40px;
+    }
+    input::placeholder,
+    textarea::placeholder{
+      color:#6b7280;
+    }
+
+    .btn-primary{
+      margin-top:8px;
+      border:none;
+      border-radius:999px;
+      padding:9px 14px;
+      font-size:14px;
+      font-weight:600;
+      cursor:pointer;
+      background:linear-gradient(135deg,#16a34a,#22c55e);
+      color:#022c22;
+      box-shadow:0 12px 24px rgba(22,163,74,0.5);
+    }
+    .btn-primary:hover{
+      filter:brightness(1.05);
+    }
+
+    .check-item{
+      border-radius:12px;
+      padding:10px 11px;
+      border:1px solid #1f2933;
+      background:rgba(15,23,42,0.75);
+      margin-bottom:8px;
+      font-size:13px;
+    }
+    .check-item-header{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      margin-bottom:4px;
+    }
+    .status-pill{
+      padding:2px 8px;
+      border-radius:999px;
+      font-size:11px;
+      text-transform:uppercase;
+      letter-spacing:0.08em;
+    }
+    .status-pending{
+      background:rgba(234,179,8,0.15);
+      color:#facc15;
+    }
+    .status-clear{
+      background:rgba(22,163,74,0.2);
+      color:#6ee7b7;
+    }
+    .status-flagged{
+      background:rgba(220,38,38,0.25);
+      color:#fecaca;
+    }
+    .muted{
+      color:var(--muted);
+      font-size:12px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div>
+      <div class="brand">
+        <div class="brand-mark"><span>NB</span></div>
+        <div class="brand-text">
+          <strong>NBVS GHANA</strong>
+          <span>Employer Portal</span>
+        </div>
+      </div>
+      <div class="sidebar-label">Main</div>
+      <div class="nav-group">
+        <button class="nav-btn active" data-section="overview"><span class="icon">🏠</span>Overview</button>
+        <button class="nav-btn" data-section="run-check"><span class="icon">🧾</span>Run Check</button>
+        <button class="nav-btn" data-section="history"><span class="icon">📚</span>History</button>
+      </div>
+    </div>
+
+    <div class="sidebar-footer">
+      Logged in as<br><span id="employer-email" class="muted"></span>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+
+    <!-- Top bar -->
+    <div class="topbar">
+      <div>
+        <div class="top-title">Employer Dashboard</div>
+        <div class="top-sub">Welcome, <span id="employer-name">Loading…</span></div>
+      </div>
+      <button id="btn-logout" class="btn-out">⎋ Logout</button>
+    </div>
+
+    <!-- Stats -->
+    <div class="cards-row">
+      <div class="card">
+        <div class="card-label">Total Checks</div>
+        <div class="card-main" id="stat-total">—</div>
+        <div class="card-small">All background checks you have submitted.</div>
+      </div>
+      <div class="card">
+        <div class="card-label">Pending</div>
+        <div class="card-main" id="stat-pending">—</div>
+        <div class="card-small">Awaiting NBVS staff review.</div>
+      </div>
+      <div class="card">
+        <div class="card-label">Cleared</div>
+        <div class="card-main" id="stat-clear">—</div>
+        <div class="card-small">Marked as clear / verified.</div>
+      </div>
+    </div>
+
+    <!-- Section: Overview (just reuse history list short) -->
+    <section id="section-overview" class="section active">
+      <h2>Recent Checks</h2>
+      <p class="sub">Your latest background checks will appear here.</p>
+      <div id="overview-list">Loading…</div>
+    </section>
+
+    <!-- Section: Run Check -->
+    <section id="section-run-check" class="section">
+      <h2>Run a New Background Check</h2>
+      <p class="sub">Provide candidate details and submit to NBVS for verification.</p>
+
+      <div class="grid-2">
+        <div class="card">
+          <label for="empName">Candidate full name</label>
+          <input id="empName" placeholder="e.g. Ama Mensah" />
+
+          <label for="empNIA">NIA Number (optional)</label>
+          <input id="empNIA" placeholder="e.g. GHA-123456789-0" />
+
+          <label for="empPhone">Phone number</label>
+          <input id="empPhone" placeholder="e.g. 024 000 0000" />
+
+          <label for="empNotes">Role / Department / Notes</label>
+          <textarea id="empNotes" placeholder="Role applied for, branch, extra info..."></textarea>
+
+          <button id="submitCheckBtn" class="btn-primary">Submit Background Check</button>
+          <div id="submit-note" class="muted" style="margin-top:6px;"></div>
+        </div>
+
+        <div class="card">
+          <div class="card-label">Tip</div>
+          <div class="card-main" style="font-size:14px;">
+            Use the same candidate details every time
+          </div>
+          <div class="card-small">
+            So that NBVS can link multiple checks from different employers
+            to the same person’s record in the future.
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section: History -->
+    <section id="section-history" class="section">
+      <h2>Check History</h2>
+      <p class="sub">Full list of your submitted checks.</p>
+      <div id="checksList">Loading…</div>
+    </section>
+
+  </main>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
+import {
+  getAuth,
+  onAuthStateChanged,
+  signOut
+} from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
+import {
+  getFirestore,
+  doc,
+  getDoc,
+  collection,
+  addDoc,
+  query,
+  where,
+  getDocs,
+  orderBy,
+  serverTimestamp
+} from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey:"AIzaSyCDh_qL3jiCMHROK0_Soul2Wsv3t3y4wv0",
+  authDomain:"nbvs-ghana.firebaseapp.com",
+  projectId:"nbvs-ghana",
+  storageBucket:"nbvs-ghana.firebasestorage.app",
+  messagingSenderId:"702636577113",
+  appId:"1:702636577113:web:8369b43a2aa43aeb95fc48"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+let currentUid = null;
+
+/* NAV SWITCHING */
+document.querySelectorAll(".nav-btn").forEach(btn=>{
+  btn.addEventListener("click",()=>{
+    document.querySelectorAll(".nav-btn").forEach(b=>b.classList.remove("active"));
+    btn.classList.add("active");
+
+    const sec = btn.dataset.section;
+    document.querySelectorAll(".section").forEach(s=>s.classList.remove("active"));
+    document.getElementById("section-"+sec).classList.add("active");
+  });
+});
+
+/* LOGOUT */
+document.getElementById("btn-logout").onclick = async () => {
+  await signOut(auth);
+  window.location.href = "employer-login.html";
+};
+
+/* AUTH CHECK */
+onAuthStateChanged(auth, async user => {
+  if (!user) {
+    window.location.href = "employer-login.html";
+    return;
+  }
+  currentUid = user.uid;
+  document.getElementById("employer-email").textContent = user.email || "";
+
+  const uDoc = await getDoc(doc(db,"users",user.uid));
+  if (!uDoc.exists()) {
+    await signOut(auth);
+    return window.location.href = "employer-login.html";
+  }
+
+  const data = uDoc.data();
+  const role = (data.role || "").toLowerCase();
+
+  if (role !== "employer") {
+    alert("This dashboard is for employer accounts only.");
+    await signOut(auth);
+    return window.location.href = "employer-login.html";
+  }
+
+  document.getElementById("employer-name").textContent = data.name || "Employer";
+
+  // load data
+  loadChecks();
+});
+
+/* SUBMIT CHECK */
+document.getElementById("submitCheckBtn").onclick = async () => {
+  const noteEl = document.getElementById("submit-note");
+  noteEl.textContent = "";
+
+  if (!currentUid) {
+    noteEl.textContent = "Not authenticated.";
+    return;
+  }
+
+  const empName = document.getElementById("empName").value.trim();
+  const empNIA  = document.getElementById("empNIA").value.trim();
+  const empPhone= document.getElementById("empPhone").value.trim();
+  const empNotes= document.getElementById("empNotes").value.trim();
+
+  if (!empName || !empPhone) {
+    noteEl.textContent = "Employee name and phone are required.";
+    return;
+  }
+
+  try{
+    await addDoc(collection(db,"backgroundChecks"),{
+      employerId: currentUid,
+      empName,
+      empNIA,
+      empPhone,
+      empNotes,
+      status: "pending",
+      createdAt: serverTimestamp()
+    });
+
+    noteEl.textContent = "Background check submitted.";
+    document.getElementById("empName").value = "";
+    document.getElementById("empNIA").value = "";
+    document.getElementById("empPhone").value = "";
+    document.getElementById("empNotes").value = "";
+    loadChecks();
+  }catch(err){
+    console.error(err);
+    noteEl.textContent = "Error submitting check.";
+  }
+};
+
+/* LOAD CHECKS + STATS */
+async function loadChecks(){
+  if (!currentUid) return;
+
+  const qRef = query(
+    collection(db,"backgroundChecks"),
+    where("employerId","==",currentUid),
+    orderBy("createdAt","desc")
+  );
+
+  const snap = await getDocs(qRef);
+
+  const checksContainer = document.getElementById("checksList");
+  const overviewContainer = document.getElementById("overview-list");
+
+  if (snap.empty) {
+    checksContainer.innerHTML = "No checks submitted yet.";
+    overviewContainer.innerHTML = "No checks submitted yet.";
+    document.getElementById("stat-total").textContent = "0";
+    document.getElementById("stat-pending").textContent = "0";
+    document.getElementById("stat-clear").textContent = "0";
+    return;
+  }
+
+  let total = 0, pending = 0, clear = 0;
+
+  checksContainer.innerHTML = "";
+  overviewContainer.innerHTML = "";
+
+  snap.forEach(docSnap=>{
+    total++;
+    const d = docSnap.data();
+    const status = (d.status || "pending").toLowerCase();
+    if(status==="pending") pending++;
+    if(status==="clear" || status==="cleared") clear++;
+
+    const created = d.createdAt?.toDate?.()?.toLocaleString() || "";
+
+    const classes =
+      status==="pending" ? "status-pill status-pending" :
+      (status==="clear"||status==="cleared") ? "status-pill status-clear" :
+      "status-pill status-flagged";
+
+    const html = `
+      <div class="check-item">
+        <div class="check-item-header">
+          <div>
+            <strong>${d.empName || "Unknown"}</strong>
+            <div class="muted">${d.empPhone || ""}</div>
+          </div>
+          <div class="${classes}">${status}</div>
+        </div>
+        <div class="muted">
+          NIA: ${d.empNIA || "N/A"}<br>
+          Notes: ${d.empNotes || "—"}<br>
+          Submitted: ${created}
+        </div>
+      </div>
+    `;
+
+    checksContainer.innerHTML += html;
+  });
+
+  // overview just show first 5
+  let count = 0;
+  snap.forEach(docSnap=>{
+    if(count>=5) return;
+    count++;
+    const d = docSnap.data();
+    const status = (d.status || "pending").toLowerCase();
+    const created = d.createdAt?.toDate?.()?.toLocaleString() || "";
+
+    const classes =
+      status==="pending" ? "status-pill status-pending" :
+      (status==="clear"||status==="cleared") ? "status-pill status-clear" :
+      "status-pill status-flagged";
+
+    overviewContainer.innerHTML += `
+      <div class="check-item">
+        <div class="check-item-header">
+          <div><strong>${d.empName || "Unknown"}</strong></div>
+          <div class="${classes}">${status}</div>
+        </div>
+        <div class="muted">${created}</div>
+      </div>
+    `;
+  });
+
+  document.getElementById("stat-total").textContent   = total;
+  document.getElementById("stat-pending").textContent = pending;
+  document.getElementById("stat-clear").textContent   = clear;
+}
+</script>
+</body>
+</html>
