@@ -1,73 +1,29 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
+<meta charset="UTF-8">
+<title>Employer Sign Up — NBVS</title>
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>NBVS — Employer Sign Up</title>
-
 <style>
-:root{
-  --red:#ce1126;
-  --yellow:#fcd116;
-  --green:#006b3f;
-  --bg:#f6f7f9;
-}
-body{
-  margin:0;
-  background:var(--bg);
-  font-family:Inter, Arial, sans-serif;
-}
-header{
-  background:linear-gradient(90deg,var(--red),var(--yellow),var(--green));
-  padding:18px;
-  text-align:center;
-  color:white;
-  font-weight:700;
-}
-.card{
-  max-width:420px;
-  margin:40px auto;
-  background:white;
-  padding:24px;
-  border-radius:12px;
-  box-shadow:0 6px 20px rgba(0,0,0,0.08);
-}
-input{
-  width:100%;
-  padding:12px;
-  border:1px solid #ccc;
-  border-radius:8px;
-  margin-bottom:12px;
-}
-button{
-  width:100%;
-  padding:12px;
-  border:none;
-  border-radius:8px;
-  background:var(--green);
-  color:white;
-  font-weight:700;
-  cursor:pointer;
-}
-.note{
-  font-size:0.85rem;
-  color:#555;
-  text-align:center;
-  margin-top:8px;
-}
+body{font-family:Inter, sans-serif; background:#f3f4f6; margin:0; padding:20px;}
+.card{max-width:430px; margin:40px auto; background:white; padding:25px;
+border-radius:12px; box-shadow:0 8px 22px rgba(0,0,0,0.12);}
+input{width:100%; padding:12px; border:1px solid #ccc; border-radius:8px; margin:8px 0;}
+button{width:100%; padding:12px; background:#046c4e; color:white; border:none; border-radius:8px;
+font-size:1rem; font-weight:600; cursor:pointer;}
+h2{text-align:center; margin-bottom:14px;}
 </style>
 </head>
 
 <body>
-<header>NBVS — Employer Sign Up</header>
-
 <div class="card">
+  <h2>Employer Sign Up</h2>
+
+  <input id="email" placeholder="Business Email" />
+  <input id="password" type="password" placeholder="Password" />
   <input id="company" placeholder="Company Name" />
-  <input id="business" placeholder="Business Type (Bank, HR, etc.)" />
-  <input id="email" placeholder="Admin Email" autocomplete="username" />
-  <input id="password" type="password" placeholder="Password" autocomplete="new-password" />
-  <button id="signup">Create Employer Account</button>
-  <div class="note" id="msg"></div>
+
+  <button id="signupBtn">Create Employer Account</button>
 </div>
 
 <script type="module">
@@ -86,38 +42,30 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
-const db = getFirestore(app);
+const db   = getFirestore(app);
 
-const btn = document.getElementById("signup");
-const msg = document.getElementById("msg");
+document.getElementById("signupBtn").onclick = async () => {
+  const email = email.value.trim();
+  const pass  = password.value.trim();
+  const comp  = company.value.trim();
 
-btn.onclick = async () => {
-  msg.textContent = "";
+  if (!email || !pass || !comp) return alert("Fill all fields.");
 
-  const company = document.getElementById("company").value.trim();
-  const business = document.getElementById("business").value.trim();
-  const email = document.getElementById("email").value.trim();
-  const pass = document.getElementById("password").value.trim();
+  try {
+    const res = await createUserWithEmailAndPassword(auth, email, pass);
 
-  if(!company || !business || !email || !pass){
-    msg.textContent = "Fill all fields.";
-    return;
-  }
-
-  try{
-    const cred = await createUserWithEmailAndPassword(auth, email, pass);
-    const uid = cred.user.uid;
-
-    await setDoc(doc(db,"users",uid),{
-      company,
-      business,
-      role:"employer"
+    await setDoc(doc(db,"users",res.user.uid),{
+      role: "employer",
+      company: comp,
+      email: email,
+      createdAt: new Date()
     });
 
-    // Employers don't have wallet
-    window.location.href = "employer-dashboard.html";
-  }catch(e){
-    msg.textContent = e.message || "Error creating account.";
+    alert("Employer account created! Redirecting…");
+    window.location.href = "employer.html";
+
+  } catch(err){
+    alert(err.message);
   }
 };
 </script>
