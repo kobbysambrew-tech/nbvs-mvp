@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NBVS User Portal</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+  :root{
+    --red:#ce1126;
+    --yellow:#fcd116;
+    --green:#006b3f;
+    --black:#111;
+    --card:#fff;
+    --bg:#f3f4f6;
+    --muted:#6b7280;
+  }
+
+  *{margin:0;padding:0;box-sizing:border-box;font-family:"Inter",sans-serif;}
+
+  body{
+    background:var(--bg);
+    padding:20px;
+  }
+
+  .container{
+    max-width:900px;
+    margin:0 auto;
+  }
+
+  .header{
+    background:linear-gradient(90deg,var(--red),var(--yellow),var(--green));
+    color:#fff;
+    padding:20px;
+    border-radius:12px;
+    text-align:center;
+    font-size:1.4rem;
+    font-weight:700;
+    margin-bottom:20px;
+    box-shadow:0 4px 20px rgba(0,0,0,0.15);
+  }
+
+  .card{
+    background:var(--card);
+    border-radius:14px;
+    padding:20px;
+    box-shadow:0 6px 20px rgba(0,0,0,0.08);
+    margin-bottom:18px;
+  }
+
+  h2{
+    font-size:1.2rem;
+    margin-bottom:10px;
+  }
+
+  .btn{
+    display:block;
+    width:100%;
+    padding:12px;
+    border-radius:10px;
+    background:var(--green);
+    color:#fff;
+    text-align:center;
+    font-weight:600;
+    margin-top:10px;
+    text-decoration:none;
+  }
+
+  .btn:hover{
+    opacity:0.9;
+  }
+
+  .logout{
+    background:var(--red);
+  }
+
+  .info{
+    text-align:center;
+    color:var(--muted);
+    margin-top:8px;
+    font-size:0.9rem;
+  }
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+  <div class="header">
+    NBVS User Portal
+  </div>
+
+  <div class="card">
+    <h2>Welcome, <span id="user-name">User</span></h2>
+    <p class="info">Your NBVS verification dashboard</p>
+  </div>
+
+  <div class="card">
+    <h2>Quick Actions</h2>
+    <a class="btn" href="verify.html">🔍 Start Verification</a>
+    <a class="btn" href="user-wallet.html">💳 Wallet / Top-Up</a>
+    <a class="btn" href="user-searches.html">📄 My Search History</a>
+    <a class="btn" href="user-settings.html">⚙️ Account Settings</a>
+  </div>
+
+  <a class="btn logout" id="logoutBtn">Logout</a>
+
+</div>
+
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
+  import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey:"AIzaSyCDh_qL3jiCMHROK0_Soul2Wsv3t3y4wv0",
+    authDomain:"nbvs-ghana.firebaseapp.com",
+    projectId:"nbvs-ghana",
+    storageBucket:"nbvs-ghana.firebasestorage.app",
+    messagingSenderId:"702636577113",
+    appId:"1:702636577113:web:8369b43a2aa43aeb95fc48"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  const nameEl = document.getElementById("user-name");
+
+  onAuthStateChanged(auth, async (user) => {
+    if (!user) return window.location.href = "user-login.html";
+
+    const snap = await getDoc(doc(db, "users", user.uid));
+    if (!snap.exists()) {
+      await signOut(auth);
+      return window.location.href = "user-login.html";
+    }
+
+    const data = snap.data();
+
+    // only allow role = user
+    if (data.role !== "user") {
+      await signOut(auth);
+      return window.location.href = "user-login.html";
+    }
+
+    nameEl.textContent = data.name || "User";
+  });
+
+  document.getElementById("logoutBtn").onclick = async () => {
+    await signOut(auth);
+    window.location.href = "user-login.html";
+  };
+</script>
+
+</body>
+</html>
