@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Employer Dashboard - NBVS</title>
+  <title>User Verification - NBVS</title>
 
   <style>
     body {
@@ -12,7 +12,6 @@
       font-family: "Inter", sans-serif;
     }
 
-    /* Top Navigation */
     #nav {
       background: #0b3d91;
       padding: 15px 20px;
@@ -34,14 +33,12 @@
       font-weight: 600;
     }
 
-    /* Main Container */
     #container {
       max-width: 900px;
       margin: 30px auto;
       padding: 20px;
     }
 
-    /* Card */
     .card {
       background: white;
       padding: 20px;
@@ -50,10 +47,9 @@
       margin-bottom: 25px;
     }
 
-    h2, h3 {
-      margin-top: 0;
+    h2 {
+      margin: 0 0 10px;
       color: #0b3d91;
-      font-weight: 700;
     }
 
     input, textarea, button {
@@ -79,17 +75,12 @@
       background: #083271;
     }
 
-    .check-item {
-      background: #f8f9fc;
+    #statusBox {
+      background: #f7f9ff;
       padding: 15px;
+      border-left: 5px solid #0b3d91;
       border-radius: 10px;
-      margin-bottom: 15px;
-      border-left: 4px solid #0b3d91;
-    }
-
-    .status {
-      margin-top: 5px;
-      font-weight: 600;
+      font-size: 16px;
     }
   </style>
 </head>
@@ -97,30 +88,36 @@
 <body>
 
 <div id="nav">
-  <div>NBVS Employer Dashboard</div>
+  <div>NBVS Verification Center</div>
   <button id="logoutBtn">Logout</button>
 </div>
 
 <div id="container">
 
-  <!-- Submit Check -->
+  <!-- Verification Form -->
   <div class="card">
-    <h2>Run a Background Check</h2>
-    <input id="empName" placeholder="Employee Full Name" />
-    <input id="empNIA" placeholder="NIA Number (optional)" />
-    <input id="empPhone" placeholder="Phone Number" />
-    <textarea id="empNotes" placeholder="Extra Notes (Role, Dept, etc)"></textarea>
-    <button id="submitCheckBtn">Submit Background Check</button>
+    <h2>Your Verification Details</h2>
+
+    <input id="fullName" placeholder="Full Name">
+    <input id="niaNumber" placeholder="NIA Number">
+    <input id="phoneNumber" placeholder="Phone Number">
+    <textarea id="address" placeholder="Home Address"></textarea>
+
+    <textarea id="education" placeholder="Education History (School, Cert, etc)"></textarea>
+    <textarea id="workHistory" placeholder="Work/Job History"></textarea>
+
+    <textarea id="notes" placeholder="Other Notes (Optional)"></textarea>
+
+    <button id="saveBtn">Save / Update Profile</button>
   </div>
 
-  <!-- Previous Checks -->
+  <!-- Verification Status -->
   <div class="card">
-    <h3>Your Previous Checks</h3>
-    <div id="checksList">Loading...</div>
+    <h2>Your Verification Status</h2>
+    <div id="statusBox">Loading...</div>
   </div>
 
 </div>
-
 
 <script type="module">
 /* =============== FIREBASE IMPORTS ================== */
@@ -129,7 +126,7 @@ import {
   getAuth, onAuthStateChanged, signOut 
 } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
 import { 
-  getFirestore, doc, getDoc, collection, addDoc, query, where, getDocs, serverTimestamp 
+  getFirestore, doc, getDoc, setDoc, serverTimestamp 
 } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 
 
@@ -148,29 +145,28 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 
 
-/* =============== AUTH CHECK (NO REDIRECT LOOP) ================== */
+/* =============== AUTH + ROLE CHECK (NO REDIRECT LOOP) ================== */
 onAuthStateChanged(auth, async user => {
   if (!user) return window.location = "dashboard.html"; // login page
 
-  // Fetch user role from Firestore
   const ref = doc(db, "users", user.uid);
   const snap = await getDoc(ref);
 
   if (!snap.exists()) {
-    alert("No profile found. Contact NBVS support.");
+    alert("No verification profile found.");
     return window.location = "dashboard.html";
   }
 
   const role = (snap.data().role || "").toLowerCase();
 
-  // This page is EMPLOYER ONLY
-  if (role !== "employer") {
-    alert("Access denied. This page is for employers only.");
+  // This page is ONLY for regular users
+  if (role !== "user") {
+    alert("Access denied. This page is for users only.");
     return window.location = "dashboard.html";
   }
 
-  // Load data if employer is valid
-  loadPreviousChecks(user.uid);
+  // load data
+  loadUserData(user.uid);
 });
 
 
@@ -178,68 +174,56 @@ onAuthStateChanged(auth, async user => {
 document.getElementById("logoutBtn").onclick = () => signOut(auth);
 
 
-/* =============== SUBMIT CHECK ================== */
-document.getElementById("submitCheckBtn").onclick = async () => {
+/* =============== LOAD USER VERIFICATION DATA ================== */
+async function loadUserData(uid) {
+  const ref = doc(db, "users", uid);
+  const snap = await getDoc(ref);
+
+  if (snap.exists()) {
+    const d = snap.data();
+
+    fullName.value    = d.fullName     || "";
+    niaNumber.value   = d.niaNumber    || "";
+    phoneNumber.value = d.phoneNumber  || "";
+    address.value     = d.address      || "";
+    education.value   = d.education    || "";
+    workHistory.value = d.workHistory  || "";
+    notes.value       = d.notes        || "";
+
+    document.getElementById("statusBox").innerHTML =
+      `<strong>Status:</strong> ${d.status || "Not Submitted"}<br>
+       <strong>Last Updated:</strong> ${d.updatedAt ? d.updatedAt.toDate().toLocaleString() : "N/A"}`;
+  } 
+  else {
+    document.getElementById("statusBox").innerHTML =
+      "You have not submitted your verification information yet.";
+  }
+}
+
+
+/* =============== SAVE / UPDATE USER PROFILE ================== */
+document.getElementById("saveBtn").onclick = async () => {
   const user = auth.currentUser;
   if (!user) return;
 
-  const empName = empName.value.trim();
-  const empNIA = empNIA.value.trim();
-  const empPhone = empPhone.value.trim();
-  const empNotes = empNotes.value.trim();
-
-  if (!empName || !empPhone) {
-    return alert("Employee name and phone number are required.");
-  }
-
-  await addDoc(collection(db, "backgroundChecks"), {
-    employerId: user.uid,
-    empName,
-    empNIA,
-    empPhone,
-    empNotes,
+  const data = {
+    fullName: fullName.value.trim(),
+    niaNumber: niaNumber.value.trim(),
+    phoneNumber: phoneNumber.value.trim(),
+    address: address.value.trim(),
+    education: education.value.trim(),
+    workHistory: workHistory.value.trim(),
+    notes: notes.value.trim(),
     status: "pending",
-    createdAt: serverTimestamp()
-  });
+    updatedAt: serverTimestamp(),
+    role: "user"
+  };
 
-  alert("Background Check Submitted!");
+  await setDoc(doc(db, "users", user.uid), data, { merge: true });
 
-  empName.value = "";
-  empNIA.value = "";
-  empPhone.value = "";
-  empNotes.value = "";
-
-  loadPreviousChecks(user.uid);
+  alert("Verification Profile Updated!");
+  loadUserData(user.uid);
 };
-
-
-/* =============== LOAD CHECKS ================== */
-async function loadPreviousChecks(uid) {
-  const q = query(collection(db, "backgroundChecks"), where("employerId", "==", uid));
-  const snap = await getDocs(q);
-
-  const container = document.getElementById("checksList");
-
-  if (snap.empty) {
-    container.innerHTML = "No checks submitted yet.";
-    return;
-  }
-
-  container.innerHTML = "";
-
-  snap.forEach(docSnap => {
-    const d = docSnap.data();
-
-    container.innerHTML += `
-      <div class="check-item">
-        <strong>${d.empName}</strong><br>
-        NIA: ${d.empNIA || "N/A"}<br>
-        Phone: ${d.empPhone}<br>
-        <div class="status">Status: ${d.status}</div>
-      </div>
-    `;
-  });
-}
 
 </script>
 
