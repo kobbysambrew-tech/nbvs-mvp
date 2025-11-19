@@ -1,209 +1,344 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Employer Dashboard - NBVS</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>NBVS — Employer Dashboard</title>
 
-  <style>
-    body {
-      margin: 0;
-      background: #f4f6fa;
-      font-family: "Inter", sans-serif;
-    }
+<style>
+  :root {
+    --red:#ce1126;
+    --yellow:#fcd116;
+    --green:#046c4e;
+    --bg:#f6f7f9;
+    --card:#ffffff;
+    --muted:#6b7280;
+  }
 
-    header {
-      background: #003a70;
-      padding: 18px 20px;
-      color: white;
-      font-size: 20px;
-      font-weight: 600;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-    }
+  body{
+    margin:0;
+    background:var(--bg);
+    font-family:"Inter",sans-serif;
+    color:#111;
+  }
 
-    #logoutBtn {
-      background: white;
-      color: #003a70;
-      border: none;
-      padding: 8px 16px;
-      border-radius: 6px;
-      cursor: pointer;
-      font-weight: 600;
-    }
+  header{
+    background:linear-gradient(90deg,var(--red),var(--yellow),var(--green));
+    padding:18px;
+    color:#fff;
+    text-align:center;
+    font-weight:700;
+    box-shadow:0 4px 20px rgba(0,0,0,0.15);
+  }
 
-    #container {
-      max-width: 900px;
-      margin: 30px auto;
-      padding: 20px;
-    }
+  main{
+    max-width:900px;
+    margin:20px auto;
+    padding:0 16px;
+  }
 
-    .card {
-      background: white;
-      padding: 22px;
-      border-radius: 12px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.06);
-      margin-bottom: 25px;
-    }
+  .panel{
+    background:var(--card);
+    padding:18px;
+    border-radius:12px;
+    margin-bottom:18px;
+    box-shadow:0 6px 20px rgba(0,0,0,0.07);
+  }
 
-    h2, h3 {
-      margin-top: 0;
-      color: #003a70;
-      font-weight: 700;
-    }
+  h2, h3{
+    margin-top:0;
+    color:var(--green);
+  }
 
-    input, textarea, button {
-      width: 100%;
-      padding: 12px;
-      border-radius: 8px;
-      border: 1px solid #ccc;
-      margin-top: 10px;
-      font-size: 15px;
-      font-family: inherit;
-    }
+  input{
+    width:100%;
+    padding:12px;
+    border-radius:8px;
+    border:1px solid #ccc;
+    margin-top:6px;
+    font-size:1rem;
+  }
 
-    button {
-      background: #003a70;
-      color: white;
-      font-weight: 600;
-      border: none;
-      cursor: pointer;
-      margin-top: 15px;
-    }
+  button{
+    padding:12px;
+    border-radius:8px;
+    border:none;
+    cursor:pointer;
+    font-weight:700;
+  }
 
-    button:hover {
-      background: #002f5c;
-    }
+  .btn-green{ background:var(--green); color:#fff; }
+  .btn-yellow{ background:var(--yellow); color:#111; }
+  .btn-red{ background:var(--red); color:#fff; }
 
-    .check-item {
-      background: #f8faff;
-      padding: 15px;
-      border-radius: 10px;
-      margin-bottom: 15px;
-      border-left: 4px solid #003a70;
-    }
+  .row{
+    display:flex;
+    gap:10px;
+    margin-top:10px;
+  }
 
-    .status {
-      font-weight: 700;
-      color: #003a70;
-      margin-top: 5px;
-    }
-  </style>
+  .record{
+    background:#fff;
+    border-left:5px solid var(--green);
+    padding:12px;
+    border-radius:10px;
+    margin-top:12px;
+  }
+
+  .small{
+    font-size:0.88rem;
+    color:var(--muted);
+  }
+</style>
 </head>
-<body>
 
+<body>
 <header>
-  <div>NBVS Employer Dashboard</div>
-  <button id="logoutBtn">Logout</button>
+  <h1>Employer Dashboard — NBVS</h1>
 </header>
 
-<div id="container">
+<main id="app" style="display:none">
+  
+  <!-- WALLET OVERVIEW -->
+  <div class="panel">
+    <h2>Wallet</h2>
+    <p style="font-size:1.5rem;font-weight:700">
+      Balance: ¢<span id="walletBalance">—</span>
+    </p>
 
-  <div class="card">
+    <button class="btn-yellow" id="openWallet">Open Wallet</button>
+  </div>
+
+  <!-- SEARCH FORM -->
+  <div class="panel">
     <h2>Run a Background Check</h2>
 
-    <input id="empName" placeholder="Employee Full Name" />
-    <input id="empNIA" placeholder="NIA Number (optional)" />
-    <input id="empPhone" placeholder="Phone Number" />
-    <textarea id="empNotes" placeholder="Notes (Role, Dept, etc)"></textarea>
+    <label>Full Name or NIA</label>
+    <input id="searchInput" placeholder="e.g. Kojo Mensah or GHA-293845" />
 
-    <button id="submitCheckBtn">Submit Check</button>
+    <div class="row">
+      <button id="searchBtn" class="btn-green" style="flex:1">
+        Run Check
+      </button>
+    </div>
+
+    <div id="resultsArea" style="margin-top:12px"></div>
   </div>
 
-  <div class="card">
-    <h3>Your Previous Checks</h3>
-    <div id="checksList">Loading checks...</div>
+  <!-- RECENT SEARCHES -->
+  <div class="panel">
+    <h3>Recent Searches</h3>
+    <div id="logsArea">
+      <p class="small">Loading your history…</p>
+    </div>
   </div>
 
-</div>
+  <button id="logoutBtn" class="btn-red" style="width:100%;margin-top:12px;">
+    Logout
+  </button>
+
+</main>
 
 
 <script type="module">
+/* -----------------------------------------------------
+   FIREBASE IMPORTS
+----------------------------------------------------- */
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
 import { 
   getAuth, onAuthStateChanged, signOut 
 } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
-import { 
-  getFirestore, collection, addDoc, query, where, getDocs, serverTimestamp 
+import {
+  getFirestore, doc, getDoc, updateDoc,
+  collection, addDoc, query, where, getDocs, orderBy, limit
 } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 
+
+/* -----------------------------------------------------
+   CONFIG
+----------------------------------------------------- */
 const firebaseConfig = {
-  apiKey: "AIzaSyCDh_qL3jiCMHROK0_Soul2Wsv3t3y4wv0",
-  authDomain: "nbvs-ghana.firebaseapp.com",
-  projectId: "nbvs-ghana",
-  storageBucket: "nbvs-ghana.firebasestorage.app",
-  messagingSenderId: "702636577113",
-  appId: "1:702636577113:web:8369b43a2aa43aeb95fc48"
+  apiKey:"AIzaSyCDh_qL3jiCMHROK0_Soul2Wsv3t3y4wv0",
+  authDomain:"nbvs-ghana.firebaseapp.com",
+  projectId:"nbvs-ghana",
+  storageBucket:"nbvs-ghana.firebasestorage.app",
+  messagingSenderId:"702636577113",
+  appId:"1:702636577113:web:8369b43a2aa43aeb95fc48"
 };
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
-const db = getFirestore(app);
+const db   = getFirestore(app);
 
-onAuthStateChanged(auth, async user => {
-  if (!user) return window.location.href = "employer_login.html";
 
-  // Confirm role
-  const snap = await getDocs(query(collection(db,"users"), where("email","==",user.email)));
-  let role = null;
-  snap.forEach(d => role = d.data().role);
+/* -----------------------------------------------------
+   ELEMENTS
+----------------------------------------------------- */
+const appEl          = document.getElementById("app");
+const searchInput    = document.getElementById("searchInput");
+const searchBtn      = document.getElementById("searchBtn");
+const resultsArea    = document.getElementById("resultsArea");
+const walletBalance  = document.getElementById("walletBalance");
+const openWallet     = document.getElementById("openWallet");
+const logsArea       = document.getElementById("logsArea");
+const logoutBtn      = document.getElementById("logoutBtn");
 
-  if (role !== "employer") {
-    await signOut(auth);
-    return window.location.href = "employer_login.html";
+let employerId = null;
+
+
+/* -----------------------------------------------------
+   AUTH CHECK — ONLY EMPLOYERS
+----------------------------------------------------- */
+onAuthStateChanged(auth, async (user)=>{
+  if (!user) return window.location.href = "employer-login.html";
+
+  const uDoc = await getDoc(doc(db,"users",user.uid));
+  if (!uDoc.exists()){
+    alert("No employer record found.");
+    return;
   }
 
-  loadPreviousChecks(user.uid);
+  const role = (uDoc.data().role || "").toLowerCase();
+  if (role !== "employer"){
+    alert("Employer access only.");
+    await signOut(auth);
+    return window.location.href = "employer-login.html";
+  }
+
+  employerId = user.uid;
+  appEl.style.display = "block";
+
+  loadWallet();
+  loadLogs();
 });
 
-document.getElementById("logoutBtn").onclick = () => signOut(auth);
 
-document.getElementById("submitCheckBtn").onclick = async () => {
-  const user = auth.currentUser;
-  if (!user) return;
+/* -----------------------------------------------------
+   WALLET
+----------------------------------------------------- */
+async function loadWallet(){
+  const snap = await getDoc(doc(db,"users", employerId));
+  const data = snap.data();
+  walletBalance.innerText = data.wallet ?? 0;
+}
 
-  const empName = empName.value.trim();
-  const empNIA = empNIA.value.trim();
-  const empPhone = empPhone.value.trim();
-  const empNotes = empNotes.value.trim();
+openWallet.onclick = () => window.location.href = "wallet.html";
 
-  if (!empName || !empPhone) return alert("Name + phone required.");
 
-  await addDoc(collection(db,"backgroundChecks"), {
-    employerId: user.uid,
-    empName, empNIA, empPhone, empNotes,
-    status: "pending",
-    createdAt: serverTimestamp()
+/* -----------------------------------------------------
+   SEARCH ENGINE (uses your existing logic)
+----------------------------------------------------- */
+async function performSearch(term){
+  const results = [];
+  const trimmed = term.trim();
+  if (!trimmed) return results;
+
+  const ref = collection(db,"records");
+
+  // 1. NIA match
+  const snapNia = await getDocs(query(ref, where("nia","==", trimmed), limit(50)));
+  snapNia.forEach(d => results.push(d));
+
+  // 2. Exact name match
+  const lower = trimmed.toLowerCase();
+  const snapName = await getDocs(query(ref, where("name_lower","==", lower), limit(200)));
+  snapName.forEach(d => { if (!results.some(x=>x.id===d.id)) results.push(d); });
+
+  return results;
+}
+
+function renderResults(list){
+  resultsArea.innerHTML = "";
+
+  if (!list.length){
+    resultsArea.innerHTML = `<p class="small">No record found.</p>`;
+    return;
+  }
+
+  list.forEach(d=>{
+    const r = d.data();
+    const div = document.createElement("div");
+    div.className = "record";
+    div.innerHTML = `
+      <p><b>Name:</b> ${r.name||""}</p>
+      <p><b>NIA:</b> ${r.nia||""}</p>
+      <p><b>DOB:</b> ${r.dob||""}</p>
+      <p><b>Region:</b> ${r.region||""}</p>
+      <p><b>Address:</b> ${r.address||""}</p>
+      <p><b>Criminal:</b> ${r.criminal||""}</p>
+      <p><b>Driving:</b> ${r.driving||""}</p>
+      <p><b>Credit:</b> ${r.credit||""}</p>
+    `;
+    resultsArea.appendChild(div);
+  });
+}
+
+
+/* -----------------------------------------------------
+   RUN SEARCH
+----------------------------------------------------- */
+searchBtn.onclick = async () => {
+  const term = searchInput.value.trim();
+  if (!term){
+    resultsArea.innerHTML = `<p class="small">Enter something to search.</p>`;
+    return;
+  }
+
+  resultsArea.innerHTML = `<p class="small">Searching…</p>`;
+
+  const docs = await performSearch(term);
+  renderResults(docs);
+
+  await addDoc(collection(db,"search_logs"),{
+    employerId,
+    term,
+    found: docs.length>0,
+    timestamp: new Date(),
   });
 
-  alert("Check submitted!");
-  empName.value = empNIA.value = empPhone.value = empNotes.value = "";
-  loadPreviousChecks(user.uid);
+  await loadLogs();
 };
 
-async function loadPreviousChecks(uid) {
-  const q = query(collection(db,"backgroundChecks"), where("employerId","==",uid));
+
+/* -----------------------------------------------------
+   LOG HISTORY
+----------------------------------------------------- */
+async function loadLogs(){
+  const q = query(
+    collection(db,"search_logs"),
+    where("employerId","==",employerId),
+    orderBy("timestamp","desc"),
+    limit(10)
+  );
+
   const snap = await getDocs(q);
 
-  const box = document.getElementById("checksList");
-  if (snap.empty) return box.innerHTML = "No checks yet.";
+  if (snap.empty){
+    logsArea.innerHTML = `<p class="small">No searches yet.</p>`;
+    return;
+  }
 
-  box.innerHTML = "";
-  snap.forEach(docSnap => {
-    const d = docSnap.data();
-
-    box.innerHTML += `
-      <div class="check-item">
-        <strong>${d.empName}</strong><br>
-        NIA: ${d.empNIA || "N/A"}<br>
-        Phone: ${d.empPhone}<br>
-        <div class="status">Status: ${d.status}</div>
+  logsArea.innerHTML = "";
+  snap.forEach(d=>{
+    const r = d.data();
+    logsArea.innerHTML += `
+      <div class="record">
+        <b>${r.term}</b><br>
+        <span class="small">Found: ${r.found ? "Yes" : "No"}</span><br>
+        <span class="small">${new Date(r.timestamp).toLocaleString()}</span>
       </div>
     `;
   });
 }
+
+
+/* -----------------------------------------------------
+   LOGOUT
+----------------------------------------------------- */
+logoutBtn.onclick = async () => {
+  await signOut(auth);
+  window.location.href = "employer-login.html";
+};
 </script>
 
 </body>
