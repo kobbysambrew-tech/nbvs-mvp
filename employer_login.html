@@ -1,79 +1,80 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Employer Login • NBVS</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Employer Login - NBVS</title>
 
-<style>
-  body {
-    margin: 0;
-    font-family: "Inter", sans-serif;
-    background: linear-gradient(135deg, #0b1f17, #0f2e22, #15392c);
-    color: #fff;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-  }
+  <style>
+    body {
+      margin: 0;
+      background: #f4f6fa;
+      font-family: "Inter", sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
 
-  .card {
-    width: 94%;
-    max-width: 410px;
-    background: rgba(255,255,255,0.08);
-    padding: 28px;
-    border-radius: 14px;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.25);
-    backdrop-filter: blur(8px);
-  }
+    .card {
+      background: white;
+      padding: 30px;
+      width: 90%;
+      max-width: 400px;
+      border-radius: 14px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.15);
+      text-align: center;
+    }
 
-  h2 {
-    text-align: center;
-    margin-bottom: 18px;
-    font-weight: 700;
-  }
+    h2 {
+      color: #003a70;
+      margin-bottom: 20px;
+      font-weight: 700;
+    }
 
-  input {
-    width: 100%;
-    padding: 12px;
-    border-radius: 8px;
-    border: none;
-    margin: 10px 0;
-    background: rgba(255,255,255,0.14);
-    color: #fff;
-    font-size: 15px;
-  }
+    input {
+      width: 100%;
+      padding: 12px;
+      margin: 8px 0;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      font-size: 15px;
+    }
 
-  button {
-    width: 100%;
-    padding: 13px;
-    background: #20c997;
-    color: #000;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    font-weight: 700;
-    font-size: 16px;
-    margin-top: 8px;
-  }
+    button {
+      width: 100%;
+      padding: 12px;
+      background: #003a70;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      margin-top: 12px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 16px;
+    }
 
-  #note {
-    margin-top: 10px;
-    font-size: 14px;
-    color: #ffbfbf;
-    text-align: center;
-  }
-</style>
+    .note {
+      margin-top: 10px;
+      color: #444;
+      font-size: 14px;
+    }
+  </style>
 </head>
+
 <body>
 
 <div class="card">
   <h2>Employer Login</h2>
-  <input id="email" type="email" placeholder="Email">
-  <input id="password" type="password" placeholder="Password">
-  <button id="loginBtn">Sign In</button>
-  <div id="note"></div>
+
+  <input id="email" placeholder="Email" autocomplete="username" />
+  <input id="password" type="password" placeholder="Password" autocomplete="current-password" />
+
+  <button id="btn-login">Sign In</button>
+
+  <div class="note" id="note"></div>
 </div>
+
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
@@ -81,44 +82,45 @@ import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https:/
 import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 
 const firebaseConfig = {
-  apiKey:"AIzaSyCDh_qL3jiCMHROK0_Soul2Wsv3t3y4wv0",
-  authDomain:"nbvs-ghana.firebaseapp.com",
-  projectId:"nbvs-ghana",
-  storageBucket:"nbvs-ghana.firebasestorage.app",
-  messagingSenderId:"702636577113",
-  appId:"1:702636577113:web:8369b43a2aa43aeb95fc48"
+  apiKey: "AIzaSyCDh_qL3jiCMHROK0_Soul2Wsv3t3y4wv0",
+  authDomain: "nbvs-ghana.firebaseapp.com",
+  projectId: "nbvs-ghana",
+  storageBucket: "nbvs-ghana.firebasestorage.app",
+  messagingSenderId: "702636577113",
+  appId: "1:702636577113:web:8369b43a2aa43aeb95fc48"
 };
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-loginBtn.onclick = async () => {
-  note.textContent = "";
+document.getElementById("btn-login").onclick = async () => {
+  const email = document.getElementById("email").value.trim();
+  const password = document.getElementById("password").value.trim();
+  const note = document.getElementById("note");
+
+  if (!email || !password) return note.textContent = "Enter email and password.";
+
   try {
-    await signInWithEmailAndPassword(auth, email.value, password.value);
-  } catch (e) {
-    note.textContent = e.message;
+    await signInWithEmailAndPassword(auth, email, password);
+  } catch (err) {
+    note.textContent = err.message || "Login failed.";
   }
 };
 
-onAuthStateChanged(auth, async user => {
+// Role-based redirect
+onAuthStateChanged(auth, async (user) => {
   if (!user) return;
 
   const snap = await getDoc(doc(db, "users", user.uid));
-  if (!snap.exists()) {
-    note.textContent = "No account found.";
+
+  if (!snap.exists() || snap.data().role !== "employer") {
+    document.getElementById("note").textContent = "Not an employer account.";
+    await auth.signOut();
     return;
   }
 
-  const role = snap.data().role;
-  
-  if (role === "employer") {
-    window.location.href = "employer-dashboard.html";
-  } else {
-    note.textContent = "Not an employer account.";
-    auth.signOut();
-  }
+  window.location.href = "employer-dashboard.html";
 });
 </script>
 
