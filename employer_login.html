@@ -1,144 +1,153 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Employer Login — NBVS</title>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>NBVS Employer Login</title>
 
 <style>
   body {
-    margin:0;
+    margin: 0;
     font-family: "Inter", sans-serif;
-    background: linear-gradient(135deg, #0d1f12, #0f2d1d, #143a28);
-    height:100vh;
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    padding:20px;
-    color:#fff;
+    background: linear-gradient(135deg, #0a1a12, #0f2718, #102d1c);
+    color: white;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 
   .card {
-    width:100%;
-    max-width:420px;
-    background: rgba(255,255,255,0.08);
+    width: 92%;
+    max-width: 420px;
+    background: rgba(255,255,255,0.05);
     backdrop-filter: blur(10px);
-    border-radius:16px;
-    padding:32px 28px;
-    box-shadow:0 8px 30px rgba(0,0,0,0.25);
+    padding: 30px;
+    border-radius: 14px;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.4);
+    border: 1px solid rgba(255,255,255,0.1);
   }
 
-  h1 {
-    margin:0 0 20px;
-    font-size:26px;
-    font-weight:700;
-    text-align:center;
+  h2 {
+    margin-bottom: 14px;
+    font-weight: 700;
   }
 
   input {
-    width:100%;
-    padding:12px;
-    margin:10px 0;
-    border-radius:8px;
-    border:1px solid #cfcfcf;
-    background:#fff;
-    font-size:15px;
-    color:#222;
+    width: 100%;
+    padding: 12px;
+    margin-top: 10px;
+    background: rgba(255,255,255,0.08);
+    border: none;
+    border-radius: 10px;
+    color: white;
+    outline: none;
+  }
+
+  input::placeholder {
+    color: #cfcfcf;
   }
 
   button {
-    width:100%;
-    padding:12px;
-    margin-top:10px;
-    background:#00c26f;
-    border:none;
-    border-radius:8px;
-    font-size:16px;
-    font-weight:700;
-    cursor:pointer;
-    color:#fff;
-    transition:0.2s;
+    width: 100%;
+    padding: 12px;
+    margin-top: 20px;
+    background: #1db954;
+    border: none;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 16px;
+    color: #0f1a12;
+    cursor: pointer;
+    transition: 0.2s;
   }
+
   button:hover {
-    background:#00a85f;
+    background: #22d15f;
   }
 
   .note {
-    margin-top:14px;
-    font-size:14px;
-    text-align:center;
-    color:#ddd;
+    margin-top: 10px;
+    font-size: 14px;
+    color: #ffb84d;
+    min-height: 18px;
+  }
+
+  .top-title {
+    text-align: center;
+    margin-bottom: 18px;
+    font-size: 14px;
+    opacity: 0.8;
   }
 </style>
 </head>
 
 <body>
+  <div class="card">
+    <div class="top-title">NBVS GHANA — Employer Portal</div>
+    <h2>Employer Login</h2>
 
-<div class="card">
-  <h1>Employer Login</h1>
+    <input id="email" placeholder="Email" autocomplete="username">
+    <input id="password" type="password" placeholder="Password" autocomplete="current-password">
 
-  <input id="email" placeholder="Email" autocomplete="username">
-  <input id="password" type="password" placeholder="Password" autocomplete="current-password">
+    <button id="btn-login">Sign In</button>
 
-  <button id="btn-login">Sign In</button>
-  <div class="note" id="note"></div>
-</div>
+    <div class="note" id="note"></div>
+  </div>
 
 <script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
-  import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
-  import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
+import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
+import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 
-  const firebaseConfig = {
-    apiKey:"AIzaSyCDh_qL3jiCMHROK0_Soul2Wsv3t3y4wv0",
-    authDomain:"nbvs-ghana.firebaseapp.com",
-    projectId:"nbvs-ghana",
-    storageBucket:"nbvs-ghana.firebasestorage.app",
-    messagingSenderId:"702636577113",
-    appId:"1:702636577113:web:8369b43a2aa43aeb95fc48"
-  };
+const firebaseConfig = {
+  apiKey:"AIzaSyCDh_qL3jiCMHROK0_Soul2Wsv3t3y4wv0",
+  authDomain:"nbvs-ghana.firebaseapp.com",
+  projectId:"nbvs-ghana",
+  storageBucket:"nbvs-ghana.firebasestorage.app",
+  messagingSenderId:"702636577113",
+  appId:"1:702636577113:web:8369b43a2aa43aeb95fc48"
+};
 
-  const app = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
-  const db = getFirestore(app);
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
 
-  const emailEl = document.getElementById("email");
-  const passEl = document.getElementById("password");
+document.getElementById("btn-login").onclick = async () => {
+  const email = email.value.trim();
+  const pass = password.value.trim();
   const note = document.getElementById("note");
+  note.textContent = "";
 
-  document.getElementById("btn-login").onclick = async ()=> {
-    note.textContent = "";
-    const email = emailEl.value.trim();
-    const pwd = passEl.value.trim();
+  if (!email || !pass) {
+    note.textContent = "Enter your email and password.";
+    return;
+  }
 
-    if (!email || !pwd) {
-      note.textContent = "Enter email and password.";
+  try {
+    const cred = await signInWithEmailAndPassword(auth, email, pass);
+    const user = cred.user;
+
+    const uDoc = await getDoc(doc(db, "users", user.uid));
+    if (!uDoc.exists()) {
+      note.textContent = "Account not found.";
       return;
     }
 
-    try {
-      await signInWithEmailAndPassword(auth, email, pwd);
-    } catch(err) {
-      note.textContent = err.message;
-    }
-  };
-
-  onAuthStateChanged(auth, async user => {
-    if (!user) return;
-
-    const d = await getDoc(doc(db,"users",user.uid));
-    if (!d.exists()) return note.textContent = "Account not found.";
-
-    const role = (d.data().role || "").toLowerCase();
+    const role = (uDoc.data().role || "").toLowerCase();
 
     if (role !== "employer") {
-      note.textContent = "Not an employer account.";
-      auth.signOut();
+      note.textContent = "This portal is for employers only.";
       return;
     }
 
-    window.location.href = "employer.html";
-  });
+    // Redirect employer
+    window.location.href = "employer-dashboard.html";
+
+  } catch (err) {
+    note.textContent = err.message || "Login failed.";
+  }
+};
 </script>
 
 </body>
