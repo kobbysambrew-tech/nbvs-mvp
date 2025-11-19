@@ -95,6 +95,7 @@
 </head>
 
 <body>
+
 <div id="nav">
   <div>NBVS Employer Dashboard</div>
   <button id="logoutBtn">Logout</button>
@@ -128,12 +129,11 @@ import {
   getAuth, onAuthStateChanged, signOut 
 } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
 import { 
-  getFirestore, collection, addDoc, query, where, getDocs, serverTimestamp 
+  getFirestore, doc, getDoc, collection, addDoc, query, where, getDocs, serverTimestamp 
 } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 
 
 /* =============== FIREBASE CONFIG ================== */
-/* REPLACE with your real Firebase config */
 const firebaseConfig = {
   apiKey: "...",
   authDomain: "...",
@@ -148,10 +148,28 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 
 
-/* =============== AUTH CHECK ================== */
+/* =============== AUTH CHECK (NO REDIRECT LOOP) ================== */
 onAuthStateChanged(auth, async user => {
-  if (!user) return window.location = "dashboard.html";
+  if (!user) return window.location = "dashboard.html"; // login page
 
+  // Fetch user role from Firestore
+  const ref = doc(db, "users", user.uid);
+  const snap = await getDoc(ref);
+
+  if (!snap.exists()) {
+    alert("No profile found. Contact NBVS support.");
+    return window.location = "dashboard.html";
+  }
+
+  const role = (snap.data().role || "").toLowerCase();
+
+  // This page is EMPLOYER ONLY
+  if (role !== "employer") {
+    alert("Access denied. This page is for employers only.");
+    return window.location = "dashboard.html";
+  }
+
+  // Load data if employer is valid
   loadPreviousChecks(user.uid);
 });
 
