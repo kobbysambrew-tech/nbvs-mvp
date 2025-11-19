@@ -1,200 +1,346 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Your NBVS Verification</title>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>NBVS — User Dashboard</title>
 
-  <style>
-    body {
-      margin: 0;
-      background: #f4f6fa;
-      font-family: "Inter", sans-serif;
-    }
+<style>
+:root{
+  --red:#ce1126;
+  --yellow:#fcd116;
+  --green:#046c4e;
+  --bg:#f6f7f9;
+  --muted:#6b7280;
+  --card:#ffffff;
+}
 
-    header {
-      background: #003a70;
-      padding: 18px 20px;
-      color: white;
-      font-size: 20px;
-      font-weight: 600;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-    }
+body{
+  margin:0;
+  background:var(--bg);
+  font-family:"Inter",sans-serif;
+  color:#111;
+}
 
-    #logoutBtn {
-      background: white;
-      color: #003a70;
-      border: none;
-      padding: 8px 16px;
-      border-radius: 6px;
-      cursor: pointer;
-      font-weight: 600;
-    }
+/* HEADER */
+header{
+  background:linear-gradient(90deg,var(--red),var(--yellow),var(--green));
+  padding:18px;
+  color:#fff;
+  font-weight:700;
+  text-align:center;
+  font-size:1.4rem;
+}
 
-    #container {
-      max-width: 900px;
-      margin: 30px auto;
-      padding: 20px;
-    }
+/* MAIN */
+.container{
+  max-width:1100px;
+  margin:30px auto;
+  padding:0 16px;
+}
 
-    .card {
-      background: white;
-      padding: 22px;
-      border-radius: 12px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.06);
-      margin-bottom: 25px;
-    }
+/* GRID */
+.grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(300px,1fr));
+  gap:20px;
+}
 
-    h2 {
-      margin-top: 0;
-      color: #003a70;
-      font-weight: 700;
-    }
+/* CARD */
+.card{
+  background:var(--card);
+  padding:20px;
+  border-radius:12px;
+  box-shadow:0 8px 20px rgba(0,0,0,0.06);
+}
 
-    input, textarea, button {
-      width: 100%;
-      padding: 12px;
-      border-radius: 8px;
-      border: 1px solid #ccc;
-      margin-top: 10px;
-      font-size: 15px;
-    }
+.card h2{
+  margin-top:0;
+  font-size:1.25rem;
+  font-weight:700;
+  color:var(--green);
+}
 
-    button {
-      background: #003a70;
-      color: white;
-      font-weight: 600;
-      border: none;
-      cursor: pointer;
-      margin-top: 15px;
-    }
+.label{
+  color:var(--muted);
+  font-size:0.9rem;
+}
 
-    #statusBox {
-      background: #eef3ff;
-      padding: 15px;
-      border-left: 5px solid #003a70;
-      border-radius: 8px;
-      font-size: 16px;
-    }
-  </style>
+.value{
+  font-size:1.7rem;
+  font-weight:800;
+  margin-top:6px;
+}
+
+/* BUTTONS */
+.btn{
+  padding:12px;
+  border:none;
+  border-radius:8px;
+  cursor:pointer;
+  font-weight:700;
+  width:100%;
+  margin-top:12px;
+}
+
+.btn-green{background:var(--green);color:#fff;}
+.btn-yellow{background:var(--yellow);color:#111;}
+.btn-red{background:var(--red);color:#fff;}
+.btn-dark{background:#222;color:#fff;}
+
+.table{
+  width:100%;
+  border-collapse:collapse;
+  margin-top:12px;
+}
+
+.table th, .table td{
+  padding:10px;
+  border-bottom:1px solid #eee;
+  text-align:left;
+  font-size:0.9rem;
+}
+.empty{
+  color:var(--muted);
+  text-align:center;
+  padding:20px;
+}
+.top{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:20px;
+}
+.logout{
+  background:#111;
+  color:#fff;
+  padding:8px 14px;
+  border-radius:8px;
+  font-size:0.88rem;
+  cursor:pointer;
+}
+.logout:hover{opacity:0.8;}
+</style>
 </head>
 
 <body>
 
-<header>
-  <div>Your NBVS Verification</div>
-  <button id="logoutBtn">Logout</button>
-</header>
+<header>NBVS — User Dashboard</header>
 
-<div id="container">
+<div class="container">
 
-  <div class="card">
-    <h2>Your Information</h2>
-
-    <input id="fullName" placeholder="Full Name">
-    <input id="niaNumber" placeholder="NIA Number">
-    <input id="phoneNumber" placeholder="Phone Number">
-    <textarea id="address" placeholder="Home Address"></textarea>
-
-    <textarea id="education" placeholder="Education History"></textarea>
-    <textarea id="workHistory" placeholder="Work History"></textarea>
-
-    <textarea id="notes" placeholder="Notes"></textarea>
-
-    <button id="saveBtn">Save / Update</button>
+  <div class="top">
+    <h2 style="margin:0; font-size:1.4rem;">Welcome, <span id="userEmail"></span></h2>
+    <button id="logoutBtn" class="logout">Logout</button>
   </div>
 
-  <div class="card">
-    <h2>Verification Status</h2>
-    <div id="statusBox">Loading...</div>
-  </div>
+  <div class="grid">
 
+    <!-- WALLET -->
+    <div class="card">
+      <h2>Your Wallet</h2>
+      <div class="label">Balance</div>
+      <div class="value">¢<span id="balance">0</span></div>
+
+      <button class="btn btn-green" id="add30">Add ¢30</button>
+      <button class="btn btn-green" id="add100">Add ¢100</button>
+      <button class="btn btn-yellow" id="openVerify">Go to Verify</button>
+    </div>
+
+    <!-- PLAN -->
+    <div class="card">
+      <h2>Your Plan</h2>
+
+      <div class="label">Current Plan</div>
+      <div class="value" style="font-size:1.4rem;">
+        <span id="planType">—</span>
+      </div>
+
+      <div class="label" style="margin-top:12px;">Remaining Searches</div>
+      <div class="value" style="font-size:1.4rem;">
+        <span id="remaining">0</span>
+      </div>
+
+      <button class="btn btn-green" id="buyBasic">Buy Basic (10 searches)</button>
+      <button class="btn btn-red" id="buyPro">Buy Pro (30 days)</button>
+    </div>
+
+    <!-- SEARCH LOGS -->
+    <div class="card" style="grid-column:1/-1">
+      <h2>Your Recent Searches</h2>
+      <table class="table" id="logTable">
+        <thead>
+          <tr><th>Term</th><th>Found?</th><th>Time</th></tr>
+        </thead>
+        <tbody id="logBody">
+          <tr><td colspan="3" class="empty">Loading…</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+  </div>
 </div>
 
 
 <script type="module">
+/* FIREBASE */
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
-import { 
-  getAuth, onAuthStateChanged, signOut 
+import {
+  getAuth, onAuthStateChanged, signOut
 } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
-import { 
-  getFirestore, doc, getDoc, setDoc, serverTimestamp 
+import {
+  getFirestore, doc, getDoc, updateDoc, collection, query, where, orderBy, getDocs, addDoc
 } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 
+/* CONFIG */
 const firebaseConfig = {
-  apiKey: "AIzaSyCDh_qL3jiCMHROK0_Soul2Wsv3t3y4wv0",
-  authDomain: "nbvs-ghana.firebaseapp.com",
-  projectId: "nbvs-ghana",
-  storageBucket: "nbvs-ghana.firebasestorage.app",
-  messagingSenderId: "702636577113",
-  appId: "1:702636577113:web:8369b43a2aa43aeb95fc48"
+  apiKey:"AIzaSyCDh_qL3jiCMHROK0_Soul2Wsv3t3y4wv0",
+  authDomain:"nbvs-ghana.firebaseapp.com",
+  projectId:"nbvs-ghana",
+  storageBucket:"nbvs-ghana.firebasestorage.app",
+  messagingSenderId:"702636577113",
+  appId:"1:702636577113:web:8369b43a2aa43aeb95fc48"
 };
-
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-onAuthStateChanged(auth, async user => {
-  if (!user) return window.location.href = "user_login.html";
+let userId = null;
 
-  const ref = doc(db,"users",user.uid);
-  const snap = await getDoc(ref);
+/* DEVICE WALLET (anonymous wallet tied to device) */
+const DEVICE_KEY = "nbvs_deviceId";
+let deviceId = localStorage.getItem(DEVICE_KEY);
+if(!deviceId){
+  deviceId = "dev_" + Math.random().toString(36).slice(2,12);
+  localStorage.setItem(DEVICE_KEY,deviceId);
+}
+const walletRef = doc(db,"wallet",deviceId);
 
-  if (!snap.exists() || snap.data().role !== "user") {
-    await signOut(auth);
-    return window.location.href = "user_login.html";
+/* ELEMENTS */
+const userEmail   = document.getElementById("userEmail");
+const balanceEl   = document.getElementById("balance");
+const planTypeEl  = document.getElementById("planType");
+const remainingEl = document.getElementById("remaining");
+const logBody     = document.getElementById("logBody");
+
+/* HELPERS */
+function toNum(x){ return Number(x) || 0; }
+
+/* WALLET INIT */
+async function ensureWallet(){
+  const snap = await getDoc(walletRef);
+  if(!snap.exists()){
+    await updateDoc(walletRef,{
+      balance:0,
+      plan:"none",
+      monthlyRemaining:0,
+      planExpires:null,
+      createdAt:new Date()
+    });
   }
-
-  loadUserData(user.uid);
-});
-
-document.getElementById("logoutBtn").onclick = () => signOut(auth);
-
-async function loadUserData(uid) {
-  const ref = doc(db,"users",uid);
-  const snap = await getDoc(ref);
-
-  const d = snap.data();
-
-  fullName.value = d.fullName || "";
-  niaNumber.value = d.niaNumber || "";
-  phoneNumber.value = d.phoneNumber || "";
-  address.value = d.address || "";
-  education.value = d.education || "";
-  workHistory.value = d.workHistory || "";
-  notes.value = d.notes || "";
-
-  document.getElementById("statusBox").innerHTML = `
-    <b>Status:</b> ${d.status || "Pending"}<br>
-    <b>Last Updated:</b> ${d.updatedAt ? d.updatedAt.toDate().toLocaleString() : "N/A"}
-  `;
 }
 
-document.getElementById("saveBtn").onclick = async () => {
-  const user = auth.currentUser;
-  if (!user) return;
+/* LOAD WALLET */
+async function loadWallet(){
+  const snap = await getDoc(walletRef);
+  if(!snap.exists()) return;
 
-  const data = {
-    fullName: fullName.value.trim(),
-    niaNumber: niaNumber.value.trim(),
-    phoneNumber: phoneNumber.value.trim(),
-    address: address.value.trim(),
-    education: education.value.trim(),
-    workHistory: workHistory.value.trim(),
-    notes: notes.value.trim(),
-    status: "pending",
-    updatedAt: serverTimestamp(),
-    role: "user",
-  };
+  const u = snap.data();
 
-  await setDoc(doc(db,"users",user.uid), data, { merge: true });
+  balanceEl.textContent   = toNum(u.balance);
+  planTypeEl.textContent  = u.plan || "none";
+  remainingEl.textContent = toNum(u.monthlyRemaining);
+}
 
-  alert("Profile updated!");
-  loadUserData(user.uid);
+/* LOAD LOGS */
+async function loadLogs(uid){
+  logBody.innerHTML = `<tr><td colspan="3" class="empty">Loading…</td></tr>`;
+
+  const q = query(
+    collection(db,"search_logs"),
+    where("deviceId","==",deviceId),
+    orderBy("timestamp","desc")
+  );
+
+  const snap = await getDocs(q);
+  if(snap.empty){
+    logBody.innerHTML = `<tr><td colspan="3" class="empty">No searches yet</td></tr>`;
+    return;
+  }
+
+  logBody.innerHTML = "";
+  snap.forEach(d=>{
+    const r = d.data();
+    const time = r.timestamp?.toDate ? r.timestamp.toDate().toLocaleString() : "—";
+
+    logBody.innerHTML += `
+      <tr>
+        <td>${r.term}</td>
+        <td>${r.found ? "✔️" : "❌"}</td>
+        <td>${time}</td>
+      </tr>
+    `;
+  });
+}
+
+/* MONEY ADD */
+async function addMoney(amount){
+  const snap = await getDoc(walletRef);
+  const bal = toNum(snap.data().balance);
+  await updateDoc(walletRef,{balance: bal + amount});
+  await addDoc(collection(db,"wallet_transactions"),{
+    deviceId,
+    amount,
+    type:"top_up",
+    timestamp:new Date()
+  });
+  await loadWallet();
+}
+
+/* ON AUTH */
+onAuthStateChanged(auth, async user=>{
+  if(!user) return window.location.href="user-login.html";
+
+  userId = user.uid;
+  userEmail.textContent = user.email;
+
+  /* Check role */
+  const u = await getDoc(doc(db,"users",userId));
+  if(!u.exists() || (u.data().role||"").toLowerCase() !== "user"){
+    return window.location.href="user-login.html";
+  }
+
+  /* Load dashboard */
+  await ensureWallet();
+  await loadWallet();
+  await loadLogs();
+});
+
+/* BUTTONS */
+document.getElementById("add30").onclick = ()=>addMoney(30);
+document.getElementById("add100").onclick = ()=>addMoney(100);
+document.getElementById("buyBasic").onclick = async ()=>{
+  const snap = await getDoc(walletRef);
+  const u = snap.data();
+  await updateDoc(walletRef,{
+    plan:"basic",
+    monthlyRemaining: toNum(u.monthlyRemaining) + 10
+  });
+  alert("Basic plan activated!");
+  await loadWallet();
 };
+document.getElementById("buyPro").onclick = async ()=>{
+  const exp = new Date(Date.now() + 30*24*60*60*1000);
+  await updateDoc(walletRef,{
+    plan:"pro",
+    planExpires:exp.toISOString()
+  });
+  alert("Pro plan activated!");
+  await loadWallet();
+};
+
+document.getElementById("openVerify").onclick = ()=>window.location.href="verify.html";
+document.getElementById("logoutBtn").onclick = ()=>signOut(auth);
 </script>
 
 </body>
