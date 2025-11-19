@@ -1,93 +1,73 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Employer Signup - NBVS</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>NBVS — Employer Sign Up</title>
 
-  <style>
-    body{
-      margin:0;
-      font-family:"Inter",sans-serif;
-      background:linear-gradient(135deg,#0f172a,#022c22);
-      color:#f1f5f9;
-      display:flex;
-      justify-content:center;
-      align-items:center;
-      height:100vh;
-      padding:20px;
-    }
-    .card{
-      background:rgba(15,23,42,0.7);
-      padding:30px;
-      border-radius:16px;
-      max-width:420px;
-      width:100%;
-      box-shadow:0 12px 32px rgba(0,0,0,0.45);
-      border:1px solid rgba(255,255,255,0.08);
-      backdrop-filter:blur(8px);
-    }
-    h2{
-      margin:0 0 20px;
-      font-size:1.4rem;
-      font-weight:700;
-      text-align:center;
-    }
-    input{
-      width:100%;
-      padding:12px;
-      margin:8px 0;
-      border-radius:8px;
-      border:1px solid #475569;
-      background:rgba(255,255,255,0.08);
-      color:#f1f5f9;
-      font-size:15px;
-    }
-    button{
-      width:100%;
-      padding:12px;
-      margin-top:14px;
-      border:none;
-      border-radius:8px;
-      background:linear-gradient(135deg,#16a34a,#046c4e);
-      color:white;
-      font-weight:600;
-      font-size:1rem;
-      cursor:pointer;
-      transition:0.2s;
-    }
-    button:hover{
-      transform:translateY(-2px);
-      filter:brightness(1.1);
-    }
-    .link{
-      margin-top:14px;
-      font-size:0.85rem;
-      color:#cbd5e1;
-      text-align:center;
-    }
-    .link a{
-      color:#a7f3d0;
-    }
-  </style>
+<style>
+:root{
+  --red:#ce1126;
+  --yellow:#fcd116;
+  --green:#006b3f;
+  --bg:#f6f7f9;
+}
+body{
+  margin:0;
+  background:var(--bg);
+  font-family:Inter, Arial, sans-serif;
+}
+header{
+  background:linear-gradient(90deg,var(--red),var(--yellow),var(--green));
+  padding:18px;
+  text-align:center;
+  color:white;
+  font-weight:700;
+}
+.card{
+  max-width:420px;
+  margin:40px auto;
+  background:white;
+  padding:24px;
+  border-radius:12px;
+  box-shadow:0 6px 20px rgba(0,0,0,0.08);
+}
+input{
+  width:100%;
+  padding:12px;
+  border:1px solid #ccc;
+  border-radius:8px;
+  margin-bottom:12px;
+}
+button{
+  width:100%;
+  padding:12px;
+  border:none;
+  border-radius:8px;
+  background:var(--green);
+  color:white;
+  font-weight:700;
+  cursor:pointer;
+}
+.note{
+  font-size:0.85rem;
+  color:#555;
+  text-align:center;
+  margin-top:8px;
+}
+</style>
 </head>
 
 <body>
+<header>NBVS — Employer Sign Up</header>
 
 <div class="card">
-  <h2>Employer Signup</h2>
-
-  <input id="companyName" placeholder="Company Name" />
-  <input id="fullName" placeholder="Your Full Name" />
-  <input id="email" placeholder="Email" />
-  <input id="password" type="password" placeholder="Password" />
-
-  <button id="signupBtn">Create Employer Account</button>
-
-  <div class="link">Already have an account? <a href="employer_login.html">Login</a></div>
+  <input id="company" placeholder="Company Name" />
+  <input id="business" placeholder="Business Type (Bank, HR, etc.)" />
+  <input id="email" placeholder="Admin Email" autocomplete="username" />
+  <input id="password" type="password" placeholder="Password" autocomplete="new-password" />
+  <button id="signup">Create Employer Account</button>
+  <div class="note" id="msg"></div>
 </div>
 
 <script type="module">
@@ -108,35 +88,38 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-document.getElementById("signupBtn").onclick = async () => {
-  const companyName = companyName.value.trim();
-  const fullName = fullName.value.trim();
-  const email = email.value.trim();
-  const password = password.value.trim();
+const btn = document.getElementById("signup");
+const msg = document.getElementById("msg");
 
-  if (!companyName || !fullName || !email || !password)
-    return alert("All fields required.");
+btn.onclick = async () => {
+  msg.textContent = "";
 
-  try {
-    const cred = await createUserWithEmailAndPassword(auth,email,password);
+  const company = document.getElementById("company").value.trim();
+  const business = document.getElementById("business").value.trim();
+  const email = document.getElementById("email").value.trim();
+  const pass = document.getElementById("password").value.trim();
 
-    await setDoc(doc(db,"users",cred.user.uid),{
-      companyName,
-      fullName,
-      email,
-      role:"employer",
-      wallet:0,
-      createdAt:new Date()
+  if(!company || !business || !email || !pass){
+    msg.textContent = "Fill all fields.";
+    return;
+  }
+
+  try{
+    const cred = await createUserWithEmailAndPassword(auth, email, pass);
+    const uid = cred.user.uid;
+
+    await setDoc(doc(db,"users",uid),{
+      company,
+      business,
+      role:"employer"
     });
 
-    alert("Employer account created!");
-    window.location.href = "employer_login.html";
-
-  } catch (e) {
-    alert(e.message);
+    // Employers don't have wallet
+    window.location.href = "employer-dashboard.html";
+  }catch(e){
+    msg.textContent = e.message || "Error creating account.";
   }
 };
 </script>
-
 </body>
 </html>
