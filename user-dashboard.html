@@ -1,379 +1,181 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>NBVS — User Portal</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Your NBVS Verification</title>
 
   <style>
-    :root{
-      --bg:#050b08;
-      --card:#0f1f17;
-      --border:#1f2933;
-      --accent:#22c55e;
-      --accent-soft:#16a34a;
-      --text:#f9fafb;
-      --muted:#9ca3af;
-    }
-    *{box-sizing:border-box;margin:0;padding:0;font-family:"Inter",system-ui,sans-serif;}
-
-    body{
-      min-height:100vh;
-      background: radial-gradient(circle at top,#064e3b,#020617);
-      color:var(--text);
-      padding:18px;
-      display:flex;
-      justify-content:center;
-      align-items:flex-start;
+    body {
+      margin: 0;
+      background: #f4f6fa;
+      font-family: "Inter", sans-serif;
     }
 
-    .shell{
-      width:100%;
-      max-width:960px;
+    header {
+      background: #003a70;
+      padding: 18px 20px;
+      color: white;
+      font-size: 20px;
+      font-weight: 600;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
     }
 
-    .top{
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      flex-wrap:wrap;
-      gap:10px;
-      margin-bottom:14px;
-    }
-    .top-main{
-      display:flex;
-      flex-direction:column;
-      gap:3px;
-    }
-    .top-title{
-      font-size:20px;
-      font-weight:600;
-    }
-    .top-sub{
-      font-size:13px;
-      color:var(--muted);
-    }
-    #user-name-top{font-weight:500;}
-
-    .btn-out{
-      border:none;
-      border-radius:999px;
-      padding:8px 13px;
-      font-size:13px;
-      display:flex;
-      align-items:center;
-      gap:6px;
-      cursor:pointer;
-      background:#111827;
-      color:var(--text);
-    }
-    .btn-out:hover{background:#020617;}
-
-    .grid-main{
-      display:grid;
-      gap:14px;
-      grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);
-    }
-    @media(max-width:900px){
-      .grid-main{grid-template-columns:1fr;}
+    #logoutBtn {
+      background: white;
+      color: #003a70;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
     }
 
-    .card{
-      background:var(--card);
-      border-radius:14px;
-      padding:16px 14px;
-      border:1px solid var(--border);
-      box-shadow:0 10px 30px rgba(0,0,0,0.45);
-    }
-    .card-title{
-      font-size:15px;
-      font-weight:600;
-      margin-bottom:4px;
-    }
-    .card-sub{
-      font-size:12px;
-      color:var(--muted);
-      margin-bottom:10px;
+    #container {
+      max-width: 900px;
+      margin: 30px auto;
+      padding: 20px;
     }
 
-    .status-pill{
-      display:inline-flex;
-      align-items:center;
-      padding:3px 9px;
-      border-radius:999px;
-      font-size:11px;
-      text-transform:uppercase;
-      letter-spacing:0.08em;
-      margin-bottom:6px;
-    }
-    .status-pending{
-      background:rgba(234,179,8,0.15);
-      color:#facc15;
-    }
-    .status-verified{
-      background:rgba(22,163,74,0.22);
-      color:#6ee7b7;
-    }
-    .status-rejected{
-      background:rgba(220,38,38,0.18);
-      color:#fecaca;
+    .card {
+      background: white;
+      padding: 22px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+      margin-bottom: 25px;
     }
 
-    .muted{
-      color:var(--muted);
-      font-size:12px;
+    h2 {
+      margin-top: 0;
+      color: #003a70;
+      font-weight: 700;
     }
 
-    dl{
-      margin-top:6px;
-    }
-    dt{
-      font-size:11px;
-      text-transform:uppercase;
-      letter-spacing:0.08em;
-      color:var(--muted);
-      margin-top:5px;
-    }
-    dd{
-      font-size:13px;
+    input, textarea, button {
+      width: 100%;
+      padding: 12px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      margin-top: 10px;
+      font-size: 15px;
     }
 
-    label{
-      font-size:12px;
-      color:var(--muted);
-      display:block;
-      margin-bottom:4px;
-      margin-top:6px;
-    }
-    input,textarea{
-      width:100%;
-      border-radius:10px;
-      border:1px solid #1f2933;
-      background:#030712;
-      color:var(--text);
-      padding:9px 10px;
-      font-size:13px;
-      outline:none;
-      resize:vertical;
-      min-height:40px;
-    }
-    input::placeholder,textarea::placeholder{
-      color:#6b7280;
+    button {
+      background: #003a70;
+      color: white;
+      font-weight: 600;
+      border: none;
+      cursor: pointer;
+      margin-top: 15px;
     }
 
-    .btn-primary{
-      border:none;
-      border-radius:999px;
-      padding:9px 14px;
-      font-size:14px;
-      font-weight:600;
-      cursor:pointer;
-      background:linear-gradient(135deg,#eab308,#facc15);
-      color:#111827;
-      box-shadow:0 12px 24px rgba(234,179,8,0.45);
-      margin-top:10px;
-    }
-    .btn-primary:hover{
-      filter:brightness(1.06);
-    }
-
-    #save-note{
-      margin-top:6px;
+    #statusBox {
+      background: #eef3ff;
+      padding: 15px;
+      border-left: 5px solid #003a70;
+      border-radius: 8px;
+      font-size: 16px;
     }
   </style>
 </head>
+
 <body>
-  <div class="shell">
 
-    <div class="top">
-      <div class="top-main">
-        <div class="top-title">Your NBVS Profile</div>
-        <div class="top-sub">
-          Logged in as <span id="user-name-top">Loading…</span> ·
-          <span id="user-email-top" class="muted"></span>
-        </div>
-      </div>
-      <button id="btn-logout" class="btn-out">⎋ Logout</button>
-    </div>
+<header>
+  <div>Your NBVS Verification</div>
+  <button id="logoutBtn">Logout</button>
+</header>
 
-    <div class="grid-main">
-      <!-- LEFT: STATUS -->
-      <div class="card">
-        <div class="card-title">Verification Status</div>
-        <div class="card-sub">This is how NBVS currently sees your profile.</div>
+<div id="container">
 
-        <div id="status-pill" class="status-pill status-pending">Checking…</div>
+  <div class="card">
+    <h2>Your Information</h2>
 
-        <dl>
-          <dt>Status</dt>
-          <dd id="status-text">Loading…</dd>
+    <input id="fullName" placeholder="Full Name">
+    <input id="niaNumber" placeholder="NIA Number">
+    <input id="phoneNumber" placeholder="Phone Number">
+    <textarea id="address" placeholder="Home Address"></textarea>
 
-          <dt>Last updated</dt>
-          <dd id="status-updated">—</dd>
+    <textarea id="education" placeholder="Education History"></textarea>
+    <textarea id="workHistory" placeholder="Work History"></textarea>
 
-          <dt>NIA Number</dt>
-          <dd id="status-nia">—</dd>
+    <textarea id="notes" placeholder="Notes"></textarea>
 
-          <dt>Phone</dt>
-          <dd id="status-phone">—</dd>
-
-          <dt>Home address</dt>
-          <dd id="status-address">—</dd>
-        </dl>
-
-        <p class="muted" style="margin-top:10px;">
-          NBVS staff or trusted partners may review your information before
-          marking your status as verified.
-        </p>
-      </div>
-
-      <!-- RIGHT: PROFILE EDIT -->
-      <div class="card">
-        <div class="card-title">Update Your Details</div>
-        <div class="card-sub">Keep this accurate so employers can trust your record.</div>
-
-        <label for="fullName">Full name</label>
-        <input id="fullName" placeholder="Full legal name" />
-
-        <label for="niaNumber">NIA Number</label>
-        <input id="niaNumber" placeholder="e.g. GHA-123456789-0" />
-
-        <label for="phoneNumber">Phone number</label>
-        <input id="phoneNumber" placeholder="e.g. 024 000 0000" />
-
-        <label for="address">Home address</label>
-        <textarea id="address" placeholder="Street, town, region"></textarea>
-
-        <label for="education">Education history</label>
-        <textarea id="education" placeholder="Schools, certificates, years"></textarea>
-
-        <label for="workHistory">Work / job history</label>
-        <textarea id="workHistory" placeholder="Company, role, dates"></textarea>
-
-        <label for="notes">Extra notes (optional)</label>
-        <textarea id="notes" placeholder="Anything you want NBVS reviewers to know"></textarea>
-
-        <button id="saveBtn" class="btn-primary">Save / Update Profile</button>
-        <div id="save-note" class="muted"></div>
-      </div>
-    </div>
-
+    <button id="saveBtn">Save / Update</button>
   </div>
+
+  <div class="card">
+    <h2>Verification Status</h2>
+    <div id="statusBox">Loading...</div>
+  </div>
+
+</div>
+
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
-import {
-  getAuth,
-  onAuthStateChanged,
-  signOut
+import { 
+  getAuth, onAuthStateChanged, signOut 
 } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
-import {
-  getFirestore,
-  doc,
-  getDoc,
-  setDoc,
-  serverTimestamp
+import { 
+  getFirestore, doc, getDoc, setDoc, serverTimestamp 
 } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 
 const firebaseConfig = {
-  apiKey:"AIzaSyCDh_qL3jiCMHROK0_Soul2Wsv3t3y4wv0",
-  authDomain:"nbvs-ghana.firebaseapp.com",
-  projectId:"nbvs-ghana",
-  storageBucket:"nbvs-ghana.firebasestorage.app",
-  messagingSenderId:"702636577113",
-  appId:"1:702636577113:web:8369b43a2aa43aeb95fc48"
+  apiKey: "AIzaSyCDh_qL3jiCMHROK0_Soul2Wsv3t3y4wv0",
+  authDomain: "nbvs-ghana.firebaseapp.com",
+  projectId: "nbvs-ghana",
+  storageBucket: "nbvs-ghana.firebasestorage.app",
+  messagingSenderId: "702636577113",
+  appId: "1:702636577113:web:8369b43a2aa43aeb95fc48"
 };
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-let currentUid = null;
-
-/* LOGOUT */
-document.getElementById("btn-logout").onclick = async () => {
-  await signOut(auth);
-  window.location.href = "user-login.html";
-};
-
-/* AUTH CHECK */
 onAuthStateChanged(auth, async user => {
-  if (!user) {
-    window.location.href = "user-login.html";
-    return;
-  }
-
-  currentUid = user.uid;
-  document.getElementById("user-email-top").textContent = user.email || "";
+  if (!user) return window.location.href = "user_login.html";
 
   const ref = doc(db,"users",user.uid);
   const snap = await getDoc(ref);
 
-  if (!snap.exists()) {
-    // create a basic shell so setDoc merge works
-    await setDoc(ref,{
-      role:"user",
-      status:"Not Submitted",
-      createdAt: serverTimestamp()
-    },{merge:true});
-    loadUserData();
-  } else {
-    const d = snap.data();
-    const role = (d.role || "").toLowerCase();
-    if (role !== "user") {
-      alert("This portal is for personal user accounts only.");
-      await signOut(auth);
-      return window.location.href = "user-login.html";
-    }
-    loadUserData();
+  if (!snap.exists() || snap.data().role !== "user") {
+    await signOut(auth);
+    return window.location.href = "user_login.html";
   }
+
+  loadUserData(user.uid);
 });
 
-/* LOAD USER DATA INTO UI */
-async function loadUserData(){
-  if(!currentUid) return;
-  const snap = await getDoc(doc(db,"users",currentUid));
-  if (!snap.exists()) return;
+document.getElementById("logoutBtn").onclick = () => signOut(auth);
+
+async function loadUserData(uid) {
+  const ref = doc(db,"users",uid);
+  const snap = await getDoc(ref);
 
   const d = snap.data();
 
-  document.getElementById("user-name-top").textContent = d.fullName || d.name || "User";
-
-  // form fields
-  fullName.value    = d.fullName    || "";
-  niaNumber.value   = d.niaNumber   || "";
+  fullName.value = d.fullName || "";
+  niaNumber.value = d.niaNumber || "";
   phoneNumber.value = d.phoneNumber || "";
-  address.value     = d.address     || "";
-  education.value   = d.education   || "";
+  address.value = d.address || "";
+  education.value = d.education || "";
   workHistory.value = d.workHistory || "";
-  notes.value       = d.notes       || "";
+  notes.value = d.notes || "";
 
-  // status section
-  const status = (d.status || "Not Submitted");
-  const updated = d.updatedAt?.toDate?.()?.toLocaleString() || "—";
-
-  document.getElementById("status-text").textContent = status;
-  document.getElementById("status-updated").textContent = updated;
-  document.getElementById("status-nia").textContent = d.niaNumber || "—";
-  document.getElementById("status-phone").textContent = d.phoneNumber || "—";
-  document.getElementById("status-address").textContent = d.address || "—";
-
-  const pill = document.getElementById("status-pill");
-  pill.className = "status-pill status-pending";
-  pill.textContent = status;
-
-  const lower = status.toLowerCase();
-  if(lower.includes("verify") || lower.includes("clear")){
-    pill.className = "status-pill status-verified";
-  } else if(lower.includes("reject") || lower.includes("flag")){
-    pill.className = "status-pill status-rejected";
-  }
+  document.getElementById("statusBox").innerHTML = `
+    <b>Status:</b> ${d.status || "Pending"}<br>
+    <b>Last Updated:</b> ${d.updatedAt ? d.updatedAt.toDate().toLocaleString() : "N/A"}
+  `;
 }
 
-/* SAVE / UPDATE PROFILE */
 document.getElementById("saveBtn").onclick = async () => {
-  const noteEl = document.getElementById("save-note");
-  noteEl.textContent = "";
+  const user = auth.currentUser;
+  if (!user) return;
 
   const data = {
     fullName: fullName.value.trim(),
@@ -383,25 +185,17 @@ document.getElementById("saveBtn").onclick = async () => {
     education: education.value.trim(),
     workHistory: workHistory.value.trim(),
     notes: notes.value.trim(),
-    status: "pending", // NBVS staff can change this later
+    status: "pending",
     updatedAt: serverTimestamp(),
-    role: "user"
+    role: "user",
   };
 
-  if (!data.fullName || !data.phoneNumber) {
-    noteEl.textContent = "Name and phone are required.";
-    return;
-  }
+  await setDoc(doc(db,"users",user.uid), data, { merge: true });
 
-  try{
-    await setDoc(doc(db,"users",currentUid), data, {merge:true});
-    noteEl.textContent = "Profile updated and submitted for review.";
-    loadUserData();
-  }catch(err){
-    console.error(err);
-    noteEl.textContent = "Error saving profile.";
-  }
+  alert("Profile updated!");
+  loadUserData(user.uid);
 };
 </script>
+
 </body>
 </html>
