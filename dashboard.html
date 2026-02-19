@@ -2,32 +2,36 @@
 <html>
 <head>
   <meta charset="utf-8" />
-  <title>NBVS Admin Login</title>
+  <title>NBVS Staff Login</title>
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <style>
     body{font-family:Arial,Helvetica,sans-serif;padding:40px;background:#f7f7f7}
     .card{max-width:420px;margin:40px auto;padding:24px;background:#fff;border-radius:8px;box-shadow:0 6px 20px rgba(0,0,0,.06)}
     input{width:100%;padding:10px;margin:8px 0;border:1px solid #ddd;border-radius:6px}
     button{width:100%;padding:10px;background:#006b3f;color:#fff;border:none;border-radius:6px;cursor:pointer}
-    .note{font-size:13px;color:#666;margin-top:12px}
+    .note{font-size:13px;color:#666;margin-top:12px;line-height:1.35}
+    .hint{font-size:12px;color:#6b7280;margin-top:10px}
   </style>
 </head>
 <body>
   <div class="card">
-    <h2>NBVS Admin Login</h2>
+    <h2>NBVS Staff Login</h2>
+    <div class="hint">For authorized staff only (Admissions / Records Verification).</div>
+
     <input id="email" placeholder="Email" autocomplete="username" />
     <input id="password" type="password" placeholder="Password" autocomplete="current-password" />
     <button id="btn-login">Sign in</button>
+
     <div class="note" id="login-note"></div>
   </div>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
-    import { 
-      getAuth, signInWithEmailAndPassword, onAuthStateChanged 
+    import {
+      getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut
     } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
-    import { 
-      getFirestore, doc, getDoc 
+    import {
+      getFirestore, doc, getDoc
     } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 
     const firebaseConfig = {
@@ -40,15 +44,14 @@
       measurementId: "G-2FHFSQRMZX"
     };
 
-    const app = initializeApp(firebaseConfig);
+    const app  = initializeApp(firebaseConfig);
     const auth = getAuth(app);
-    const db = getFirestore(app);
+    const db   = getFirestore(app);
 
     const emailEl = document.getElementById("email");
     const passEl  = document.getElementById("password");
     const noteEl  = document.getElementById("login-note");
     const btn     = document.getElementById("btn-login");
-
 
     /* ============================================================
        LOGIN BUTTON
@@ -72,14 +75,12 @@
       }
     });
 
-
-
     /* ============================================================
-       GLOBAL ROLE-BASED REDIRECT  
+       GLOBAL ROLE-BASED REDIRECT
        (ONLY PLACE IN YOUR ENTIRE APP WHERE REDIRECT DECISIONS HAPPEN)
     ============================================================ */
     onAuthStateChanged(auth, async (user) => {
-      if (!user) return;  // not logged in → stay on login page
+      if (!user) return; // not logged in → stay on login page
 
       let udoc;
       try {
@@ -113,8 +114,8 @@
       }
 
       // ========= UNKNOWN ROLE =========
-      noteEl.textContent = "You do not have a valid NBVS role.";
-      await auth.signOut();
+      noteEl.textContent = "Access denied: your account does not have an authorized role.";
+      await signOut(auth);
     });
   </script>
 </body>
