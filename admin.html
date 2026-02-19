@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>NBVS Admin — Full Dashboard</title>
+<title>NBVS Staff — Verification Dashboard</title>
 
 <!-- Styles (kept compact) -->
 <style>
@@ -132,7 +132,7 @@ input,select,textarea{
 <body>
 
 <header>
-  <h1>NBVS Admin — Full Dashboard</h1>
+  <h1>NBVS Staff — Verification Dashboard</h1>
   <div style="margin-top:6px">
     <span id="admin-role" class="small">Loading role…</span>
     <button id="btn-logout">Logout</button>
@@ -142,11 +142,11 @@ input,select,textarea{
 <main>
   <div class="tabs">
     <button id="tab-dashboard" class="active">Dashboard</button>
-    <button id="tab-verify">Verify</button>
-    <button id="tab-records">Records</button>
+    <button id="tab-verify">Admissions Verify</button>
+    <button id="tab-records">Applicant Records</button>
     <button id="tab-users">Users</button>
     <button id="tab-wallet">Wallet</button>
-    <button id="tab-logs">Search Logs</button>
+    <button id="tab-logs">Verification Logs</button>
     <button id="tab-audit">Audit Logs</button>
     <button id="tab-analytics">Analytics</button>
     <button id="tab-tools">Tools</button>
@@ -159,10 +159,13 @@ input,select,textarea{
       <h3>Overview</h3>
       <div class="flex" style="gap:24px;">
         <div><div class="kv">Users</div><div id="stat-users">—</div></div>
-        <div><div class="kv">Searches</div><div id="stat-searches">—</div></div>
+        <div><div class="kv">Verifications</div><div id="stat-searches">—</div></div>
         <div><div class="kv">Wallet total</div><div id="stat-wallet">—</div></div>
         <div><div class="kv">Transactions</div><div id="stat-transactions">—</div></div>
       </div>
+      <p class="small" style="margin-top:8px">
+        This dashboard is designed for consent-based admissions & credential verification workflows.
+      </p>
     </div>
     <div class="panel" id="analytics-charts"><p class="small">Analytics loading…</p></div>
   </section>
@@ -170,12 +173,12 @@ input,select,textarea{
   <!-- VERIFY -->
   <section id="section-verify" style="display:none">
     <div class="panel">
-      <h3>Verify (Admin)</h3>
-      <input id="verify-query" placeholder="Full name or NIA" />
+      <h3>Admissions Verification (Staff)</h3>
+      <input id="verify-query" placeholder="Applicant name or ID (NIA / Applicant ID)" />
 
       <div class="flex" style="margin-top:6px">
         <button id="verify-search" class="btn btn-green">Search</button>
-        <button id="verify-search-nia" class="btn btn-yellow">Search NIA</button>
+        <button id="verify-search-nia" class="btn btn-yellow">Search ID</button>
         <button id="verify-clear" class="btn">Clear</button>
       </div>
 
@@ -186,18 +189,18 @@ input,select,textarea{
   <!-- RECORDS -->
   <section id="section-records" style="display:none">
     <div class="panel">
-      <h3>Create / Edit Record</h3>
+      <h3>Create / Edit Applicant Record</h3>
 
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-        <input id="rec-name" placeholder="Name" />
-        <input id="rec-nia" placeholder="NIA" />
+        <input id="rec-name" placeholder="Applicant full name" />
+        <input id="rec-nia" placeholder="Applicant ID (NIA / Ghana Card)" />
         <input id="rec-dob" placeholder="DOB (YYYY-MM-DD)" />
         <input id="rec-region" placeholder="Region" />
         <input id="rec-address" placeholder="Address" />
-        <input id="rec-credit" placeholder="Credit score" />
-        <input id="rec-criminal" placeholder="Criminal status" />
-        <input id="rec-driving" placeholder="Driving status" />
-        <input id="rec-status" placeholder="Verification status" />
+        <input id="rec-credit" placeholder="Credential check (e.g. WASSCE / transcript)" />
+        <input id="rec-criminal" placeholder="Document verification (e.g. certificate status)" />
+        <input id="rec-driving" placeholder="Enrollment flag (e.g. admitted/registered)" />
+        <input id="rec-status" placeholder="Review status (Verified / Needs review / Rejected)" />
       </div>
 
       <div style="display:flex;gap:8px;margin-top:8px;">
@@ -215,7 +218,7 @@ input,select,textarea{
     </div>
 
     <div class="panel">
-      <h3>Records Browser</h3>
+      <h3>Applicant Records Browser</h3>
       <div style="display:flex;gap:8px">
         <input id="records-filter" placeholder="Filter by name or region..." />
         <button id="records-refresh" class="btn">Refresh</button>
@@ -264,6 +267,10 @@ input,select,textarea{
   <section id="section-wallet" style="display:none">
     <div class="panel">
       <h3>Wallet Balances</h3>
+      <p class="small" style="margin-top:-4px;margin-bottom:8px">
+        Note: This view reflects internal user wallet fields in the <code>users</code> collection.
+        The anonymous public wallet used in <code>verify.html</code> is stored separately by deviceId.
+      </p>
 
       <table class="table" id="wallet-table">
         <thead><tr><th>User</th><th>Balance</th><th>Action</th></tr></thead>
@@ -287,7 +294,7 @@ input,select,textarea{
   <!-- SEARCH LOGS -->
   <section id="section-logs" style="display:none">
     <div class="panel">
-      <h3>Search Logs</h3>
+      <h3>Verification Logs</h3>
       <table class="table" id="searchlogs-table">
         <thead><tr><th>Time</th><th>User</th><th>Query</th><th>Found</th></tr></thead>
         <tbody id="searchlogs-tbody">
@@ -342,17 +349,17 @@ input,select,textarea{
   <!-- API KEYS -->
   <section id="section-apikeys" style="display:none">
     <div class="panel">
-      <h3>API Keys (Companies)</h3>
+      <h3>API Keys (Partners / Institutions)</h3>
 
       <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px;">
-        <input id="api-company" placeholder="Company name (e.g. Zenith Bank)" />
+        <input id="api-company" placeholder="Institution / company name (e.g. University / Bank)" />
         <input id="api-email" placeholder="Contact email (optional)" />
         <input id="api-limit" type="number" min="1" placeholder="Daily limit (e.g. 1000)" />
       </div>
 
       <button id="api-create" class="btn btn-green">Generate API Key</button>
       <p class="small" style="margin-top:6px;">
-        Superadmin only. Keys are for companies that want to integrate NBVS via API.
+        Superadmin only. Keys are for partner organizations that integrate NBVS via API.
       </p>
     </div>
 
@@ -362,7 +369,7 @@ input,select,textarea{
         <thead>
           <tr>
             <th>Key</th>
-            <th>Company</th>
+            <th>Partner</th>
             <th>Status</th>
             <th>Usage</th>
             <th>Last Used</th>
@@ -454,7 +461,7 @@ onAuthStateChanged(auth, async (user) => {
 
   // 🔒 NEW: Only allow admin/staff/superadmin to stay on this page
   if (!["admin","staff","superadmin"].includes(currentUserRole)) {
-    alert("Access denied. Admin only.");
+    alert("Access denied. Staff only.");
     await signOut(auth);
     return window.location.href = "dashboard.html";
   }
@@ -671,13 +678,14 @@ async function adminVerifySearch(forceNiaOnly){
         <div style="display:flex;justify-content:space-between">
           <div>
             <p><b>${r.name}</b></p>
-            <p>NIA: ${r.nia}</p>
+            <p>ID: ${r.nia}</p>
             <p>DOB: ${r.dob}</p>
             <p>Region: ${r.region}</p>
             <p>Address: ${r.address}</p>
-            <p>Criminal: ${r.criminal}</p>
-            <p>Driving: ${r.driving}</p>
-            <p>Status: ${r.status}</p>
+            <p>Documents: ${r.criminal}</p>
+            <p>Enrollment: ${r.driving}</p>
+            <p>Credential: ${r.credit}</p>
+            <p>Review Status: ${r.status}</p>
           </div>
           <div style="text-align:right">
             <div class="small">ID: ${docSnap.id}</div>
@@ -723,8 +731,8 @@ function readRecordForm(){
 
 async function createRecord(){
   const rec = readRecordForm();
-  if(!rec.name || !rec.nia){ 
-    document.getElementById("rec-output").innerText="Name + NIA required";
+  if(!rec.name || !rec.nia){
+    document.getElementById("rec-output").innerText="Name + Applicant ID required";
     return;
   }
 
@@ -1073,7 +1081,7 @@ async function createApiKey(){
 
   const dailyLimit = parseInt(limitStr || "1000",10);
   if (!company) {
-    alert("Company name is required.");
+    alert("Institution / company name is required.");
     return;
   }
 
@@ -1217,7 +1225,7 @@ async function renderAnalytics(){
 
   const ctxS=document.getElementById("chart-searches").getContext("2d");
   if(charts.s) charts.s.destroy();
-  charts.s=new Chart(ctxS,{type:"line",data:{labels:allDays,datasets:[{label:"Searches/day",data:sData}]}});
+  charts.s=new Chart(ctxS,{type:"line",data:{labels:allDays,datasets:[{label:"Verifications/day",data:sData}]}});
 
   const ctxT=document.getElementById("chart-wallet").getContext("2d");
   if(charts.w) charts.w.destroy();
