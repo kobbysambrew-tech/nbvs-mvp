@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>NBVS Ghana - National Background Verification System</title>
+  <title>NBVS Ghana - Admissions & Credential Verification</title>
   <link rel="icon" href="favicon.ico" />
 
   <!-- Modern, clean font -->
@@ -24,11 +24,7 @@
       --border:#e5e7eb;
     }
 
-    *{
-      box-sizing:border-box;
-      margin:0;
-      padding:0;
-    }
+    *{ box-sizing:border-box; margin:0; padding:0; }
 
     body{
       font-family:"Inter",system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
@@ -37,10 +33,7 @@
       overflow-x:hidden;
     }
 
-    a{
-      color:inherit;
-      text-decoration:none;
-    }
+    a{ color:inherit; text-decoration:none; }
 
     /* HEADER / NAVBAR */
     .top-bar{
@@ -53,6 +46,8 @@
       justify-content:center;
       gap:1.5rem;
       align-items:center;
+      flex-wrap:wrap;
+      text-align:center;
     }
     .top-bar span{
       opacity:0.85;
@@ -95,67 +90,35 @@
       justify-content:space-between;
       align-items:center;
       margin-bottom:1.5rem;
+      gap:1rem;
     }
 
-    .brand{
-      display:flex;
-      align-items:center;
-      gap:10px;
-    }
+    .brand{ display:flex; align-items:center; gap:10px; }
     .brand-mark{
-      width:34px;
-      height:34px;
-      border-radius:10px;
-      background:
-        conic-gradient(from 200deg,var(--red),var(--yellow),var(--green),var(--red));
+      width:34px; height:34px; border-radius:10px;
+      background: conic-gradient(from 200deg,var(--red),var(--yellow),var(--green),var(--red));
       position:relative;
       box-shadow:0 0 0 2px rgba(0,0,0,0.4);
-      display:flex;
-      align-items:center;
-      justify-content:center;
+      display:flex; align-items:center; justify-content:center;
     }
     .brand-mark span{
-      width:20px;
-      height:20px;
-      border-radius:6px;
+      width:20px; height:20px; border-radius:6px;
       background:#020617;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      font-size:0.7rem;
-      font-weight:800;
-      color:#f9fafb;
+      display:flex; align-items:center; justify-content:center;
+      font-size:0.7rem; font-weight:800; color:#f9fafb;
     }
 
-    .brand-text{
-      display:flex;
-      flex-direction:column;
-      gap:2px;
-    }
+    .brand-text{ display:flex; flex-direction:column; gap:2px; }
     .brand-text .title{
-      font-weight:800;
-      letter-spacing:0.06em;
-      font-size:1rem;
-      text-transform:uppercase;
+      font-weight:800; letter-spacing:0.06em; font-size:1rem; text-transform:uppercase;
     }
-    .brand-text .subtitle{
-      font-size:0.78rem;
-      opacity:0.8;
-    }
+    .brand-text .subtitle{ font-size:0.78rem; opacity:0.8; }
 
     .nav-links{
-      display:flex;
-      gap:1.2rem;
-      align-items:center;
-      font-size:0.9rem;
+      display:flex; gap:1.2rem; align-items:center; font-size:0.9rem;
     }
-    .nav-links a{
-      opacity:0.9;
-      padding:6px 0;
-    }
-    .nav-links a:hover{
-      opacity:1;
-    }
+    .nav-links a{ opacity:0.9; padding:6px 0; }
+    .nav-links a:hover{ opacity:1; }
     .nav-badge{
       padding:5px 10px;
       border-radius:999px;
@@ -177,16 +140,9 @@
       gap:2rem;
       align-items:center;
     }
+    @media (max-width:900px){ .hero{ grid-template-columns:minmax(0,1fr); } }
 
-    @media (max-width:900px){
-      .hero{
-        grid-template-columns:minmax(0,1fr);
-      }
-    }
-
-    .hero-main{
-      padding-right:0.75rem;
-    }
+    .hero-main{ padding-right:0.75rem; }
 
     .hero-kicker{
       display:inline-flex;
@@ -201,9 +157,7 @@
       margin-bottom:0.8rem;
     }
     .hero-kicker span.badge-dot{
-      width:8px;
-      height:8px;
-      border-radius:999px;
+      width:8px; height:8px; border-radius:999px;
       background:#22c55e;
       box-shadow:0 0 0 4px rgba(34,197,94,0.35);
     }
@@ -226,7 +180,7 @@
       opacity:0.9;
       font-size:0.98rem;
       line-height:1.6;
-      max-width:34rem;
+      max-width:36rem;
       margin-bottom:1.3rem;
     }
 
@@ -239,15 +193,13 @@
       font-size:0.86rem;
       color:#d1d5db;
     }
-    .hero-meta strong{
-      color:#fefce8;
-    }
+    .hero-meta strong{ color:#fefce8; }
     .hero-meta .divider{
-      width:1px;
-      height:16px;
+      width:1px; height:16px;
       background:rgba(148,163,184,0.55);
     }
 
+    /* ✅ FIXED: hero-actions belongs in CSS, not inside body */
     .hero-actions{
       display:flex;
       flex-wrap:wrap;
@@ -289,9 +241,7 @@
       background:rgba(15,23,42,0.65);
       transform:translateY(-2px);
     }
-    .btn span.icon{
-      font-size:1.1rem;
-    }
+    .btn span.icon{ font-size:1.1rem; }
 
     /* HERO RIGHT CARD */
     .hero-card{
@@ -404,28 +354,15 @@
       border:1px solid rgba(148,163,184,0.7);
       background:rgba(15,23,42,0.8);
     }
-    .badge-colors{
-      display:flex;
-      gap:2px;
-    }
-    .badge-colors span{
-      width:10px;
-      height:7px;
-      border-radius:2px;
-    }
+    .badge-colors{ display:flex; gap:2px; }
+    .badge-colors span{ width:10px; height:7px; border-radius:2px; }
     .badge-colors .r{background:var(--red)}
     .badge-colors .y{background:var(--yellow)}
     .badge-colors .g{background:var(--green)}
 
-    /* MAIN GRID SECTIONS */
-    main{
-      padding:2.3rem 1rem 2.5rem;
-    }
-
-    .section{
-      max-width:1120px;
-      margin:0 auto 2.2rem;
-    }
+    /* MAIN */
+    main{ padding:2.3rem 1rem 2.5rem; }
+    .section{ max-width:1120px; margin:0 auto 2.2rem; }
 
     .section-header{
       display:flex;
@@ -442,7 +379,7 @@
     .section-sub{
       font-size:0.9rem;
       color:var(--muted);
-      max-width:420px;
+      max-width:520px;
     }
 
     .grid{
@@ -469,20 +406,14 @@
       transition:opacity 0.2s;
       pointer-events:none;
     }
-    .card:hover::before{
-      opacity:1;
-    }
+    .card:hover::before{ opacity:1; }
     .card h3{
       color:var(--black);
       margin-bottom:6px;
       font-size:1.05rem;
       font-weight:700;
     }
-    .muted{
-      color:var(--muted);
-      line-height:1.5;
-      font-size:0.9rem;
-    }
+    .muted{ color:var(--muted); line-height:1.5; font-size:0.9rem; }
 
     .card-pill{
       font-size:0.75rem;
@@ -499,8 +430,8 @@
       font-size:0.8rem;
       padding:4px 9px;
       border-radius:999px;
-      background:rgba(15,23,42,0.03);
-      border:1px dashed rgba(107,114,128,0.7);
+      background:rgba(0,0,0,0.07);
+      border:1px dashed rgba(0,0,0,0.2);
       margin-top:0.6rem;
       color:#374151;
     }
@@ -518,11 +449,7 @@
       grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);
       gap:16px;
     }
-    @media (max-width:900px){
-      .two-col{
-        grid-template-columns:minmax(0,1fr);
-      }
-    }
+    @media (max-width:900px){ .two-col{ grid-template-columns:minmax(0,1fr); } }
 
     .mini-list{
       font-size:0.86rem;
@@ -561,28 +488,16 @@
       gap:0.75rem;
       align-items:center;
     }
-    .footer-links{
-      display:flex;
-      gap:0.9rem;
-      flex-wrap:wrap;
-    }
-    .footer-links a{
-      color:#4b5563;
-    }
+    .footer-links{ display:flex; gap:0.9rem; flex-wrap:wrap; }
+    .footer-links a{ color:#4b5563; }
 
     @media (max-width:640px){
-      header{
-        padding-bottom:2rem;
-      }
-      .nav-links{
-        display:none;
-      }
-      .hero{
-        margin-top:0.8rem;
-      }
+      header{ padding-bottom:2rem; }
+      .nav-links{ display:none; }
+      .hero{ margin-top:0.8rem; }
     }
 
-    /* NEW upgraded colored section backgrounds */
+    /* Colored section backgrounds */
     .nbvs-section{
       background:linear-gradient(135deg,#ffffff, #fafafa);
       border-radius:18px;
@@ -590,7 +505,6 @@
       box-shadow:0 14px 32px rgba(0,0,0,0.05);
       margin-bottom:2.5rem;
     }
-
     .api-section{
       background:linear-gradient(135deg,#fef9c3,#fafafa);
       border-radius:18px;
@@ -598,7 +512,6 @@
       box-shadow:0 14px 32px rgba(0,0,0,0.05);
       margin-bottom:2.5rem;
     }
-
     .contact-section{
       background:linear-gradient(135deg,#ecfdf5,#f8fafc);
       border-radius:18px;
@@ -613,28 +526,21 @@
       background:white;
       transition:all 0.25s ease;
     }
-
     .feature-card:hover,
     .api-card:hover,
     .contact-card:hover{
       transform:translateY(-4px);
       box-shadow:0 12px 26px rgba(0,0,0,0.08);
     }
-
     .feature-grid .card-pill{
       background:#fef08a;
       color:#78350f;
       border:1px solid rgba(0,0,0,0.08);
+      display:inline-block;
+      padding:4px 8px;
+      border-radius:999px;
     }
-
-    .api-btn{
-      border-color:#fef9c3 !important;
-    }
-
-    .pill-api{
-      background:rgba(0,0,0,0.07);
-      border:1px dashed rgba(0,0,0,0.2);
-    }
+    .api-btn{ border-color:#fef9c3 !important; }
   </style>
 </head>
 
@@ -642,8 +548,8 @@
 
   <!-- Thin strip at top -->
   <div class="top-bar">
-    <span>🇬🇭 Serving employers, banks, and agencies across Ghana</span>
-    <span>🔐 AES-256 encrypted · Audit-logged</span>
+    <span>🎓 Helping universities verify admissions documents faster</span>
+    <span>🔐 Encrypted · Consent-based · Audit-logged</span>
   </div>
 
   <!-- HEADER + HERO -->
@@ -651,12 +557,10 @@
     <div class="header-inner">
       <div class="nav-row">
         <div class="brand">
-          <div class="brand-mark">
-            <span>NB</span>
-          </div>
+          <div class="brand-mark"><span>NB</span></div>
           <div class="brand-text">
             <div class="title">NBVS Ghana</div>
-            <div class="subtitle">National Background Verification System</div>
+            <div class="subtitle">Admissions & Credential Verification</div>
           </div>
         </div>
 
@@ -665,9 +569,7 @@
           <a href="verify.html">Verification</a>
           <a href="api.html">API</a>
           <a href="dashboard.html">Admin</a>
-          <div class="nav-badge">
-            <span>Live sandbox</span>
-          </div>
+          <div class="nav-badge"><span>Live sandbox</span></div>
         </nav>
       </div>
 
@@ -676,106 +578,75 @@
         <div class="hero-main">
           <div class="hero-kicker">
             <span class="badge-dot"></span>
-            Real-time checks · Under 3 seconds
+            Verified workflows · Under 3 seconds
           </div>
+
           <h1 class="hero-title">
-            National-scale background checks<br>
+            Faster admissions verification<br>
             <span class="highlight">for modern Ghana.</span>
           </h1>
+
           <p class="hero-sub">
-            NBVS centralizes identity, criminal, and driving status data into one secure system —
-            allowing employers, banks, landlords, and agencies to verify people in seconds, not days.
+            NBVS is a consent-based verification platform that helps institutions validate
+            applicant identity and submitted credentials (IDs, certificates, letters) with a clean workflow,
+            staff review, and audit logs — so admissions decisions move faster with less fraud.
           </p>
 
           <div class="hero-meta">
-            <span><strong>Records:</strong> citizens, drivers, employment</span>
+            <span><strong>Use case:</strong> admissions · hiring · onboarding</span>
             <span class="divider"></span>
             <span><strong>Access:</strong> Web portal · API</span>
           </div>
 
-.hero-actions {
-  display: flex;
-  flex-wrap: wrap;     /* 💥 THIS is the line that makes the extra buttons visible */
-  gap: 0.85rem;
-  align-items: center;
-}
-       
-<!-- HERO ACTION BUTTONS -->
-<div class="hero-actions">
-
-  <!-- Public Verification -->
-  <a class="btn btn-primary" href="verify.html">
-    <span class="icon">🔍</span> Start a Verification
-  </a>
-
-  <!-- Employer Login -->
-  <a class="btn btn-ghost" href="employer_login.html">
-    <span class="icon">🏢</span> Employer Login
-  </a>
-
-  <!-- User Login -->
-  <a class="btn btn-ghost" href="user_login.html">
-    <span class="icon">👤</span> User Login
-  </a>
-
-  <!-- Admin Login -->
-  <a class="btn btn-ghost" href="dashboard.html">
-    <span class="icon">🔐</span> Admin Login
-  </a>
-
-  <!-- Employer Signup -->
-  <a class="btn btn-ghost" href="employer-signup.html">
-    <span class="icon">➕</span> Employer Sign Up
-  </a>
-
-  <!-- User Signup -->
-  <a class="btn btn-ghost" href="user-signup.html">
-    <span class="icon">➕</span> User Sign Up
-  </a>
-
-</div>
-
-
-
-
+          <!-- HERO ACTION BUTTONS (routes unchanged) -->
+          <div class="hero-actions">
+            <a class="btn btn-primary" href="verify.html">
+              <span class="icon">✅</span> Start Verification
+            </a>
+            <a class="btn btn-ghost" href="employer_login.html">
+              <span class="icon">🏫</span> Institution Login
+            </a>
+            <a class="btn btn-ghost" href="user_login.html">
+              <span class="icon">👤</span> Applicant Login
+            </a>
+            <a class="btn btn-ghost" href="dashboard.html">
+              <span class="icon">🔐</span> Admin Login
+            </a>
+            <a class="btn btn-ghost" href="employer-signup.html">
+              <span class="icon">➕</span> Institution Sign Up
+            </a>
+            <a class="btn btn-ghost" href="user-signup.html">
+              <span class="icon">➕</span> Applicant Sign Up
+            </a>
+          </div>
         </div>
+
         <!-- Right / system snapshot -->
         <aside class="hero-card">
           <div class="hero-card-header">
-            <div class="hero-card-title">
-              System Snapshot
-            </div>
+            <div class="hero-card-title">System Snapshot</div>
             <span class="pill">NBVS Sandbox</span>
           </div>
 
           <div class="stat-row">
             <div class="stat">
-              <div class="stat-label">Daily Searches</div>
+              <div class="stat-label">Requests Today</div>
               <div class="stat-value">●●●</div>
-              <div class="stat-sub">Tracked and audit-logged</div>
+              <div class="stat-sub">Tracked + audit-logged</div>
             </div>
             <div class="stat">
               <div class="stat-label">Organizations</div>
-              <div class="stat-value">Banks · Employers · Agencies</div>
-              <div class="stat-sub">Role-based access (user, staff, superadmin)</div>
+              <div class="stat-value">Universities · Employers</div>
+              <div class="stat-sub">Role-based access (applicant, staff, admin)</div>
             </div>
           </div>
 
           <div class="divider-line"></div>
 
           <ul class="list">
-            <li>
-              <span class="dot"></span>
-              <span>Admin dashboard for records, wallets, logs, and API keys.</span>
-            </li>
-            <li>
-              <span class="dot"></span>
-              <span>Public verification portal with wallet + credit-based searches.</span>
-            </li>
-            <li>
-              <span class="dot"></span>
-              <span>REST API endpoint for enterprise integrations.</span>
-            </li>
+            <li><span class="dot"></span><span>Verification requests with staff review + decision notes.</span></li>
+            <li><span class="dot"></span><span>Audit logs for compliance and internal controls.</span></li>
+            <li><span class="dot"></span><span>API support for SIS/HR integrations.</span></li>
           </ul>
 
           <div class="hero-card-footer">
@@ -783,9 +654,9 @@
               <span class="badge-colors">
                 <span class="r"></span><span class="y"></span><span class="g"></span>
               </span>
-              National focus: Ghana
+              Focus: Ghana
             </span>
-            <span>Built as MVP · Ready to demo</span>
+            <span>MVP · Ready to pilot</span>
           </div>
         </aside>
       </div>
@@ -801,44 +672,46 @@
         <div>
           <h2 class="section-title">What NBVS Provides</h2>
           <p class="section-sub">
-            A complete end-to-end flow: from citizens being verified, to staff reviewing records,
-            to companies connecting via API — all on a single platform.
+            A complete end-to-end flow: applicants submit documents, staff verify and decide,
+            and institutions keep clean logs — all on one platform.
           </p>
         </div>
       </div>
 
       <div class="grid feature-grid">
         <div class="card feature-card">
-          <div class="card-pill">For Employers & Agencies</div>
-          <h3>Instant background checks</h3>
+          <div class="card-pill">For Universities & Institutions</div>
+          <h3>Admissions verification workflow</h3>
           <p class="muted">
-            Verify identity, NIA number, criminal status, driving status, and credit-style flags.
-            Results display in a clean, structured view.
+            Validate applicant identity and submitted credentials through a structured request,
+            staff review, and a clear verified / not verified outcome.
           </p>
         </div>
 
         <div class="card feature-card">
-          <div class="card-pill">Citizen Data</div>
-          <h3>Single source of truth</h3>
+          <div class="card-pill">Applicant Submissions</div>
+          <h3>Consent-based document checks</h3>
           <p class="muted">
-            A unified national dataset with fields like name, NIA, region, DOB, address,
-            driving status, and more — synced and audit-logged.
+            Applicants submit IDs and supporting documents with consent. Institutions get a clean
+            verification report and notes for decisions.
           </p>
         </div>
 
         <div class="card feature-card">
           <div class="card-pill">Wallet & Plans</div>
-          <h3>Prepaid & subscription options</h3>
+          <h3>Pay-per-verification</h3>
           <p class="muted">
-            Public users top up wallets or buy plans (Basic / Pro). All searches are logged for compliance.
+            Prepaid credits for verification requests. Track usage by institution and keep
+            itemized logs for finance and reporting.
           </p>
         </div>
 
         <div class="card feature-card">
           <div class="card-pill">Admin Controls</div>
-          <h3>Role-based access control</h3>
+          <h3>Role-based access + audit logs</h3>
           <p class="muted">
-            Superadmin manages records, API keys, logs, and wallets. Staff access is isolated and safe.
+            Admins manage users, verification requests, wallets, and API keys. Every action can be
+            logged for accountability.
           </p>
         </div>
       </div>
@@ -850,19 +723,17 @@
         <div>
           <h2 class="section-title">NBVS API Integration</h2>
           <p class="section-sub">
-            Banks, HR systems, and partner platforms can verify NIA records through a secure REST API.
+            Institutions can connect their student systems or HR tools via a secure REST API.
           </p>
         </div>
-        <a href="api.html" class="btn btn-ghost api-btn">
-          📘 API Documentation
-        </a>
+        <a href="api.html" class="btn btn-ghost api-btn">📘 API Documentation</a>
       </div>
 
       <div class="two-col">
         <div class="card api-card">
           <h3>Simple REST endpoint</h3>
           <p class="muted">
-            Use your API key and a citizen’s NIA to perform secure verification.
+            Use your API key and an applicant identifier to retrieve verification results securely.
           </p>
 
           <div class="pill-api">
@@ -871,21 +742,21 @@
           </div>
 
           <div class="mini-list">
-            <span>JSON response with verification details.</span>
+            <span>JSON response with verification status + notes.</span>
             <span>4xx responses for invalid keys or missing data.</span>
             <span>Rate limits enforced automatically.</span>
           </div>
         </div>
 
         <div class="card api-card">
-          <h3>Managed keys & rate limits</h3>
+          <h3>Managed keys & usage tracking</h3>
           <p class="muted">
-            API keys are created in the admin dashboard, each with usage tracking.
+            Keys are created in the admin dashboard with usage metrics and control.
           </p>
           <div class="mini-list">
-            <span>Create keys per business or integration.</span>
+            <span>Create keys per institution or integration.</span>
             <span>View daily usage & last-used history.</span>
-            <span>Disable or delete keys instantly.</span>
+            <span>Disable keys instantly.</span>
           </div>
         </div>
       </div>
@@ -897,7 +768,7 @@
         <div>
           <h2 class="section-title">Contact & Next Steps</h2>
           <p class="section-sub">
-            NBVS is in MVP/sandbox mode and ready for stakeholder demos, pilots, and partnerships.
+            NBVS is in MVP/sandbox mode and ready for university demos, admissions pilots, and partnerships.
           </p>
         </div>
       </div>
@@ -915,11 +786,9 @@
 
         <div class="card contact-card">
           <h3>System Access</h3>
-          <p class="muted">
-            Try the full MVP:
-          </p>
+          <p class="muted">Try the full MVP:</p>
           <div class="mini-list">
-            <span><a href="verify.html">Public verification portal</a></span>
+            <span><a href="verify.html">Verification portal</a></span>
             <span><a href="dashboard.html">Admin & Staff dashboard</a></span>
             <span><a href="api.html">API documentation</a></span>
           </div>
@@ -928,10 +797,9 @@
     </section>
   </main>
 
-
   <footer>
     <div class="footer-inner">
-      <div>© 2025 NBVS Ghana — National Background Verification System</div>
+      <div>© 2025 NBVS Ghana — Admissions & Credential Verification</div>
       <div class="footer-links">
         <a href="index.html">Overview</a>
         <a href="verify.html">Verify</a>
