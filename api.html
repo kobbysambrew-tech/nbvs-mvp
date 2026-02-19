@@ -71,6 +71,16 @@
     text-decoration:none;
     font-weight:bold;
   }
+
+  .note{
+    background:#ecfdf5;
+    border:1px solid rgba(0,107,63,0.18);
+    padding:12px;
+    border-radius:10px;
+    margin-top:12px;
+    color:#065f46;
+    font-size:0.95rem;
+  }
 </style>
 </head>
 
@@ -87,17 +97,22 @@
     <code>?key=YOUR_API_KEY</code>
   </p>
 
-  <h2>🔍 Verification Endpoint</h2>
+  <div class="note">
+    NBVS API is intended for <strong>admissions & credential verification</strong> workflows
+    (e.g., verifying applicant identity fields and submitted records). All calls may be audit-logged.
+  </div>
+
+  <h2>🧾 Verification Endpoint</h2>
   <p><strong>GET</strong> request:</p>
 
   <pre>
-https://nbvsghana.vercel.app/api/verify?key=YOUR_KEY&nia=GHA-0000000
+https://nbvsghana.vercel.app/api/verify?key=YOUR_KEY&amp;nia=GHA-0000000
   </pre>
 
   <p><strong>Parameters:</strong></p>
   <ul>
     <li><strong>key</strong> — your API key</li>
-    <li><strong>nia</strong> — National ID / Ghana Card number</li>
+    <li><strong>nia</strong> — National ID / Ghana Card number (or applicant ID stored in NBVS)</li>
     <li><strong>debug=1</strong> — optional, returns extra debug info</li>
   </ul>
 
@@ -108,8 +123,8 @@ https://nbvsghana.vercel.app/api/verify?key=YOUR_KEY&nia=GHA-0000000
   "name": "Ama Serwaa",
   "nia": "GHA-2039485",
   "dob": "1999-02-15",
-  "criminal": "None",
-  "status": "Valid"
+  "region": "Greater Accra",
+  "status": "Verified"
 }
   </pre>
 
@@ -117,7 +132,7 @@ https://nbvsghana.vercel.app/api/verify?key=YOUR_KEY&nia=GHA-0000000
   <pre>
 { "error": "Invalid API key" }
 
-{ "error": "Verification not found" }
+{ "error": "Record not found" }
 
 { "error": "Rate limit exceeded" }
   </pre>
