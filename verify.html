@@ -24,16 +24,28 @@ button{padding:12px;border-radius:8px;border:none;cursor:pointer;font-weight:700
 border-radius:8px;margin-top:12px}
 .small{font-size:.9rem;color:var(--muted)}
 .row{display:flex;gap:12px;margin-top:12px}
+.badge{
+  display:inline-block;
+  padding:3px 10px;
+  border-radius:999px;
+  border:1px solid rgba(0,0,0,0.12);
+  background:#f3f4f6;
+  font-size:0.8rem;
+  margin-left:8px;
+}
+.badge-ok{background:#ecfdf5;border-color:rgba(0,107,63,0.25);color:#065f46}
+.badge-warn{background:#fff7ed;border-color:rgba(234,88,12,0.25);color:#9a3412}
+.badge-bad{background:#fef2f2;border-color:rgba(220,38,38,0.25);color:#991b1b}
 </style>
 </head>
 
 <body>
-<header><h1>NBVS — Background Verification</h1></header>
+<header><h1>NBVS — Admissions & Credential Verification</h1></header>
 
 <main id="app" style="display:none">
   <div class="panel">
 
-    <label for="searchInput">Search by full name or NIA</label>
+    <label for="searchInput">Search by applicant name or ID (NIA / Applicant ID)</label>
     <input id="searchInput" placeholder="e.g. Ama Serwaa or GHA-2039485" />
 
     <div style="display:flex;gap:12px;margin-top:12px;align-items:center">
@@ -45,6 +57,10 @@ border-radius:8px;margin-top:12px}
       <button id="searchBtn" class="btn-green" style="flex:1">Start Verification</button>
       <button id="openWallet" class="btn-yellow" style="width:160px">Open Wallet</button>
     </div>
+
+    <p class="small" style="margin-top:10px">
+      This verification is consent-based. Results are shown to authorized staff only and audit-logged.
+    </p>
   </div>
 
   <div id="resultsArea"></div>
@@ -53,7 +69,7 @@ border-radius:8px;margin-top:12px}
     <h3>Plans & Conversion</h3>
     <div style="display:flex;gap:10px;margin-bottom:8px">
       <button id="buyBasic" class="btn-green" style="flex:1">
-        Buy BASIC — 10 searches — $3.99
+        Buy BASIC — 10 verifications — $3.99
       </button>
       <button id="buyPro" class="btn-red" style="flex:1">
         Buy PRO — 30 days — $14.99
@@ -62,7 +78,7 @@ border-radius:8px;margin-top:12px}
 
     <div style="display:flex;gap:10px">
       <button id="convertWallet" class="btn-yellow" style="flex:1">
-        Convert Wallet → Searches (¢30 each)
+        Convert Wallet → Verifications (¢30 each)
       </button>
       <button id="refreshBtn" style="flex:1">Refresh</button>
     </div>
@@ -142,10 +158,10 @@ async function ensureWallet(){
   } else {
     const u = snap.data();
     const update = {};
-    if (u.balance === undefined)          update.balance = 0;
-    if (!u.plan)                          update.plan = "none";
-    if (u.monthlyRemaining === undefined) update.monthlyRemaining = 0;
-    if (u.planExpires === undefined)      update.planExpires = null;
+    if (u.balance === undefined)           update.balance = 0;
+    if (!u.plan)                           update.plan = "none";
+    if (u.monthlyRemaining === undefined)  update.monthlyRemaining = 0;
+    if (u.planExpires === undefined)       update.planExpires = null;
     if (Object.keys(update).length) await updateDoc(walletRef, update);
   }
 }
@@ -193,7 +209,7 @@ async function deductSearch(){
     if (exp > now){
       await addDoc(collection(db,"wallet_transactions"),{
         deviceId,
-        type:"search (pro plan)",
+        type:"verification (pro plan)",
         amount:0,
         timestamp:new Date()
       });
@@ -209,7 +225,7 @@ async function deductSearch(){
     });
     await addDoc(collection(db,"wallet_transactions"),{
       deviceId,
-      type:"search (basic credits)",
+      type:"verification (basic credits)",
       amount:0,
       timestamp:new Date()
     });
@@ -218,13 +234,11 @@ async function deductSearch(){
 
   // 3) WALLET BALANCE
   if (toNum(u.balance) >= SEARCH_COST){
-    await updateDoc(walletRef,{
-      balance: toNum(u.balance) - SEARCH_COST
-    });
+    await updateDoc(walletRef,{ balance: toNum(u.balance) - SEARCH_COST });
 
     await addDoc(collection(db,"wallet_transactions"),{
       deviceId,
-      type:"search (wallet deduction)",
+      type:"verification (wallet deduction)",
       amount:-SEARCH_COST,
       timestamp:new Date()
     });
@@ -236,7 +250,7 @@ async function deductSearch(){
 }
 
 /* --------------------------------------------------
-   SEARCH ENGINE
+   SEARCH ENGINE (records collection unchanged)
 -------------------------------------------------- */
 async function performSearch(term){
   const out = [];
@@ -245,7 +259,7 @@ async function performSearch(term){
 
   const recordsRef = collection(db,"records");
 
-  // NIA exact match
+  // ID exact match (NIA / applicant ID stored in `nia`)
   const snapNia = await getDocs(
     query(recordsRef, where("nia","==", trimmed), limit(50))
   );
@@ -277,10 +291,21 @@ async function performSearch(term){
   return out;
 }
 
+function statusBadge(statusRaw){
+  const s = String(statusRaw || "").toLowerCase().trim();
+  if (!s) return `<span class="badge">Pending</span>`;
+  if (["verified","approved","valid","clear"].includes(s)) return `<span class="badge badge-ok">Verified</span>`;
+  if (["needs review","review","flagged"].includes(s)) return `<span class="badge badge-warn">Needs review</span>`;
+  if (["rejected","invalid","not verified","denied"].includes(s)) return `<span class="badge badge-bad">Not verified</span>`;
+  return `<span class="badge">${statusRaw}</span>`;
+}
+
+function safe(v){ return (v === undefined || v === null) ? "" : String(v); }
+
 function renderResults(list){
   resultsArea.innerHTML = "";
   if (!list.length){
-    resultsArea.innerHTML = `<p class="small">No record found.</p>`;
+    resultsArea.innerHTML = `<p class="small">No matching applicant record found.</p>`;
     return;
   }
 
@@ -288,16 +313,34 @@ function renderResults(list){
     const r = d.data();
     const div = document.createElement("div");
     div.className="record";
+
+    // Map to admissions-safe display fields.
+    // We keep your existing Firestore fields but do not present "criminal/driving/credit" on the UI.
+    const name    = safe(r.name);
+    const idVal   = safe(r.nia);
+    const dob     = safe(r.dob);
+    const region  = safe(r.region);
+    const address = safe(r.address);
+
+    // Optional admissions-related fields (if you add them later):
+    const program = safe(r.program || r.course || r.department);
+    const school  = safe(r.school || r.institution);
+    const docs    = safe(r.docs || r.documents || r.attachments);
+
     div.innerHTML = `
-      <p><b>Name:</b> ${r.name||""}</p>
-      <p><b>NIA:</b> ${r.nia||""}</p>
-      <p><b>DOB:</b> ${r.dob||""}</p>
-      <p><b>Region:</b> ${r.region||""}</p>
-      <p><b>Address:</b> ${r.address||""}</p>
-      <p><b>Criminal:</b> ${r.criminal||""}</p>
-      <p><b>Driving:</b> ${r.driving||""}</p>
-      <p><b>Credit:</b> ${r.credit||""}</p>
-      <p><b>Status:</b> ${r.status||""}</p>
+      <p><b>Applicant:</b> ${name} ${statusBadge(r.status)}</p>
+      <p><b>ID:</b> ${idVal}</p>
+      ${dob ? `<p><b>DOB:</b> ${dob}</p>` : ``}
+      ${region ? `<p><b>Region:</b> ${region}</p>` : ``}
+      ${address ? `<p><b>Address:</b> ${address}</p>` : ``}
+
+      ${program ? `<p><b>Program:</b> ${program}</p>` : ``}
+      ${school ? `<p><b>Institution:</b> ${school}</p>` : ``}
+      ${docs ? `<p><b>Documents:</b> ${docs}</p>` : ``}
+
+      <p class="small" style="margin-top:8px">
+        Note: Results reflect submitted documents and staff review within NBVS.
+      </p>
     `;
     resultsArea.appendChild(div);
   });
@@ -309,7 +352,7 @@ function renderResults(list){
 searchBtn.onclick = async () => {
   const term = searchInput.value.trim();
   if (!term){
-    resultsArea.innerHTML = `<p class="small">Enter a value.</p>`;
+    resultsArea.innerHTML = `<p class="small">Enter a name or ID.</p>`;
     return;
   }
 
@@ -352,12 +395,12 @@ buyBasic.onclick = async ()=>{
 
   await addDoc(collection(db,"wallet_transactions"),{
     deviceId,
-    type:"buy_basic_plan (+10 searches)",
+    type:"buy_basic_plan (+10 verifications)",
     amount:0,
     timestamp:new Date()
   });
 
-  alert("Basic activated: +10 searches");
+  alert("Basic activated: +10 verifications");
   await refreshUI();
 };
 
@@ -393,17 +436,17 @@ convertWallet.onclick = async ()=>{
   await updateDoc(walletRef,{
     balance: bal - spent,
     monthlyRemaining: toNum(u.monthlyRemaining) + searches,
-    plan: u.plan === "none" ? "basic" : u.plan // if they had no plan, treat as basic
+    plan: u.plan === "none" ? "basic" : u.plan
   });
 
   await addDoc(collection(db,"wallet_transactions"),{
     deviceId,
-    type:"convert_wallet_to_searches",
+    type:"convert_wallet_to_verifications",
     amount:-spent,
     timestamp:new Date()
   });
 
-  alert(`Converted ¢${spent} → ${searches} searches`);
+  alert(`Converted ¢${spent} → ${searches} verifications`);
   await refreshUI();
 };
 
