@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>NBVS — Wallet (Anonymous)</title>
+<title>NBVS — Wallet</title>
 <style>
 :root{--green:#006b3f;--accent:#004f2e;--bg:#f6f7f9;--muted:#555}
 body{font-family:"Segoe UI",Arial,sans-serif;background:var(--bg);margin:0;color:#222}
@@ -15,31 +15,49 @@ main{max-width:900px;margin:16px auto;padding:0 16px}
 .btn-yellow{background:#fcd116;color:#111}
 .table{width:100%;border-collapse:collapse;margin-top:12px}
 .table th,.table td{padding:10px;border-bottom:1px solid #eee;text-align:left}
-.small{font-size:.9rem;color:var(--muted)}
+.small{font-size:.9rem;color:var(--muted);line-height:1.4}
+.pill{
+  display:inline-block;
+  padding:4px 10px;
+  border-radius:999px;
+  background:#ecfdf5;
+  border:1px solid rgba(0,107,63,0.18);
+  color:#065f46;
+  font-size:.85rem;
+}
 </style>
 </head>
 <body>
 <header><h1>NBVS — Wallet</h1></header>
+
 <main>
   <div class="panel">
     <h2>Your Wallet</h2>
-    <p style="font-size:1.6rem;font-weight:700">¢<span id="balance">0</span></p>
-    <p class="small">One verification costs ¢30 (if no plan/credits).</p>
 
-    <div style="display:flex;gap:10px;margin-top:12px">
-      <button id="add10" class="btn btn-green" style="flex:1">Add ¢10</button>
-      <button id="add30" class="btn btn-green" style="flex:1">Add ¢30</button>
-      <button id="add100" class="btn btn-green" style="flex:1">Add ¢100</button>
+    <p style="font-size:1.6rem;font-weight:700">¢<span id="balance">0</span></p>
+    <p class="small">
+      One verification costs <b>¢30</b> (if no plan/credits).
+      <span class="pill" style="margin-left:8px">Admissions-ready</span>
+    </p>
+
+    <div style="display:flex;gap:10px;margin-top:12px;flex-wrap:wrap">
+      <button id="add10" class="btn btn-green" style="flex:1;min-width:140px">Add ¢10</button>
+      <button id="add30" class="btn btn-green" style="flex:1;min-width:140px">Add ¢30</button>
+      <button id="add100" class="btn btn-green" style="flex:1;min-width:140px">Add ¢100</button>
     </div>
 
     <div style="margin-top:12px">
       <button id="back" class="btn btn-yellow" style="width:100%">← Back to Verify</button>
     </div>
 
-    <div style="display:flex;gap:12px;margin-top:12px;align-items:center">
+    <div style="display:flex;gap:12px;margin-top:12px;align-items:center;flex-wrap:wrap">
       <div class="small" id="planLabel">Plan: —</div>
-      <div class="small" id="creditsLabel">Basic credits: —</div>
+      <div class="small" id="creditsLabel">Verification credits: —</div>
     </div>
+
+    <p class="small" style="margin-top:10px">
+      Note: Wallet and verification usage are tracked for audit and support purposes.
+    </p>
   </div>
 
   <div class="panel">
@@ -53,7 +71,10 @@ main{max-width:900px;margin:16px auto;padding:0 16px}
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
-import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, addDoc, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
+import {
+  getFirestore, doc, getDoc, setDoc, updateDoc,
+  collection, addDoc, getDocs, query, orderBy, where
+} from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey:"AIzaSyCDh_qL3jiCMHROK0_Soul2Wsv3t3y4wv0",
@@ -63,6 +84,7 @@ const firebaseConfig = {
   messagingSenderId:"702636577113",
   appId:"1:702636577113:web:8369b43a2aa43aeb95fc48"
 };
+
 const appFB = initializeApp(firebaseConfig);
 const db = getFirestore(appFB);
 
@@ -123,29 +145,49 @@ async function refreshWallet(){
   const data = snap.data();
   balanceEl.innerText = toNum(data.balance);
   planLabelEl.innerText = formatPlanLabel(data);
-  creditsLabel.innerText = 'Basic credits: ' + toNum(data.monthlyRemaining);
+  creditsLabel.innerText = 'Verification credits: ' + toNum(data.monthlyRemaining);
   await loadTransactions();
 }
 
 async function loadTransactions(){
   txBody.innerHTML='<tr><td colspan="3">Loading…</td></tr>';
-  const qRef = query(collection(db,'wallet_transactions'),orderBy('timestamp','desc'));
+
+  // ✅ IMPORTANT: only load transactions for this deviceId
+  const qRef = query(
+    collection(db,'wallet_transactions'),
+    where('deviceId','==',deviceId),
+    orderBy('timestamp','desc')
+  );
+
   const snap = await getDocs(qRef);
+
   if(snap.empty){
     txBody.innerHTML='<tr><td colspan="3">No transactions yet</td></tr>';
     return;
   }
+
   txBody.innerHTML='';
   snap.forEach(d=>{
     const r = d.data();
-    const time = r.timestamp?.toDate ? r.timestamp.toDate().toLocaleString() : (r.timestamp ? new Date(r.timestamp).toLocaleString() : '—');
-    txBody.innerHTML += `<tr><td>${time}</td><td>${r.type||''}</td><td>${toNum(r.amount) >= 0 ? '¢'+toNum(r.amount) : '-¢'+Math.abs(toNum(r.amount))}</td></tr>`;
+    const time = r.timestamp?.toDate
+      ? r.timestamp.toDate().toLocaleString()
+      : (r.timestamp ? new Date(r.timestamp).toLocaleString() : '—');
+
+    const amt = toNum(r.amount);
+    txBody.innerHTML += `
+      <tr>
+        <td>${time}</td>
+        <td>${r.type||''}</td>
+        <td>${amt >= 0 ? '¢'+amt : '-¢'+Math.abs(amt)}</td>
+      </tr>
+    `;
   });
 }
 
 async function addMoney(amount){
   const snap = await getDoc(walletRef);
   const bal = toNum(snap.exists()?snap.data().balance:0);
+
   await updateDoc(walletRef,{balance: bal+amount});
   await addDoc(collection(db,'wallet_transactions'),{
     deviceId,
@@ -153,6 +195,7 @@ async function addMoney(amount){
     amount,
     timestamp:new Date()
   });
+
   await refreshWallet();
 }
 
