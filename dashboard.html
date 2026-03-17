@@ -25,98 +25,82 @@
     <div class="note" id="login-note"></div>
   </div>
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
-    import {
-      getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut
-    } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
-    import {
-      getFirestore, doc, getDoc
-    } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyCDh_qL3jiCMHROK0_Soul2Wsv3t3y4wv0",
-      authDomain: "nbvs-ghana.firebaseapp.com",
-      projectId: "nbvs-ghana",
-      storageBucket: "nbvs-ghana.firebasestorage.app",
-      messagingSenderId: "702636577113",
-      appId: "1:702636577113:web:8369b43a2aa43aeb95fc48",
-      measurementId: "G-2FHFSQRMZX"
-    };
+    <script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
+import {
+  getAuth, signInWithEmailAndPassword
+} from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
+import {
+  getFirestore, doc, getDoc
+} from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 
-    const app  = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db   = getFirestore(app);
+const firebaseConfig = {
+  apiKey: "AIzaSyCDh_qL3jiCMHROK0_Soul2Wsv3t3y4wv0",
+  authDomain: "nbvs-ghana.firebaseapp.com",
+  projectId: "nbvs-ghana",
+  storageBucket: "nbvs-ghana.firebasestorage.app",
+  messagingSenderId: "702636577113",
+  appId: "1:702636577113:web:8369b43a2aa43aeb95fc48",
+  measurementId: "G-2FHFSQRMZX"
+};
 
-    const emailEl = document.getElementById("email");
-    const passEl  = document.getElementById("password");
-    const noteEl  = document.getElementById("login-note");
-    const btn     = document.getElementById("btn-login");
+const app  = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db   = getFirestore(app);
 
-    /* ============================================================
-       LOGIN BUTTON
-    ============================================================ */
-    btn.addEventListener("click", async () => {
-      noteEl.textContent = "";
-      const email = emailEl.value.trim();
-      const pwd   = passEl.value.trim();
+const emailEl = document.getElementById("email");
+const passEl  = document.getElementById("password");
+const noteEl  = document.getElementById("login-note");
+const btn     = document.getElementById("btn-login");
 
-      if (!email || !pwd) {
-        noteEl.textContent = "Enter email and password.";
-        return;
-      }
+/* ============================================================
+   LOGIN BUTTON (ONLY place redirect happens)
+============================================================ */
+btn.addEventListener("click", async () => {
+  noteEl.textContent = "";
 
-      try {
-        await signInWithEmailAndPassword(auth, email, pwd);
-        // Redirect handled below
-      } catch (err) {
-        console.error(err);
-        noteEl.textContent = (err?.code || err?.message) || "Login failed.";
-      }
-    });
+  const email = emailEl.value.trim();
+  const pwd   = passEl.value.trim();
 
-    /* ============================================================
-       GLOBAL ROLE-BASED REDIRECT
-       (ONLY PLACE IN YOUR ENTIRE APP WHERE REDIRECT DECISIONS HAPPEN)
-    ============================================================ */
-    onAuthStateChanged(auth, async (user) => {
-      if (!user) return; // not logged in → stay on login page
+  if (!email || !pwd) {
+    noteEl.textContent = "Enter email and password.";
+    return;
+  }
 
-      let udoc;
-      try {
-        udoc = await getDoc(doc(db, "users", user.uid));
-      } catch (e) {
-        console.error(e);
-        noteEl.textContent = "Error reading user record.";
-        return;
-      }
+  try {
+    const userCred = await signInWithEmailAndPassword(auth, email, pwd);
+    const user = userCred.user;
 
-      if (!udoc.exists()) {
-        noteEl.textContent = "No user record found.";
-        return;
-      }
+    // 🔥 Get role AFTER login
+    const udoc = await getDoc(doc(db, "users", user.uid));
 
-      const role = (udoc.data().role || "").toLowerCase();
+    if (!udoc.exists()) {
+      noteEl.textContent = "No user record found.";
+      return;
+    }
 
-      // ========= ADMIN / STAFF / SUPERADMIN =========
-      if (role === "admin" || role === "staff" || role === "superadmin") {
-        return window.location.href = "admin.html";
-      }
+    const role = (udoc.data().role || "").toLowerCase();
 
-      // ========= EMPLOYER =========
-      if (role === "employer") {
-        return window.location.href = "employer.html";
-      }
+    // 🔥 SINGLE redirect (NO LOOP)
+    if (role === "admin" || role === "staff" || role === "superadmin") {
+      window.location.href = "admin.html";
+    } 
+    else if (role === "employer") {
+      window.location.href = "employer_dashboard.html";
+    } 
+    else if (role === "user") {
+      window.location.href = "user_dashboard.html";
+    } 
+    else {
+      noteEl.textContent = "Access denied.";
+    }
 
-      // ========= USER =========
-      if (role === "user") {
-        return window.location.href = "user.html";
-      }
-
-      // ========= UNKNOWN ROLE =========
-      noteEl.textContent = "Access denied: your account does not have an authorized role.";
-      await signOut(auth);
-    });
-  </script>
+  } catch (err) {
+    console.error(err);
+    noteEl.textContent = "Login failed.";
+  }
+});
+</script>
 </body>
 </html>
