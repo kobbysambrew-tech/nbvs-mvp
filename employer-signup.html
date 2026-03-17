@@ -100,6 +100,10 @@ document.getElementById("signupBtn").onclick = async () => {
       email:email,
       createdAt:new Date()
     });
+    await setDoc(doc(db,"wallet",user.uid),{
+  balance: 5, // 🔥 give free credits
+  createdAt: new Date()
+});
 
     alert("Account created!");
     window.location.href = "dashboard.html"; // 🔥 auto go to dashboard
