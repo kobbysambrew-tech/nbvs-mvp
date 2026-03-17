@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Employer Dashboard</title>
+</head>
+
+<body style="font-family:sans-serif; padding:40px;">
+
+<h1>🏫 Employer Dashboard</h1>
+<p>Welcome — you are logged in as an institution.</p>
+
+<a href="verify.html">Go Verify Credentials</a>
+
+<br><br>
+
+<button onclick="logout()">Logout</button>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
+import { getAuth, signOut } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCDh_qL3jiCMHROK0_Soul2Wsv3t3y4wv0",
+  authDomain: "nbvs-ghana.firebaseapp.com",
+  projectId: "nbvs-ghana",
+  storageBucket: "nbvs-ghana.firebasestorage.app",
+  messagingSenderId: "702636577113",
+  appId: "1:702636577113:web:8369b43a2aa43aeb95fc48"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+
+window.logout = () => {
+  signOut(auth);
+  window.location.href = "index.html";
+};
+</script>
+
+</body>
+</html>
