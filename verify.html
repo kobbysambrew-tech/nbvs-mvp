@@ -36,6 +36,14 @@ border-radius:8px;margin-top:12px}
 .badge-ok{background:#ecfdf5;border-color:rgba(0,107,63,0.25);color:#065f46}
 .badge-warn{background:#fff7ed;border-color:rgba(234,88,12,0.25);color:#9a3412}
 .badge-bad{background:#fef2f2;border-color:rgba(220,38,38,0.25);color:#991b1b}
+  .record {
+  background:#fff;
+  border-left:6px solid var(--green);
+  padding:14px;
+  border-radius:12px;
+  margin-top:12px;
+  box-shadow:0 6px 18px rgba(0,0,0,0.08);
+}
 </style>
 </head>
 
@@ -305,16 +313,57 @@ function renderResults(list){
     const school  = safe(r.school || r.institution);
     const docs    = safe(r.docs || r.documents || r.attachments);
 
-    div.innerHTML = `
-  <p><b>Verification ID:</b> ${r.verificationId || "—"}</p>
- <p><b>Graduate Name:</b> ${r.graduateName || "—"} ${statusBadge(r.status)}</p>
-  <p><b>Institution:</b> ${r.institutionName || "—"}</p>
-  <p><b>Qualification:</b> ${r.qualification || "—"}</p>
-  <p><b>Graduation Year:</b> ${r.graduationYear || "—"}</p>
+   div.innerHTML = `
+  <div style="
+    border:2px solid ${r.status === "valid" ? "#16a34a" : "#dc2626"};
+    border-radius:12px;
+    padding:16px;
+  ">
 
- <p class="small" style="margin-top:8px">
-  This credential is officially registered and verified through NBVS.
-</p>
+    <!-- STATUS HEADER -->
+    <div style="
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      margin-bottom:12px;
+    ">
+      <h2 style="margin:0;font-size:1.2rem;">
+        Verification Result
+      </h2>
+
+      <span style="
+        padding:6px 12px;
+        border-radius:999px;
+        font-weight:700;
+        font-size:0.85rem;
+        background:${r.status === "valid" ? "#dcfce7" : "#fee2e2"};
+        color:${r.status === "valid" ? "#166534" : "#991b1b"};
+      ">
+        ${(r.status || "UNKNOWN").toUpperCase()}
+      </span>
+    </div>
+
+    <!-- VERIFICATION ID -->
+    <p style="font-size:1.1rem;margin-bottom:10px;">
+      <b>Verification ID:</b> ${r.verificationId || "—"}
+    </p>
+
+    <hr style="margin:10px 0">
+
+    <!-- DETAILS -->
+    <p><b>Graduate Name:</b> ${r.graduateName || "—"}</p>
+    <p><b>Institution:</b> ${r.institutionName || "—"}</p>
+    <p><b>Qualification:</b> ${r.qualification || "—"}</p>
+    <p><b>Graduation Year:</b> ${r.graduationYear || "—"}</p>
+
+    <hr style="margin:12px 0">
+
+    <!-- FOOTER -->
+    <p class="small">
+      This credential has been officially verified and recorded in the NBVS registry.
+    </p>
+
+  </div>
 `;
     resultsArea.appendChild(div);
   });
