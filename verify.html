@@ -40,13 +40,12 @@ border-radius:8px;margin-top:12px}
 </head>
 
 <body>
-<header><h1>NBVS — Admissions & Credential Verification</h1></header>
-
+<header><h1>NBVS — Credential Verification</h1></header>
 <main id="app" style="display:none">
   <div class="panel">
 
-    <label for="searchInput">Search by applicant name or ID (NIA / Applicant ID)</label>
-    <input id="searchInput" placeholder="e.g. Ama Serwaa or GHA-2039485" />
+    <label for="searchInput">Enter Verification ID</label>
+   <input id="searchInput" placeholder="e.g. NBVS-000123" />
 
     <div style="display:flex;gap:12px;margin-top:12px;align-items:center">
       <div class="small" id="planLabel">Plan: —</div>
@@ -58,9 +57,9 @@ border-radius:8px;margin-top:12px}
       <button id="openWallet" class="btn-yellow" style="width:160px">Open Wallet</button>
     </div>
 
-    <p class="small" style="margin-top:10px">
-      This verification is consent-based. Results are shown to authorized staff only and audit-logged.
-    </p>
+   <p class="small" style="margin-top:10px">
+  Enter a valid NBVS verification ID to confirm credential authenticity.
+</p>
   </div>
 
   <div id="resultsArea"></div>
