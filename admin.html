@@ -789,7 +789,7 @@ async function deleteRecordById(idOverride){
    ============================================================ */
 async function loadRecordsList(){
   const c = document.getElementById("records-list");
-  c.innerHTML="Loading…";
+  c.innerHTML = "Loading…";
 
   const f = document.getElementById("records-filter").value.trim();
 
@@ -797,36 +797,62 @@ async function loadRecordsList(){
     let docs = [];
 
     if(f){
-      const r1 = await getDocs(query(collection(db,"records"), where("name","==",f), limit(200)));
-      const r2 = await getDocs(query(collection(db,"records"), where("region","==",f), limit(200)));
+      const r1 = await getDocs(query(collection(db,"records"), where("verificationId","==",f), limit(200)));
+      const r2 = await getDocs(query(collection(db,"records"), where("graduateName","==",f), limit(200)));
       docs = [...r1.docs, ...r2.docs];
     } else {
       const r = await getDocs(query(collection(db,"records"), limit(200)));
       docs = r.docs;
     }
 
-    c.innerHTML="";
+    c.innerHTML = "";
 
-    if(docs.length===0){
-      c.innerHTML="<p class='small'>No records</p>";
+    if(docs.length === 0){
+      c.innerHTML = "<p class='small'>No records found</p>";
       return;
     }
 
     docs.forEach(d=>{
       const r = d.data();
+
+      // status badge color
+      let statusColor = "#999";
+      if(r.status === "valid") statusColor = "#16a34a"; // green
+      if(r.status === "revoked") statusColor = "#dc2626"; // red
+
       const div = document.createElement("div");
-      div.className="record";
-      div.innerHTML=`
-        <div style="display:flex;justify-content:space-between">
+      div.className = "record";
+
+      div.innerHTML = `
+        <div style="display:flex;justify-content:space-between;gap:10px;">
+          
           <div>
-            <p><b>${r.name}</b> <span class="small">(${r.nia})</span></p>
-            <p class="small">${r.region} — ${r.status}</p>
+            <p><b>${r.verificationId || "—"}</b></p>
+            <p class="small">${r.graduateName || "Unknown Graduate"}</p>
+            <p class="small">${r.institutionName || "Unknown Institution"}</p>
+            <p class="small">${r.qualification || "—"}</p>
           </div>
+
           <div style="text-align:right">
-            <div class="small">id:${d.id}</div>
+            <span style="
+              display:inline-block;
+              padding:4px 8px;
+              border-radius:6px;
+              font-size:12px;
+              font-weight:600;
+              background:${statusColor}20;
+              color:${statusColor};
+              margin-bottom:6px;
+            ">
+              ${(r.status || "unknown").toUpperCase()}
+            </span>
+
+            <div class="small">doc:${d.id}</div>
             <button class="btn" data-loadid="${d.id}">Load</button>
           </div>
-        </div>`;
+
+        </div>
+      `;
 
       c.appendChild(div);
       div.querySelector("[data-loadid]").onclick = ()=>loadRecordIntoForm(d.id);
@@ -834,24 +860,35 @@ async function loadRecordsList(){
 
   } catch(err){
     console.error(err);
-    c.innerHTML="Failed";
+    c.innerHTML = "Failed to load records";
   }
 }
-
 async function loadRecordIntoForm(id){
   const snap = await getDoc(doc(db,"records",id));
-  if(!snap.exists()) return alert("Not found");
+  if(!snap.exists()) return alert("Record not found");
+
   const r = snap.data();
-document.getElementById("rec-verificationId").value = r.verificationId||"";
-  document.getElementById("rec-name").value = r.name||"";
-  document.getElementById("rec-nia").value = r.nia||"";
-  document.getElementById("rec-dob").value = r.dob||"";
-  document.getElementById("rec-region").value = r.region||"";
-  document.getElementById("rec-address").value = r.address||"";
-  document.getElementById("rec-credit").value = r.credit||"";
-  document.getElementById("rec-criminal").value = r.criminal||"";
-  document.getElementById("rec-driving").value = r.driving||"";
-  document.getElementById("rec-status").value = r.status||"";
+
+  document.getElementById("rec-verificationId").value = r.verificationId || "";
+
+  // NEW FIELDS
+  document.getElementById("rec-graduateName").value = r.graduateName || "";
+  document.getElementById("rec-institutionName").value = r.institutionName || "";
+  document.getElementById("rec-qualification").value = r.qualification || "";
+
+  // KEEP (optional legacy / extended info)
+  document.getElementById("rec-name").value = r.name || "";
+  document.getElementById("rec-nia").value = r.nia || "";
+  document.getElementById("rec-dob").value = r.dob || "";
+  document.getElementById("rec-region").value = r.region || "";
+  document.getElementById("rec-address").value = r.address || "";
+
+  // checks
+  document.getElementById("rec-credit").value = r.credit || "";
+  document.getElementById("rec-criminal").value = r.criminal || "";
+  document.getElementById("rec-driving").value = r.driving || "";
+
+  document.getElementById("rec-status").value = r.status || "";
   document.getElementById("rec-id").value = id;
 }
 
