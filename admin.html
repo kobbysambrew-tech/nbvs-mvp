@@ -142,8 +142,8 @@ input,select,textarea{
 <main>
   <div class="tabs">
     <button id="tab-dashboard" class="active">Dashboard</button>
-    <button id="tab-verify">Admissions Verify</button>
-    <button id="tab-records">Applicant Records</button>
+   <button id="tab-verify">Verify Credential</button>
+<button id="tab-records">Credential Registry</button>
     <button id="tab-users">Users</button>
     <button id="tab-wallet">Wallet</button>
     <button id="tab-logs">Verification Logs</button>
@@ -173,12 +173,12 @@ input,select,textarea{
   <!-- VERIFY -->
   <section id="section-verify" style="display:none">
     <div class="panel">
-      <h3>Admissions Verification (Staff)</h3>
+    <h3>Credential Verification (Staff)</h3>
     <input id="verify-query" placeholder="Verification ID (e.g. NBVS-000123)" />
 
       <div class="flex" style="margin-top:6px">
-        <button id="verify-search" class="btn btn-green">Search</button>
-        <button id="verify-search-nia" class="btn btn-yellow">Search Verification ID</button>
+        <button id="verify-search" class="btn btn-green">Verify Credential</button>
+<button id="verify-search-nia" class="btn btn-yellow">Verify by ID</button>
         <button id="verify-clear" class="btn">Clear</button>
       </div>
 
@@ -189,7 +189,7 @@ input,select,textarea{
   <!-- RECORDS -->
   <section id="section-records" style="display:none">
     <div class="panel">
-      <h3>Create / Edit Applicant Record</h3>
+     <h3>Create / Edit Credential Record</h3>
 
      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
   <input id="rec-verificationId" placeholder="Verification ID (auto if blank)" />
@@ -219,9 +219,9 @@ input,select,textarea{
     </div>
 
     <div class="panel">
-      <h3>Applicant Records Browser</h3>
+      <h3>Credential Registry</h3>
       <div style="display:flex;gap:8px">
-        <input id="records-filter" placeholder="Filter by name or region..." />
+       <input id="records-filter" placeholder="Filter by Verification ID or Graduate Name..." />
         <button id="records-refresh" class="btn">Refresh</button>
       </div>
       <div id="records-list" style="margin-top:8px">Loading…</div>
@@ -676,11 +676,11 @@ async function adminVerifySearch(forceNiaOnly){
         <div style="display:flex;justify-content:space-between">
           <div>
             <p><b>Verification ID:</b> ${r.verificationId || "—"}</p>
-            <p><b>Name:</b> ${r.graduateName || r.name || "—"}</p>
+            <p><b>Graduate Name:</b> ${r.graduateName || r.name || "—"}</p>
             <p><b>Institution:</b> ${r.institutionName || r.criminal || "—"}</p>
             <p><b>Qualification:</b> ${r.qualification || r.credit || "—"}</p>
             <p><b>Graduation Year:</b> ${r.graduationYear || r.driving || "—"}</p>
-            <p><b>Status:</b> ${r.status || "—"}</p>
+           <p><b>Credential Status:</b> ${(r.status || "—").toUpperCase()}</p>
           </div>
           <div style="text-align:right">
             <div class="small">ID: ${docSnap.id}</div>
@@ -808,7 +808,7 @@ async function loadRecordsList(){
     c.innerHTML = "";
 
     if(docs.length === 0){
-      c.innerHTML = "<p class='small'>No records found</p>";
+      c.innerHTML = "<p class='small'>No credentials found</p>";
       return;
     }
 
@@ -872,9 +872,7 @@ async function loadRecordIntoForm(id){
   document.getElementById("rec-verificationId").value = r.verificationId || "";
 
   // NEW FIELDS
-  document.getElementById("rec-graduateName").value = r.graduateName || "";
-  document.getElementById("rec-institutionName").value = r.institutionName || "";
-  document.getElementById("rec-qualification").value = r.qualification || "";
+
 
   // KEEP (optional legacy / extended info)
   document.getElementById("rec-name").value = r.name || "";
