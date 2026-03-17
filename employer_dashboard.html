@@ -3,10 +3,11 @@
 <head>
 <meta charset="utf-8">
 <title>Employer Dashboard — NBVS</title>
+
 <style>
 body{font-family:Arial;background:#f6f7f9;padding:30px}
 .card{background:#fff;padding:20px;border-radius:10px;max-width:500px;margin:auto;box-shadow:0 6px 20px rgba(0,0,0,.1)}
-button{padding:10px;margin-top:10px;border:none;border-radius:6px;background:#006b3f;color:white;cursor:pointer}
+button{padding:10px;margin-top:10px;border:none;border-radius:6px;background:#006b3f;color:white;cursor:pointer;width:100%}
 </style>
 </head>
 
@@ -15,16 +16,18 @@ button{padding:10px;margin-top:10px;border:none;border-radius:6px;background:#00
 <div class="card">
   <h2>Employer Dashboard</h2>
 
-  <p>Balance: <b id="balance">¢0</b></p>
+  <p>Wallet Balance: <b id="balance">¢0</b></p>
 
-  <button id="refresh">Refresh</button>
-  <button id="addMoney">+¢100 (Test Top Up)</button>
+  <button id="refresh">Refresh Balance</button>
+  <button id="addMoney">+¢100 (Test Top-Up)</button>
+  <button id="goVerify">Go to Verify</button>
+  <button id="logout">Logout</button>
 </div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
-import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
-import { getFirestore, doc, getDoc, updateDoc, setDoc, addDoc, collection } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
+import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
+import { getFirestore, doc, getDoc, setDoc, updateDoc, addDoc, collection } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey:"AIzaSyCDh_qL3jiCMHROK0_Soul2Wsv3t3y4wv0",
@@ -54,7 +57,7 @@ async function loadWallet(user){
   balanceEl.innerText = "¢" + (snap.data().balance || 0);
 }
 
-document.getElementById("refresh").onclick = async ()=>{
+document.getElementById("refresh").onclick = ()=>{
   const user = auth.currentUser;
   if(user) loadWallet(user);
 };
@@ -80,11 +83,20 @@ document.getElementById("addMoney").onclick = async ()=>{
   loadWallet(user);
 };
 
+document.getElementById("goVerify").onclick = ()=>{
+  window.location.href = "verify.html";
+};
+
+document.getElementById("logout").onclick = async ()=>{
+  await signOut(auth);
+  window.location.href = "employer_login.html";
+};
+
 onAuthStateChanged(auth,(user)=>{
   if(user){
     loadWallet(user);
   } else {
-    window.location.href = "login.html";
+    window.location.href = "employer_login.html";
   }
 });
 </script>
