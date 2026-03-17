@@ -252,42 +252,16 @@ async function deductSearch(){
    SEARCH ENGINE (records collection unchanged)
 -------------------------------------------------- */
 async function performSearch(term){
-  const out = [];
-  const trimmed = term.trim();
-  if (!trimmed) return out;
+  const trimmed = term.trim().toUpperCase();
+  if (!trimmed) return [];
 
   const recordsRef = collection(db,"records");
 
-  // ID exact match (NIA / applicant ID stored in `nia`)
-  const snapNia = await getDocs(
-    query(recordsRef, where("nia","==", trimmed), limit(50))
+  const snap = await getDocs(
+    query(recordsRef, where("verificationId","==", trimmed), limit(1))
   );
-  snapNia.forEach(d=> out.push(d));
 
-  // Lowercase name match
-  const lower = trimmed.toLowerCase();
-  const snapName = await getDocs(
-    query(recordsRef, where("name_lower","==", lower), limit(200))
-  );
-  snapName.forEach(d=>{
-    if (!out.find(x=>x.id===d.id)) out.push(d);
-  });
-
-  // Fallback: scan subset by digits
-  const snapAll = await getDocs(query(recordsRef, limit(500)));
-  const digits = trimmed.replace(/\D/g,'');
-
-  snapAll.forEach(d=>{
-    const r = d.data();
-
-    if ((r.name || "").toLowerCase() === lower)
-      if (!out.find(x=>x.id===d.id)) out.push(d);
-
-    if (digits && (r.nia||"").replace(/\D/g,'') === digits)
-      if (!out.find(x=>x.id===d.id)) out.push(d);
-  });
-
-  return out;
+  return snap.docs;
 }
 
 function statusBadge(statusRaw){
@@ -351,7 +325,7 @@ function renderResults(list){
 searchBtn.onclick = async () => {
   const term = searchInput.value.trim();
   if (!term){
-    resultsArea.innerHTML = `<p class="small">Enter a name or ID.</p>`;
+    resultsArea.innerHTML = `<p class="small">Enter a verification ID.</p>`;
     return;
   }
 
