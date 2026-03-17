@@ -98,20 +98,17 @@ border-radius:8px;margin-top:12px}
 
 
 <script type="module">
-/* --------------------------------------------------
-   FIREBASE
--------------------------------------------------- */
-import {
-  initializeApp
-} from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
 import {
   getFirestore, doc, getDoc, setDoc, updateDoc,
   collection, addDoc, getDocs, query, where, limit
 } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 
 import {
-  getAuth
+  getAuth, onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
+
+/* ---------------- FIREBASE ---------------- */
 const firebaseConfig = {
   apiKey:"AIzaSyCDh_qL3jiCMHROK0_Soul2Wsv3t3y4wv0",
   authDomain:"nbvs-ghana.firebaseapp.com",
@@ -124,17 +121,9 @@ const firebaseConfig = {
 const appFB = initializeApp(firebaseConfig);
 const db = getFirestore(appFB);
 const auth = getAuth(appFB);
-/* --------------------------------------------------
-   CONSTANTS
--------------------------------------------------- */
-const SEARCH_COST = 30;
-const DEVICE_KEY = "nbvs_deviceId";
 
-let deviceId = localStorage.getItem(DEVICE_KEY);
-if (!deviceId){
-  deviceId = "dev_" + Math.random().toString(36).slice(2,12);
-  localStorage.setItem(DEVICE_KEY, deviceId);
-}
+/* ---------------- CONSTANTS ---------------- */
+const SEARCH_COST = 30;
 
 function getWalletRef(){
   const user = auth.currentUser;
@@ -142,60 +131,45 @@ function getWalletRef(){
   return doc(db, "wallet", user.uid);
 }
 
-const appEl        = document.getElementById("app");
-const searchInput  = document.getElementById("searchInput");
-const searchBtn    = document.getElementById("searchBtn");
-const openWallet   = document.getElementById("openWallet");
-const planLabel    = document.getElementById("planLabel");
-const walletLabel  = document.getElementById("walletLabel");
-const resultsArea  = document.getElementById("resultsArea");
-const buyBasic     = document.getElementById("buyBasic");
-const buyPro       = document.getElementById("buyPro");
-const convertWallet= document.getElementById("convertWallet");
-const refreshBtn   = document.getElementById("refreshBtn");
+const appEl = document.getElementById("app");
+const searchBtn = document.getElementById("searchBtn");
+const searchInput = document.getElementById("searchInput");
+const resultsArea = document.getElementById("resultsArea");
+const planLabel = document.getElementById("planLabel");
+const walletLabel = document.getElementById("walletLabel");
 
-function toNum(n){ return Number(n) || 0; }
-
-/* --------------------------------------------------
-   WALLET INIT (UNIFIED FIELDS)
--------------------------------------------------- */
+/* ---------------- WALLET ---------------- */
 async function ensureWallet(){
   const walletRef = getWalletRef();
-if (!walletRef) return;
+  if (!walletRef) return;
 
-const snap = await getDoc(walletRef);
+  const snap = await getDoc(walletRef);
+
   if (!snap.exists()){
     await setDoc(walletRef,{
       balance:0,
-      plan:"none",          // "none" | "basic" | "pro"
-      monthlyRemaining:0,   // basic credits
-      planExpires:null,     // ISO string for PRO
+      plan:"none",
+      monthlyRemaining:0,
+      planExpires:null,
       createdAt:new Date()
     });
-  } else {
-    const u = snap.data();
-    const update = {};
-    if (u.balance === undefined)           update.balance = 0;
-    if (!u.plan)                           update.plan = "none";
-    if (u.monthlyRemaining === undefined)  update.monthlyRemaining = 0;
-    if (u.planExpires === undefined)       update.planExpires = null;
-    if (Object.keys(update).length) await updateDoc(walletRef, update);
   }
 }
 
 async function loadWallet(){
+  const walletRef = getWalletRef();
+  if (!walletRef) return null;
+
   const snap = await getDoc(walletRef);
   return snap.exists() ? snap.data() : null;
 }
 
 function formatPlanLabel(u){
-  const plan = u.plan || "none";
-  if (plan === "pro" && u.planExpires){
-    const exp = new Date(u.planExpires);
-    return `Plan: PRO (until ${exp.toLocaleDateString()})`;
+  if (u.plan === "pro" && u.planExpires){
+    return `Plan: PRO`;
   }
-  if (plan === "basic"){
-    return `Plan: BASIC (${toNum(u.monthlyRemaining)} credits left)`;
+  if (u.plan === "basic"){
+    return `Plan: BASIC (${u.monthlyRemaining || 0} left)`;
   }
   return "Plan: none";
 }
@@ -204,29 +178,34 @@ async function refreshUI(){
   const u = await loadWallet();
   if (!u) return;
 
-  planLabel.innerText   = formatPlanLabel(u);
-  walletLabel.innerText = `Balance: ¢${toNum(u.balance)}`;
-
+  planLabel.innerText = formatPlanLabel(u);
+  walletLabel.innerText = `Balance: ¢${u.balance || 0}`;
   appEl.style.display = "block";
 }
 
-/* --------------------------------------------------
-   DEDUCTION LOGIC  (PRO → BASIC → WALLET)
--------------------------------------------------- */
+/* ---------------- DEDUCT MONEY ---------------- */
 async function deductSearch(){
+
+  const user = auth.currentUser;
+  if (!user){
+    alert("Login required");
+    return false;
+  }
+
+  const walletRef = doc(db,"wallet",user.uid);
   const snap = await getDoc(walletRef);
+
   if (!snap.exists()) return false;
 
   const u = snap.data();
   const now = new Date();
 
-  // 1) PRO PLAN (unlimited until expiry, but we log usage)
+  // PRO
   if (u.plan === "pro" && u.planExpires){
-    const exp = new Date(u.planExpires);
-    if (exp > now){
+    if (new Date(u.planExpires) > now){
       await addDoc(collection(db,"wallet_transactions"),{
-        userId: auth.currentUser?.uid || "guest",
-        type:"verification (pro plan)",
+        userId:user.uid,
+        type:"verification (pro)",
         amount:0,
         timestamp:new Date()
       });
@@ -234,28 +213,31 @@ async function deductSearch(){
     }
   }
 
-  // 2) BASIC CREDITS
-  if (toNum(u.monthlyRemaining) > 0){
+  // BASIC
+  if ((u.monthlyRemaining || 0) > 0){
     await updateDoc(walletRef,{
-      monthlyRemaining: toNum(u.monthlyRemaining) - 1,
-      plan: "basic"
+      monthlyRemaining: u.monthlyRemaining - 1
     });
+
     await addDoc(collection(db,"wallet_transactions"),{
-      deviceId,
-      type:"verification (basic credits)",
+      userId:user.uid,
+      type:"verification (basic)",
       amount:0,
       timestamp:new Date()
     });
+
     return true;
   }
 
-  // 3) WALLET BALANCE
-  if (toNum(u.balance) >= SEARCH_COST){
-    await updateDoc(walletRef,{ balance: toNum(u.balance) - SEARCH_COST });
+  // WALLET
+  if ((u.balance || 0) >= SEARCH_COST){
+    await updateDoc(walletRef,{
+      balance: u.balance - SEARCH_COST
+    });
 
     await addDoc(collection(db,"wallet_transactions"),{
-      deviceId,
-      type:"verification (wallet deduction)",
+      userId:user.uid,
+      type:"verification",
       amount:-SEARCH_COST,
       timestamp:new Date()
     });
@@ -266,235 +248,66 @@ async function deductSearch(){
   return false;
 }
 
-/* --------------------------------------------------
-   SEARCH ENGINE (records collection unchanged)
--------------------------------------------------- */
+/* ---------------- SEARCH ---------------- */
 async function performSearch(term){
-  const trimmed = term.trim().toUpperCase();
-  if (!trimmed) return [];
-
-  const recordsRef = collection(db,"records");
-
   const snap = await getDocs(
-    query(recordsRef, where("verificationId","==", trimmed), limit(1))
+    query(collection(db,"records"),
+    where("verificationId","==", term.toUpperCase()),
+    limit(1))
   );
-
   return snap.docs;
 }
 
-function statusBadge(statusRaw){
-  const s = String(statusRaw || "").toLowerCase().trim();
-
-  if (s === "valid"){
-    return `<span class="badge badge-ok">VALID</span>`;
-  }
-
-  if (s === "revoked"){
-    return `<span class="badge badge-bad">REVOKED</span>`;
-  }
-
-  return `<span class="badge">UNKNOWN</span>`;
-}
-
-function safe(v){ return (v === undefined || v === null) ? "" : String(v); }
-
-function renderResults(list){
-  resultsArea.innerHTML = "";
-  if (!list.length){
-    resultsArea.innerHTML = `<p class="small">Verification ID not found.</p>`;
-    return;
-  }
-
-  list.forEach(d=>{
-    const r = d.data();
-    const div = document.createElement("div");
-    div.className="record";
-
-    // Map to admissions-safe display fields.
-    // We keep your existing Firestore fields but do not present "criminal/driving/credit" on the UI.
-    const name    = safe(r.name);
-    const idVal   = safe(r.nia);
-    const dob     = safe(r.dob);
-    const region  = safe(r.region);
-    const address = safe(r.address);
-
-    // Optional admissions-related fields (if you add them later):
-    const program = safe(r.program || r.course || r.department);
-    const school  = safe(r.school || r.institution);
-    const docs    = safe(r.docs || r.documents || r.attachments);
-
-   div.innerHTML = `
-  <div style="
-    border:2px solid ${r.status === "valid" ? "#16a34a" : "#dc2626"};
-    border-radius:12px;
-    padding:16px;
-  ">
-
-    <!-- STATUS HEADER -->
-    <div style="
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      margin-bottom:12px;
-    ">
-      <h2 style="margin:0;font-size:1.2rem;">
-        Verification Result
-      </h2>
-
-      <span style="
-        padding:6px 12px;
-        border-radius:999px;
-        font-weight:700;
-        font-size:0.85rem;
-        background:${r.status === "valid" ? "#dcfce7" : "#fee2e2"};
-        color:${r.status === "valid" ? "#166534" : "#991b1b"};
-      ">
-        ${(r.status || "UNKNOWN").toUpperCase()}
-      </span>
-    </div>
-
-    <!-- VERIFICATION ID -->
-    <p style="font-size:1.1rem;margin-bottom:10px;">
-      <b>Verification ID:</b> ${r.verificationId || "—"}
-    </p>
-
-    <hr style="margin:10px 0">
-
-    <!-- DETAILS -->
-    <p><b>Graduate Name:</b> ${r.graduateName || "—"}</p>
-    <p><b>Institution:</b> ${r.institutionName || "—"}</p>
-    <p><b>Qualification:</b> ${r.qualification || "—"}</p>
-    <p><b>Graduation Year:</b> ${r.graduationYear || "—"}</p>
-
-    <hr style="margin:12px 0">
-
-    <!-- FOOTER -->
-    <p class="small">
-      This credential has been officially verified and recorded in the NBVS registry.
-    </p>
-
-  </div>
-`;
-    resultsArea.appendChild(div);
-  });
-}
-
-/* --------------------------------------------------
-   SEARCH BUTTON
--------------------------------------------------- */
+/* ---------------- BUTTON ---------------- */
 searchBtn.onclick = async () => {
+
   const term = searchInput.value.trim();
   if (!term){
-    resultsArea.innerHTML = `<p class="small">Enter a verification ID.</p>`;
+    resultsArea.innerHTML = "Enter ID";
     return;
   }
 
-  resultsArea.innerHTML = `<p class="small">Checking plan…</p>`;
+  resultsArea.innerHTML = "Checking wallet...";
 
   const ok = await deductSearch();
+
   if (!ok){
-    resultsArea.innerHTML = `<p class="small">Not enough credits. Top up wallet or buy a plan.</p>`;
-    await refreshUI();
+    resultsArea.innerHTML = "❌ Not enough balance";
     return;
   }
 
-  await refreshUI();
-  resultsArea.innerHTML = `<p class="small">Searching…</p>`;
+  resultsArea.innerHTML = "Searching...";
 
   const docs = await performSearch(term);
-  renderResults(docs);
 
-  await addDoc(collection(db,"search_logs"),{
-    term,
-    deviceId,
-    found: docs.length>0,
-    timestamp:new Date()
-  });
-};
+  if (!docs.length){
+    resultsArea.innerHTML = "No record found";
+  } else {
+    const r = docs[0].data();
 
-/* --------------------------------------------------
-   WALLET, BASIC, PRO, CONVERSION
--------------------------------------------------- */
-openWallet.onclick = ()=> window.location.href = "wallet.html";
+    resultsArea.innerHTML = `
+      <div class="record">
+        <p><b>${r.graduateName}</b></p>
+        <p>${r.institutionName}</p>
+        <p>${r.qualification}</p>
+        <p>Status: ${r.status}</p>
+      </div>
+    `;
+  }
 
-buyBasic.onclick = async ()=>{
-  const snap = await getDoc(walletRef);
-  const u = snap.data() || {};
-
-  await updateDoc(walletRef,{
-    plan:"basic",
-    monthlyRemaining: toNum(u.monthlyRemaining) + 10
-  });
-
-  await addDoc(collection(db,"wallet_transactions"),{
-    deviceId,
-    type:"buy_basic_plan (+10 verifications)",
-    amount:0,
-    timestamp:new Date()
-  });
-
-  alert("Basic activated: +10 verifications");
   await refreshUI();
 };
 
-buyPro.onclick = async ()=>{
-  const exp = new Date(Date.now() + 30*24*60*60*1000);
-
-  await updateDoc(walletRef,{
-    plan:"pro",
-    planExpires: exp.toISOString()
-  });
-
-  await addDoc(collection(db,"wallet_transactions"),{
-    deviceId,
-    type:"buy_pro_plan (30 days)",
-    amount:0,
-    timestamp:new Date()
-  });
-
-  alert("Pro plan activated (30 days unlimited)");
-  await refreshUI();
-};
-
-convertWallet.onclick = async ()=>{
-  const snap = await getDoc(walletRef);
-  const u = snap.data();
-
-  const bal = toNum(u.balance);
-  if (bal < SEARCH_COST) return alert("Not enough balance to convert.");
-
-  const searches = Math.floor(bal / SEARCH_COST);
-  const spent = searches * SEARCH_COST;
-
-  await updateDoc(walletRef,{
-    balance: bal - spent,
-    monthlyRemaining: toNum(u.monthlyRemaining) + searches,
-    plan: u.plan === "none" ? "basic" : u.plan
-  });
-
-  await addDoc(collection(db,"wallet_transactions"),{
-    deviceId,
-    type:"convert_wallet_to_verifications",
-    amount:-spent,
-    timestamp:new Date()
-  });
-
-  alert(`Converted ¢${spent} → ${searches} verifications`);
-  await refreshUI();
-};
-
-refreshBtn.onclick = async ()=>{
-  resultsArea.innerHTML="";
-  await refreshUI();
-};
-
-/* --------------------------------------------------
-   INIT
--------------------------------------------------- */
-(async()=>{
-  await ensureWallet();
-  await refreshUI();
-})();
+/* ---------------- INIT ---------------- */
+onAuthStateChanged(auth, async (user)=>{
+  if(user){
+    await ensureWallet();
+    await refreshUI();
+  } else {
+    alert("Login as employer first");
+    window.location.href = "employer_login.html";
+  }
+});
 </script>
 
 </body>
