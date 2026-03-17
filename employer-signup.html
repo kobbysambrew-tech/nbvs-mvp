@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Institution Sign Up — NBVS</title>
+
+<style>
+body{
+  font-family: Arial, sans-serif;
+  background:#f6f7f9;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  height:100vh;
+}
+.card{
+  background:#fff;
+  padding:25px;
+  border-radius:12px;
+  width:320px;
+  box-shadow:0 10px 30px rgba(0,0,0,0.1);
+}
+h2{margin-bottom:15px;}
+input{
+  width:100%;
+  padding:10px;
+  margin-bottom:10px;
+  border-radius:6px;
+  border:1px solid #ccc;
+}
+button{
+  width:100%;
+  padding:10px;
+  border:none;
+  background:#046c4e;
+  color:white;
+  border-radius:6px;
+  cursor:pointer;
+  font-weight:bold;
+}
+.small{font-size:0.85rem;color:#555;margin-top:10px;text-align:center;}
+</style>
+
+</head>
+
+<body>
+
+<div class="card">
+  <h2>Institution Sign Up</h2>
+
+  <input id="institutionName" placeholder="Institution Name">
+  <input id="email" type="email" placeholder="Email">
+  <input id="password" type="password" placeholder="Password">
+
+<button id="signupBtn">Create Account</button>
+
+  <div class="small">
+    Already have an account?
+    <a href="employer_login.html">Login</a>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
+import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
+import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
+
+// 🔥 REPLACE THIS WITH YOUR FIREBASE CONFIG
+const firebaseConfig = {
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_AUTH_DOMAIN",
+  projectId: "YOUR_PROJECT_ID"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+document.getElementById("signupBtn").onclick = async () => {
+  const name = document.getElementById("institutionName").value;
+  const email = document.getElementById("email").value;
+  const password = document.getElementById("password").value;
+
+  if(!name || !email || !password){
+    alert("Fill all fields");
+    return;
+  }
+
+  try {
+    const userCred = await createUserWithEmailAndPassword(auth, email, password);
+    const user = userCred.user;
+
+    await setDoc(doc(db,"users",user.uid),{
+      role:"employer",
+      institutionName:name,
+      email:email,
+      createdAt:new Date()
+    });
+
+    alert("Account created!");
+    window.location.href = "employer_login.html";
+
+  } catch(err){
+    alert(err.message);
+  }
+};
+</script>
+
+</body>
+</html>
