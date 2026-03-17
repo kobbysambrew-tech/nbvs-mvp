@@ -174,11 +174,11 @@ input,select,textarea{
   <section id="section-verify" style="display:none">
     <div class="panel">
       <h3>Admissions Verification (Staff)</h3>
-      <input id="verify-query" placeholder="Applicant name or ID (NIA / Applicant ID)" />
+    <input id="verify-query" placeholder="Verification ID (e.g. NBVS-000123)" />
 
       <div class="flex" style="margin-top:6px">
         <button id="verify-search" class="btn btn-green">Search</button>
-        <button id="verify-search-nia" class="btn btn-yellow">Search ID</button>
+        <button id="verify-search-nia" class="btn btn-yellow">Search Verification ID</button>
         <button id="verify-clear" class="btn">Clear</button>
       </div>
 
@@ -640,53 +640,47 @@ function setupButtons(){
    VERIFY SEARCH
    ============================================================ */
 async function adminVerifySearch(forceNiaOnly){
-  const q = document.getElementById("verify-query").value.trim();
+  const q = document.getElementById("verify-query").value.trim().toUpperCase();
   const out = document.getElementById("verify-results");
 
-  if(!q){ out.innerHTML="<p style='color:red'>Enter value</p>"; return; }
+  if(!q){
+    out.innerHTML = "<p style='color:red'>Enter a verification ID</p>";
+    return;
+  }
 
   out.innerHTML = "<p>Searching…</p>";
-  let docs = [];
 
   try {
     const ref = collection(db,"records");
-
-    if(!forceNiaOnly){
-      const q1 = query(ref, where("name","==",q));
-      const r1 = await getDocs(q1);
-      docs = docs.concat(r1.docs);
-    }
-
-    const q2 = query(ref, where("nia","==",q));
-    const r2 = await getDocs(q2);
-    r2.docs.forEach(d=>{ if(!docs.find(x=>x.id===d.id)) docs.push(d); });
+    const snap = await getDocs(query(ref, where("verificationId","==",q), limit(10)));
 
     out.innerHTML = "";
 
-    if(docs.length === 0){
-      out.innerHTML = "<p>❌ No record found.</p>";
+    if(snap.empty){
+      out.innerHTML = "<p>❌ Verification ID not found.</p>";
       await addDoc(collection(db,"search_logs"),{
-        term:q, user:currentUser.uid, found:false, timestamp:new Date(), platform:"admin"
+        term:q,
+        user:currentUser.uid,
+        found:false,
+        timestamp:new Date(),
+        platform:"admin"
       });
       return;
     }
 
-    docs.forEach(docSnap=>{
+    snap.forEach(docSnap=>{
       const r = docSnap.data();
       const div = document.createElement("div");
       div.className="record";
       div.innerHTML = `
         <div style="display:flex;justify-content:space-between">
           <div>
-            <p><b>${r.name}</b></p>
-            <p>ID: ${r.nia}</p>
-            <p>DOB: ${r.dob}</p>
-            <p>Region: ${r.region}</p>
-            <p>Address: ${r.address}</p>
-            <p>Documents: ${r.criminal}</p>
-            <p>Enrollment: ${r.driving}</p>
-            <p>Credential: ${r.credit}</p>
-            <p>Review Status: ${r.status}</p>
+            <p><b>Verification ID:</b> ${r.verificationId || "—"}</p>
+            <p><b>Name:</b> ${r.graduateName || r.name || "—"}</p>
+            <p><b>Institution:</b> ${r.institutionName || r.criminal || "—"}</p>
+            <p><b>Qualification:</b> ${r.qualification || r.credit || "—"}</p>
+            <p><b>Graduation Year:</b> ${r.graduationYear || r.driving || "—"}</p>
+            <p><b>Status:</b> ${r.status || "—"}</p>
           </div>
           <div style="text-align:right">
             <div class="small">ID: ${docSnap.id}</div>
@@ -705,6 +699,14 @@ async function adminVerifySearch(forceNiaOnly){
       if(currentUserRole==="superadmin"){
         div.querySelector("[data-del]").onclick = ()=>deleteRecordById(docSnap.id);
       }
+    });
+
+    await addDoc(collection(db,"search_logs"),{
+      term:q,
+      user:currentUser.uid,
+      found:true,
+      timestamp:new Date(),
+      platform:"admin"
     });
 
   } catch(err){
