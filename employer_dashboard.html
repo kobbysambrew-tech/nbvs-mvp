@@ -1,62 +1,91 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Employer Dashboard</title>
+<meta charset="utf-8">
+<title>Employer Dashboard — NBVS</title>
+<style>
+body{font-family:Arial;background:#f6f7f9;padding:30px}
+.card{background:#fff;padding:20px;border-radius:10px;max-width:500px;margin:auto;box-shadow:0 6px 20px rgba(0,0,0,.1)}
+button{padding:10px;margin-top:10px;border:none;border-radius:6px;background:#006b3f;color:white;cursor:pointer}
+</style>
 </head>
 
-<body style="font-family:sans-serif; padding:40px;">
+<body>
 
-<h1>🏫 Employer Dashboard</h1>
-<p>Welcome — you are logged in as an institution.</p>
+<div class="card">
+  <h2>Employer Dashboard</h2>
 
-<a href="verify.html">Go Verify Credentials</a>
+  <p>Balance: <b id="balance">¢0</b></p>
 
-<br><br>
-
-<button onclick="logout()">Logout</button>
+  <button id="refresh">Refresh</button>
+  <button id="addMoney">+¢100 (Test Top Up)</button>
+</div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
-import { getAuth, signOut } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
+import { getFirestore, doc, getDoc, updateDoc, setDoc, addDoc, collection } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyCDh_qL3jiCMHROK0_Soul2Wsv3t3y4wv0",
-  authDomain: "nbvs-ghana.firebaseapp.com",
-  projectId: "nbvs-ghana",
-  storageBucket: "nbvs-ghana.firebasestorage.app",
-  messagingSenderId: "702636577113",
-  appId: "1:702636577113:web:8369b43a2aa43aeb95fc48"
+  apiKey:"AIzaSyCDh_qL3jiCMHROK0_Soul2Wsv3t3y4wv0",
+  authDomain:"nbvs-ghana.firebaseapp.com",
+  projectId:"nbvs-ghana",
+  storageBucket:"nbvs-ghana.firebasestorage.app",
+  messagingSenderId:"702636577113",
+  appId:"1:702636577113:web:8369b43a2aa43aeb95fc48"
 };
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
+const db = getFirestore(app);
 
-window.logout = () => {
-  signOut(auth);
-  window.location.href = "index.html";
+const balanceEl = document.getElementById("balance");
+
+async function loadWallet(user){
+  const ref = doc(db,"wallet",user.uid);
+  const snap = await getDoc(ref);
+
+  if(!snap.exists()){
+    await setDoc(ref,{balance:0});
+    balanceEl.innerText = "¢0";
+    return;
+  }
+
+  balanceEl.innerText = "¢" + (snap.data().balance || 0);
+}
+
+document.getElementById("refresh").onclick = async ()=>{
+  const user = auth.currentUser;
+  if(user) loadWallet(user);
 };
-  onAuthStateChanged(auth, async (user) => {
 
-  if (!user) {
-    window.location.href = "employer_login.html";
-    return;
+document.getElementById("addMoney").onclick = async ()=>{
+  const user = auth.currentUser;
+  if(!user) return;
+
+  const ref = doc(db,"wallet",user.uid);
+  const snap = await getDoc(ref);
+
+  let bal = snap.exists() ? snap.data().balance : 0;
+
+  await updateDoc(ref,{balance:bal + 100});
+
+  await addDoc(collection(db,"wallet_transactions"),{
+    userId:user.uid,
+    amount:100,
+    type:"topup",
+    createdAt:new Date()
+  });
+
+  loadWallet(user);
+};
+
+onAuthStateChanged(auth,(user)=>{
+  if(user){
+    loadWallet(user);
+  } else {
+    window.location.href = "login.html";
   }
-
-  const snap = await getDoc(doc(db, "users", user.uid));
-
-  if (!snap.exists()) {
-    window.location.href = "employer_login.html";
-    return;
-  }
-
-  const role = snap.data().role;
-
-  // 🔥 ONLY EMPLOYERS
-  if (role !== "employer") {
-    window.location.href = "dashboard.html";
-    return;
-  }
-
 });
 </script>
 
