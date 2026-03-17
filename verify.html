@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>NBVS — Verify</title>
+<title>NBVS — Credential Verification Portal</title>
 
 <style>
 :root{--red:#ce1126;--yellow:#fcd116;--green:#006b3f;--bg:#f6f7f9;--muted:#555}
@@ -53,7 +53,7 @@ border-radius:8px;margin-top:12px}
     </div>
 
     <div class="row">
-      <button id="searchBtn" class="btn-green" style="flex:1">Start Verification</button>
+     <button id="searchBtn" class="btn-green" style="flex:1">Verify Credential</button>
       <button id="openWallet" class="btn-yellow" style="width:160px">Open Wallet</button>
     </div>
 
@@ -266,11 +266,16 @@ async function performSearch(term){
 
 function statusBadge(statusRaw){
   const s = String(statusRaw || "").toLowerCase().trim();
-  if (!s) return `<span class="badge">Pending</span>`;
-  if (["verified","approved","valid","clear"].includes(s)) return `<span class="badge badge-ok">Verified</span>`;
-  if (["needs review","review","flagged"].includes(s)) return `<span class="badge badge-warn">Needs review</span>`;
-  if (["rejected","invalid","not verified","denied"].includes(s)) return `<span class="badge badge-bad">Not verified</span>`;
-  return `<span class="badge">${statusRaw}</span>`;
+
+  if (s === "valid"){
+    return `<span class="badge badge-ok">VALID</span>`;
+  }
+
+  if (s === "revoked"){
+    return `<span class="badge badge-bad">REVOKED</span>`;
+  }
+
+  return `<span class="badge">UNKNOWN</span>`;
 }
 
 function safe(v){ return (v === undefined || v === null) ? "" : String(v); }
@@ -302,14 +307,14 @@ function renderResults(list){
 
     div.innerHTML = `
   <p><b>Verification ID:</b> ${r.verificationId || "—"}</p>
-  <p><b>Name:</b> ${r.graduateName || "—"} ${statusBadge(r.status)}</p>
+ <p><b>Graduate Name:</b> ${r.graduateName || "—"} ${statusBadge(r.status)}</p>
   <p><b>Institution:</b> ${r.institutionName || "—"}</p>
   <p><b>Qualification:</b> ${r.qualification || "—"}</p>
   <p><b>Graduation Year:</b> ${r.graduationYear || "—"}</p>
 
-  <p class="small" style="margin-top:8px">
-    This record is issued and verified by the institution via NBVS.
-  </p>
+ <p class="small" style="margin-top:8px">
+  This credential is officially registered and verified through NBVS.
+</p>
 `;
     resultsArea.appendChild(div);
   });
