@@ -191,17 +191,18 @@ input,select,textarea{
     <div class="panel">
       <h3>Create / Edit Applicant Record</h3>
 
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-        <input id="rec-name" placeholder="Applicant full name" />
-        <input id="rec-nia" placeholder="Applicant ID (NIA / Ghana Card)" />
-        <input id="rec-dob" placeholder="DOB (YYYY-MM-DD)" />
-        <input id="rec-region" placeholder="Region" />
-        <input id="rec-address" placeholder="Address" />
-        <input id="rec-credit" placeholder="Credential check (e.g. WASSCE / transcript)" />
-        <input id="rec-criminal" placeholder="Document verification (e.g. certificate status)" />
-        <input id="rec-driving" placeholder="Enrollment flag (e.g. admitted/registered)" />
-        <input id="rec-status" placeholder="Review status (Verified / Needs review / Rejected)" />
-      </div>
+     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+  <input id="rec-verificationId" placeholder="Verification ID (auto if blank)" />
+  <input id="rec-name" placeholder="Graduate full name" />
+  <input id="rec-nia" placeholder="Graduate ID (optional)" />
+  <input id="rec-dob" placeholder="DOB (optional)" />
+  <input id="rec-region" placeholder="Region" />
+  <input id="rec-address" placeholder="Address (optional)" />
+  <input id="rec-credit" placeholder="Qualification (e.g. Diploma in Nursing)" />
+  <input id="rec-criminal" placeholder="Institution name" />
+  <input id="rec-driving" placeholder="Graduation year" />
+  <input id="rec-status" placeholder="Status (valid / revoked)" />
+</div>
 
       <div style="display:flex;gap:8px;margin-top:8px;">
         <button id="rec-create" class="btn btn-green">Add Record</button>
@@ -565,11 +566,11 @@ function setupButtons(){
     deleteRecordById();
   };
 
-  document.getElementById("rec-clear").onclick = ()=>{
-    ["rec-name","rec-nia","rec-dob","rec-region","rec-address","rec-credit","rec-criminal","rec-driving","rec-status","rec-id"]
-      .forEach(id=>document.getElementById(id).value="");
-    document.getElementById("rec-output").innerText="";
-  };
+ document.getElementById("rec-clear").onclick = ()=>{
+  ["rec-verificationId","rec-name","rec-nia","rec-dob","rec-region","rec-address","rec-credit","rec-criminal","rec-driving","rec-status","rec-id"]
+    .forEach(id=>document.getElementById(id).value="");
+  document.getElementById("rec-output").innerText="";
+};
 
   document.getElementById("records-refresh").onclick = loadRecordsList;
   document.getElementById("records-filter").oninput = loadRecordsList;
@@ -715,26 +716,41 @@ async function adminVerifySearch(forceNiaOnly){
 /* ============================================================
    RECORD CRUD
    ============================================================ */
+  function generateVerificationId(){
+  const num = Math.floor(Math.random() * 999999) + 1;
+  return "NBVS-" + String(num).padStart(6, "0");
+}
 function readRecordForm(){
+  const manualId = document.getElementById("rec-verificationId").value.trim().toUpperCase();
+
   return {
-    name:document.getElementById("rec-name").value.trim(),
-    nia:document.getElementById("rec-nia").value.trim(),
-    dob:document.getElementById("rec-dob").value.trim(),
-    region:document.getElementById("rec-region").value.trim(),
-    address:document.getElementById("rec-address").value.trim(),
-    credit:document.getElementById("rec-credit").value.trim(),
-    criminal:document.getElementById("rec-criminal").value.trim(),
-    driving:document.getElementById("rec-driving").value.trim(),
-    status:document.getElementById("rec-status").value.trim()
+    verificationId: manualId || generateVerificationId(),
+
+    // keep legacy fields too so old UI doesn't break
+    name: document.getElementById("rec-name").value.trim(),
+    nia: document.getElementById("rec-nia").value.trim(),
+    dob: document.getElementById("rec-dob").value.trim(),
+    region: document.getElementById("rec-region").value.trim(),
+    address: document.getElementById("rec-address").value.trim(),
+    credit: document.getElementById("rec-credit").value.trim(),
+    criminal: document.getElementById("rec-criminal").value.trim(),
+    driving: document.getElementById("rec-driving").value.trim(),
+    status: document.getElementById("rec-status").value.trim().toLowerCase(),
+
+    // new clean fields for verify.html
+    graduateName: document.getElementById("rec-name").value.trim(),
+    qualification: document.getElementById("rec-credit").value.trim(),
+    institutionName: document.getElementById("rec-criminal").value.trim(),
+    graduationYear: document.getElementById("rec-driving").value.trim()
   };
 }
 
 async function createRecord(){
   const rec = readRecordForm();
-  if(!rec.name || !rec.nia){
-    document.getElementById("rec-output").innerText="Name + Applicant ID required";
-    return;
-  }
+ if(!rec.name || !rec.qualification || !rec.institutionName){
+  document.getElementById("rec-output").innerText="Graduate name + qualification + institution are required";
+  return;
+}
 
   const ref = await addDoc(collection(db,"records"), {...rec, createdAt:new Date()});
   document.getElementById("rec-output").innerText = "Created: " + ref.id;
@@ -824,7 +840,7 @@ async function loadRecordIntoForm(id){
   const snap = await getDoc(doc(db,"records",id));
   if(!snap.exists()) return alert("Not found");
   const r = snap.data();
-
+document.getElementById("rec-verificationId").value = r.verificationId||"";
   document.getElementById("rec-name").value = r.name||"";
   document.getElementById("rec-nia").value = r.nia||"";
   document.getElementById("rec-dob").value = r.dob||"";
