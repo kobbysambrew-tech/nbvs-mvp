@@ -1,73 +1,167 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<meta charset="utf-8">
-<title>User Dashboard — NBVS</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>NBVS — User Dashboard</title>
 
 <style>
-body{font-family:Arial;background:#f6f7f9;padding:30px}
-.card{
-  background:#fff;
-  padding:20px;
-  border-radius:10px;
-  max-width:500px;
-  margin:auto;
-  box-shadow:0 6px 20px rgba(0,0,0,.1)
+:root{
+  --red:#ce1126;
+  --yellow:#fcd116;
+  --green:#046c4e;
+  --bg:#f6f7f9;
+  --card:#fff;
 }
+
+body{
+  margin:0;
+  font-family:Arial;
+  background:var(--bg);
+}
+
+header{
+  background:linear-gradient(90deg,var(--red),var(--yellow),var(--green));
+  padding:20px;
+  color:#fff;
+  text-align:center;
+  font-weight:700;
+}
+
+.container{
+  max-width:900px;
+  margin:20px auto;
+  padding:0 16px;
+}
+
+.card{
+  background:var(--card);
+  padding:16px;
+  border-radius:10px;
+  box-shadow:0 6px 20px rgba(0,0,0,0.06);
+  margin-bottom:16px;
+}
+
+h3{
+  margin-top:0;
+}
+
 button{
   padding:10px;
-  margin-top:10px;
   border:none;
-  border-radius:6px;
-  background:#006b3f;
-  color:white;
+  border-radius:8px;
   cursor:pointer;
-  width:100%;
+  font-weight:600;
 }
+
+.btn{
+  background:var(--green);
+  color:#fff;
+}
+
+.history-item{
+  border-bottom:1px solid #eee;
+  padding:10px 0;
+}
+
+.badge{
+  padding:4px 10px;
+  border-radius:999px;
+  font-size:0.8rem;
+}
+
+.valid{ background:#dcfce7; color:#166534; }
+.revoked{ background:#fee2e2; color:#991b1b; }
 </style>
 </head>
 
 <body>
 
-<div class="card">
-  <h2>User Dashboard</h2>
+<header>NBVS — User Dashboard</header>
 
-  <p>Welcome 👋</p>
+<div class="container">
 
-  <button id="goVerify">Verify Credential</button>
-  <button id="logout">Logout</button>
+  <!-- PROFILE -->
+  <div class="card">
+    <h3>👤 Profile</h3>
+    <p><b>Email:</b> <span id="userEmail">—</span></p>
+  </div>
+
+  <!-- ACTIONS -->
+  <div class="card">
+    <h3>⚡ Actions</h3>
+    <button class="btn" onclick="goVerify()">Verify Credential</button>
+  </div>
+
+  <!-- HISTORY -->
+  <div class="card">
+    <h3>📄 Verification History</h3>
+    <div id="history"></div>
+  </div>
+
 </div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
-import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
+import { getFirestore, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 
 const firebaseConfig = {
-  apiKey:"AIzaSyCDh_qL3jiCMHROK0_Soul2Wsv3t3y4wv0",
+  apiKey:"AIzaSy...",
   authDomain:"nbvs-ghana.firebaseapp.com",
-  projectId:"nbvs-ghana",
-  storageBucket:"nbvs-ghana.firebasestorage.app",
-  messagingSenderId:"702636577113",
-  appId:"1:702636577113:web:8369b43a2aa43aeb95fc48"
+  projectId:"nbvs-ghana"
 };
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
+const db = getFirestore(app);
 
-onAuthStateChanged(auth,(user)=>{
+const emailEl = document.getElementById("userEmail");
+const historyEl = document.getElementById("history");
+
+onAuthStateChanged(auth, async (user)=>{
   if(!user){
     window.location.href = "user_login.html";
+    return;
   }
+
+  emailEl.innerText = user.email;
+
+  // Load history
+  const q = query(
+    collection(db,"search_logs"),
+    where("userId","==",user.uid)
+  );
+
+  const snap = await getDocs(q);
+
+  if(snap.empty){
+    historyEl.innerHTML = "<p>No activity yet.</p>";
+    return;
+  }
+
+  historyEl.innerHTML = "";
+
+  snap.forEach(doc=>{
+    const d = doc.data();
+
+    const div = document.createElement("div");
+    div.className = "history-item";
+
+    div.innerHTML = `
+      <b>${d.term || "Search"}</b><br/>
+      <span class="badge ${d.found ? "valid":"revoked"}">
+        ${d.found ? "VALID":"NOT FOUND"}
+      </span>
+    `;
+
+    historyEl.appendChild(div);
+  });
 });
 
-document.getElementById("goVerify").onclick = ()=>{
+function goVerify(){
   window.location.href = "verify.html";
-};
-
-document.getElementById("logout").onclick = async ()=>{
-  await signOut(auth);
-  window.location.href = "user_login.html";
-};
+}
 </script>
 
 </body>
