@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>NBVS — User Dashboard</title>
+<title>NBVS — Dashboard</title>
 
 <style>
 :root{
@@ -11,12 +11,11 @@
   --yellow:#fcd116;
   --green:#046c4e;
   --bg:#f6f7f9;
-  --card:#fff;
 }
 
 body{
   margin:0;
-  font-family:Arial;
+  font-family:"Segoe UI",Arial;
   background:var(--bg);
 }
 
@@ -35,43 +34,57 @@ header{
 }
 
 .card{
-  background:var(--card);
+  background:#fff;
+  border-radius:12px;
   padding:16px;
-  border-radius:10px;
-  box-shadow:0 6px 20px rgba(0,0,0,0.06);
   margin-bottom:16px;
+  box-shadow:0 6px 20px rgba(0,0,0,0.06);
 }
 
 h3{
-  margin-top:0;
+  margin:0 0 10px;
 }
 
-button{
-  padding:10px;
+.btn{
+  padding:10px 14px;
   border:none;
   border-radius:8px;
   cursor:pointer;
   font-weight:600;
 }
 
-.btn{
-  background:var(--green);
-  color:#fff;
-}
+.btn-green{background:var(--green);color:#fff;}
+.btn-red{background:#dc2626;color:#fff;}
 
 .history-item{
-  border-bottom:1px solid #eee;
-  padding:10px 0;
+  padding:12px;
+  border-radius:10px;
+  margin-bottom:10px;
+  border:1px solid #eee;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+
+.left{
+  display:flex;
+  flex-direction:column;
 }
 
 .badge{
   padding:4px 10px;
   border-radius:999px;
   font-size:0.8rem;
+  font-weight:600;
 }
 
 .valid{ background:#dcfce7; color:#166534; }
-.revoked{ background:#fee2e2; color:#991b1b; }
+.bad{ background:#fee2e2; color:#991b1b; }
+
+.time{
+  font-size:0.8rem;
+  color:#6b7280;
+}
 </style>
 </head>
 
@@ -84,13 +97,14 @@ button{
   <!-- PROFILE -->
   <div class="card">
     <h3>👤 Profile</h3>
-    <p><b>Email:</b> <span id="userEmail">—</span></p>
+    <p><b>Email:</b> <span id="email">—</span></p>
   </div>
 
   <!-- ACTIONS -->
   <div class="card">
     <h3>⚡ Actions</h3>
-    <button class="btn" onclick="goVerify()">Verify Credential</button>
+    <button class="btn btn-green" onclick="goVerify()">Verify Credential</button>
+    <button class="btn btn-red" onclick="logout()">Logout</button>
   </div>
 
   <!-- HISTORY -->
@@ -103,7 +117,7 @@ button{
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
-import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
+import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
 import { getFirestore, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -116,7 +130,7 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-const emailEl = document.getElementById("userEmail");
+const emailEl = document.getElementById("email");
 const historyEl = document.getElementById("history");
 
 onAuthStateChanged(auth, async (user)=>{
@@ -127,7 +141,6 @@ onAuthStateChanged(auth, async (user)=>{
 
   emailEl.innerText = user.email;
 
-  // Load history
   const q = query(
     collection(db,"search_logs"),
     where("userId","==",user.uid)
@@ -136,21 +149,33 @@ onAuthStateChanged(auth, async (user)=>{
   const snap = await getDocs(q);
 
   if(snap.empty){
-    historyEl.innerHTML = "<p>No activity yet.</p>";
+    historyEl.innerHTML = "<p>No verifications yet.</p>";
     return;
   }
 
+  // Convert + sort newest first
+  const logs = [];
+  snap.forEach(doc => logs.push(doc.data()));
+
+  logs.sort((a,b)=> new Date(b.timestamp) - new Date(a.timestamp));
+
   historyEl.innerHTML = "";
 
-  snap.forEach(doc=>{
-    const d = doc.data();
-
+  logs.forEach(d=>{
     const div = document.createElement("div");
     div.className = "history-item";
 
+    const time = d.timestamp
+      ? new Date(d.timestamp.seconds * 1000).toLocaleString()
+      : "";
+
     div.innerHTML = `
-      <b>${d.term || "Search"}</b><br/>
-      <span class="badge ${d.found ? "valid":"revoked"}">
+      <div class="left">
+        <b>${d.term}</b>
+        <span class="time">${time}</span>
+      </div>
+
+      <span class="badge ${d.found ? "valid":"bad"}">
         ${d.found ? "VALID":"NOT FOUND"}
       </span>
     `;
@@ -159,9 +184,14 @@ onAuthStateChanged(auth, async (user)=>{
   });
 });
 
-function goVerify(){
+window.goVerify = ()=>{
   window.location.href = "verify.html";
-}
+};
+
+window.logout = async ()=>{
+  await signOut(auth);
+  window.location.href = "user_login.html";
+};
 </script>
 
 </body>
