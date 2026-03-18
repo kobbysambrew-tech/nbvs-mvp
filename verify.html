@@ -294,7 +294,13 @@ searchBtn.onclick = async () => {
       </div>
     `;
   }
-
+// 🔥 ADD THIS BLOCK RIGHT HERE
+await addDoc(collection(db,"search_logs"),{
+  term,
+  userId: auth.currentUser.uid, // THIS IS THE FIX
+  found: docs.length > 0,
+  timestamp: new Date()
+});
   await refreshUI();
 };
 
