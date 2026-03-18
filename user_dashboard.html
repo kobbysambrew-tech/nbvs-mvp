@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>User Dashboard — NBVS</title>
+
+<style>
+body{font-family:Arial;background:#f6f7f9;padding:30px}
+.card{
+  background:#fff;
+  padding:20px;
+  border-radius:10px;
+  max-width:500px;
+  margin:auto;
+  box-shadow:0 6px 20px rgba(0,0,0,.1)
+}
+button{
+  padding:10px;
+  margin-top:10px;
+  border:none;
+  border-radius:6px;
+  background:#006b3f;
+  color:white;
+  cursor:pointer;
+  width:100%;
+}
+</style>
+</head>
+
+<body>
+
+<div class="card">
+  <h2>User Dashboard</h2>
+
+  <p>Welcome 👋</p>
+
+  <button id="goVerify">Verify Credential</button>
+  <button id="logout">Logout</button>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
+import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
+
+const firebaseConfig = {
+  apiKey:"AIzaSyCDh_qL3jiCMHROK0_Soul2Wsv3t3y4wv0",
+  authDomain:"nbvs-ghana.firebaseapp.com",
+  projectId:"nbvs-ghana",
+  storageBucket:"nbvs-ghana.firebasestorage.app",
+  messagingSenderId:"702636577113",
+  appId:"1:702636577113:web:8369b43a2aa43aeb95fc48"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+
+onAuthStateChanged(auth,(user)=>{
+  if(!user){
+    window.location.href = "user_login.html";
+  }
+});
+
+document.getElementById("goVerify").onclick = ()=>{
+  window.location.href = "verify.html";
+};
+
+document.getElementById("logout").onclick = async ()=>{
+  await signOut(auth);
+  window.location.href = "user_login.html";
+};
+</script>
+
+</body>
+</html>
