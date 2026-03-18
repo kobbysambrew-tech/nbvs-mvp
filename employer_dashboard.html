@@ -1,41 +1,136 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<meta charset="utf-8">
-<title>Employer Dashboard — NBVS</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>NBVS — Employer Dashboard</title>
 
 <style>
-body{font-family:Arial;background:#f6f7f9;padding:30px}
-.card{background:#fff;padding:20px;border-radius:10px;max-width:500px;margin:auto;box-shadow:0 6px 20px rgba(0,0,0,.1)}
-button{padding:10px;margin-top:10px;border:none;border-radius:6px;background:#006b3f;color:white;cursor:pointer;width:100%}
+:root{
+  --red:#ce1126;
+  --yellow:#fcd116;
+  --green:#046c4e;
+  --bg:#f6f7f9;
+}
+
+body{
+  margin:0;
+  font-family:"Segoe UI",Arial;
+  background:var(--bg);
+}
+
+header{
+  background:linear-gradient(90deg,var(--red),var(--yellow),var(--green));
+  padding:20px;
+  color:#fff;
+  text-align:center;
+  font-weight:700;
+}
+
+.container{
+  max-width:1000px;
+  margin:20px auto;
+  padding:0 16px;
+}
+
+.grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:16px;
+}
+
+.card{
+  background:#fff;
+  border-radius:12px;
+  padding:18px;
+  box-shadow:0 6px 20px rgba(0,0,0,0.06);
+}
+
+h3{
+  margin:0 0 10px;
+}
+
+.big{
+  font-size:1.8rem;
+  font-weight:700;
+}
+
+.btn{
+  padding:12px;
+  border:none;
+  border-radius:10px;
+  cursor:pointer;
+  font-weight:700;
+  margin-top:10px;
+}
+
+.btn-green{background:var(--green);color:#fff;}
+.btn-yellow{background:var(--yellow);}
+.btn-red{background:#dc2626;color:#fff;}
+
+.activity{
+  border-top:1px solid #eee;
+  padding:10px 0;
+  display:flex;
+  justify-content:space-between;
+}
+
+.small{
+  font-size:0.85rem;
+  color:#6b7280;
+}
 </style>
 </head>
 
 <body>
 
-<div class="card">
-  <h2>Employer Dashboard</h2>
+<header>NBVS — Employer Dashboard</header>
 
-  <p>Wallet Balance: <b id="balance">¢0</b></p>
+<div class="container">
 
-  <button id="refresh">Refresh Balance</button>
-  <button id="addMoney">+¢100 (Test Top-Up)</button>
-  <button id="goVerify">Go to Verify</button>
-  <button id="logout">Logout</button>
+  <!-- TOP GRID -->
+  <div class="grid">
+
+    <!-- WALLET -->
+    <div class="card">
+      <h3>💰 Wallet Balance</h3>
+      <div class="big" id="balance">¢0</div>
+
+      <button class="btn btn-yellow" onclick="goWallet()">Top Up</button>
+    </div>
+
+    <!-- PLAN -->
+    <div class="card">
+      <h3>📦 Plan</h3>
+      <div id="plan">—</div>
+
+      <button class="btn btn-green" onclick="goVerify()">Verify Credential</button>
+    </div>
+
+  </div>
+
+  <!-- ACTIVITY -->
+  <div class="card" style="margin-top:16px">
+    <h3>📊 Recent Activity</h3>
+    <div id="activity"></div>
+  </div>
+
+  <!-- LOGOUT -->
+  <div class="card" style="margin-top:16px;text-align:center">
+    <button class="btn btn-red" onclick="logout()">Logout</button>
+  </div>
+
 </div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
-import { getFirestore, doc, getDoc, setDoc, updateDoc, addDoc, collection } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
+import { getFirestore, doc, getDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 
 const firebaseConfig = {
-  apiKey:"AIzaSyCDh_qL3jiCMHROK0_Soul2Wsv3t3y4wv0",
+  apiKey:"AIzaSy...",
   authDomain:"nbvs-ghana.firebaseapp.com",
-  projectId:"nbvs-ghana",
-  storageBucket:"nbvs-ghana.firebasestorage.app",
-  messagingSenderId:"702636577113",
-  appId:"1:702636577113:web:8369b43a2aa43aeb95fc48"
+  projectId:"nbvs-ghana"
 };
 
 const app = initializeApp(firebaseConfig);
@@ -43,62 +138,79 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 
 const balanceEl = document.getElementById("balance");
+const planEl = document.getElementById("plan");
+const activityEl = document.getElementById("activity");
 
-async function loadWallet(user){
-  const ref = doc(db,"wallet",user.uid);
-  const snap = await getDoc(ref);
-
-  if(!snap.exists()){
-    await setDoc(ref,{balance:0});
-    balanceEl.innerText = "¢0";
+onAuthStateChanged(auth, async (user)=>{
+  if(!user){
+    window.location.href = "employer_login.html";
     return;
   }
 
-  balanceEl.innerText = "¢" + (snap.data().balance || 0);
-}
+  // WALLET
+  const snap = await getDoc(doc(db,"wallet",user.uid));
+  if(snap.exists()){
+    const w = snap.data();
 
-document.getElementById("refresh").onclick = ()=>{
-  const user = auth.currentUser;
-  if(user) loadWallet(user);
-};
+    balanceEl.innerText = `¢${w.balance || 0}`;
 
-document.getElementById("addMoney").onclick = async ()=>{
-  const user = auth.currentUser;
-  if(!user) return;
+    if(w.plan === "pro"){
+      planEl.innerText = "PRO PLAN";
+    } else if(w.plan === "basic"){
+      planEl.innerText = `BASIC (${w.monthlyRemaining || 0} left)`;
+    } else {
+      planEl.innerText = "No active plan";
+    }
+  }
 
-  const ref = doc(db,"wallet",user.uid);
-  const snap = await getDoc(ref);
+  // ACTIVITY
+  const q = query(
+    collection(db,"wallet_transactions"),
+    where("userId","==",user.uid)
+  );
 
-  let bal = snap.exists() ? snap.data().balance : 0;
+  const logs = [];
+  const snapLogs = await getDocs(q);
 
-  await updateDoc(ref,{balance:bal + 100});
+  snapLogs.forEach(d=>logs.push(d.data()));
 
-  await addDoc(collection(db,"wallet_transactions"),{
-    userId:user.uid,
-    amount:100,
-    type:"topup",
-    createdAt:new Date()
+  logs.sort((a,b)=> new Date(b.timestamp) - new Date(a.timestamp));
+
+  if(!logs.length){
+    activityEl.innerHTML = "<p>No activity yet.</p>";
+    return;
+  }
+
+  logs.slice(0,10).forEach(d=>{
+    const div = document.createElement("div");
+    div.className = "activity";
+
+    const time = d.timestamp
+      ? new Date(d.timestamp.seconds * 1000).toLocaleString()
+      : "";
+
+    div.innerHTML = `
+      <span>${d.type}</span>
+      <span class="small">${time}</span>
+    `;
+
+    activityEl.appendChild(div);
   });
 
-  loadWallet(user);
-};
+});
 
-document.getElementById("goVerify").onclick = ()=>{
+window.goVerify = ()=>{
   window.location.href = "verify.html";
 };
 
-document.getElementById("logout").onclick = async ()=>{
+window.goWallet = ()=>{
+  window.location.href = "wallet.html";
+};
+
+window.logout = async ()=>{
   await signOut(auth);
   window.location.href = "employer_login.html";
 };
-
-onAuthStateChanged(auth,(user)=>{
-  if(user){
-    loadWallet(user);
-  } else {
-    window.location.href = "employer_login.html";
-  }
-});
 </script>
 
 </body>
