@@ -11,27 +11,36 @@
   --yellow:#fcd116;
   --green:#046c4e;
   --bg:#f6f7f9;
-  --card:#fff;
+  --muted:#6b7280;
+  --card:#ffffff;
 }
 
 body{
   margin:0;
   background:var(--bg);
   font-family:"Inter",sans-serif;
+  color:#111;
 }
 
 header{
   background:linear-gradient(90deg,var(--red),var(--yellow),var(--green));
-  color:#fff;
   padding:18px;
-  text-align:center;
+  color:#fff;
   font-weight:700;
+  text-align:center;
+  font-size:1.4rem;
 }
 
 .container{
-  max-width:1000px;
+  max-width:1100px;
   margin:30px auto;
   padding:0 16px;
+}
+
+.grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(300px,1fr));
+  gap:20px;
 }
 
 .card{
@@ -39,22 +48,39 @@ header{
   padding:20px;
   border-radius:12px;
   box-shadow:0 8px 20px rgba(0,0,0,0.06);
-  margin-bottom:20px;
+}
+
+.card h2{
+  margin-top:0;
+  font-size:1.25rem;
+  font-weight:700;
+  color:var(--green);
+}
+
+.label{
+  color:var(--muted);
+  font-size:0.9rem;
+}
+
+.value{
+  font-size:1.7rem;
+  font-weight:800;
+  margin-top:6px;
 }
 
 .btn{
-  width:100%;
   padding:12px;
-  margin-top:12px;
   border:none;
   border-radius:8px;
-  font-weight:700;
   cursor:pointer;
+  font-weight:700;
+  width:100%;
+  margin-top:12px;
 }
 
-.green{background:var(--green);color:#fff;}
-.yellow{background:var(--yellow);}
-.red{background:var(--red);color:#fff;}
+.btn-green{background:var(--green);color:#fff;}
+.btn-yellow{background:var(--yellow);color:#111;}
+.btn-red{background:var(--red);color:#fff;}
 
 .top{
   display:flex;
@@ -80,23 +106,38 @@ header{
 <div class="container">
 
   <div class="top">
-    <h2>Welcome, <span id="email"></span></h2>
+    <h2>Welcome, <span id="userEmail"></span></h2>
     <button id="logoutBtn" class="logout">Logout</button>
   </div>
 
-  <div class="card">
-    <h3>Wallet</h3>
-    <p>Balance: ¢<span id="balance">0</span></p>
+  <div class="grid">
 
-    <button class="btn green" id="add50">Add ¢50</button>
-    <button class="btn green" id="add100">Add ¢100</button>
-    <button class="btn yellow" id="goVerify">Go to Verify</button>
+    <!-- WALLET -->
+    <div class="card">
+      <h2>Your Wallet</h2>
+      <div class="label">Balance</div>
+      <div class="value">¢<span id="balance">0</span></div>
+
+      <button class="btn btn-green" id="add50">Add ¢50</button>
+      <button class="btn btn-green" id="add100">Add ¢100</button>
+      <button class="btn btn-yellow" id="goVerify">Go to Verify</button>
+    </div>
+
+    <!-- PLAN (OPTIONAL BUT MATCHES DESIGN) -->
+    <div class="card">
+      <h2>Your Plan</h2>
+
+      <div class="label">Current Plan</div>
+      <div class="value" style="font-size:1.4rem;" id="planType">none</div>
+
+      <div class="label" style="margin-top:12px;">Remaining Searches</div>
+      <div class="value" style="font-size:1.4rem;" id="remaining">0</div>
+    </div>
+
   </div>
-
 </div>
 
 <script type="module">
-
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
 import {
   getAuth, onAuthStateChanged, signOut
@@ -105,7 +146,6 @@ import {
   getFirestore, doc, getDoc, setDoc, updateDoc, addDoc, collection
 } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 
-/* CONFIG */
 const firebaseConfig = {
   apiKey:"AIzaSyCDh_qL3jiCMHROK0_Soul2Wsv3t3y4wv0",
   authDomain:"nbvs-ghana.firebaseapp.com",
@@ -122,8 +162,10 @@ const db = getFirestore(app);
 let userId;
 let walletRef;
 
-const emailEl = document.getElementById("email");
+const userEmail = document.getElementById("userEmail");
 const balanceEl = document.getElementById("balance");
+const planType = document.getElementById("planType");
+const remaining = document.getElementById("remaining");
 
 /* AUTH */
 onAuthStateChanged(auth, async user=>{
@@ -134,11 +176,10 @@ onAuthStateChanged(auth, async user=>{
   userId = user.uid;
   walletRef = doc(db,"wallet",userId);
 
-  emailEl.textContent = user.email;
+  userEmail.textContent = user.email;
 
   const u = await getDoc(doc(db,"users",userId));
-
-  if(!u.exists() || (u.data().role||"") !== "employer"){
+  if(!u.exists() || u.data().role !== "employer"){
     return window.location.replace("employer-login.html");
   }
 
@@ -152,7 +193,8 @@ async function ensureWallet(){
   if(!snap.exists()){
     await setDoc(walletRef,{
       balance:0,
-      createdAt:new Date()
+      plan:"none",
+      monthlyRemaining:0
     });
   }
 }
@@ -160,7 +202,11 @@ async function ensureWallet(){
 /* LOAD WALLET */
 async function loadWallet(){
   const snap = await getDoc(walletRef);
-  balanceEl.textContent = snap.data().balance || 0;
+  const w = snap.data();
+
+  balanceEl.textContent = w.balance || 0;
+  planType.textContent = w.plan || "none";
+  remaining.textContent = w.monthlyRemaining || 0;
 }
 
 /* ADD MONEY */
@@ -168,9 +214,7 @@ async function addMoney(amount){
   const snap = await getDoc(walletRef);
   const bal = snap.data().balance || 0;
 
-  await updateDoc(walletRef,{
-    balance: bal + amount
-  });
+  await updateDoc(walletRef,{balance: bal + amount});
 
   await addDoc(collection(db,"wallet_transactions"),{
     user:userId,
@@ -182,7 +226,6 @@ async function addMoney(amount){
   await loadWallet();
 }
 
-/* BUTTONS */
 document.getElementById("add50").onclick = ()=>addMoney(50);
 document.getElementById("add100").onclick = ()=>addMoney(100);
 
@@ -195,13 +238,6 @@ document.getElementById("logoutBtn").onclick = async ()=>{
   await signOut(auth);
   window.location.replace("employer-login.html");
 };
-
-/* BLOCK BACK */
-window.history.pushState(null,null,window.location.href);
-window.onpopstate = function(){
-  window.location.replace("employer-login.html");
-};
-
 </script>
 
 </body>
