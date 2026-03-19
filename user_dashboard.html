@@ -41,9 +41,7 @@ header{
   box-shadow:0 6px 20px rgba(0,0,0,0.06);
 }
 
-h3{
-  margin:0 0 10px;
-}
+h3{ margin:0 0 10px; }
 
 .btn{
   padding:10px 14px;
@@ -100,6 +98,20 @@ h3{
     <p><b>Email:</b> <span id="email">—</span></p>
   </div>
 
+  <!-- WALLET -->
+  <div class="card">
+    <h3>💰 Wallet</h3>
+    <p><b>Balance:</b> ¢<span id="balance">0</span></p>
+    <p><b>Plan:</b> <span id="plan">none</span></p>
+
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:10px">
+      <button class="btn btn-green" id="add30">+¢30</button>
+      <button class="btn btn-green" id="add100">+¢100</button>
+      <button class="btn" id="buyBasic">Buy BASIC</button>
+      <button class="btn btn-red" id="buyPro">Buy PRO</button>
+    </div>
+  </div>
+
   <!-- ACTIONS -->
   <div class="card">
     <h3>⚡ Actions</h3>
@@ -118,8 +130,12 @@ h3{
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
-import { getFirestore, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
+import {
+  getFirestore, collection, query, where, getDocs,
+  doc, getDoc, setDoc, updateDoc
+} from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 
+/* FIREBASE */
 const firebaseConfig = {
   apiKey:"AIzaSy...",
   authDomain:"nbvs-ghana.firebaseapp.com",
@@ -130,9 +146,93 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
+/* ELEMENTS */
 const emailEl = document.getElementById("email");
 const historyEl = document.getElementById("history");
+const balanceEl = document.getElementById("balance");
+const planEl = document.getElementById("plan");
 
+/* WALLET */
+function getWalletRef(){
+  const user = auth.currentUser;
+  if (!user) return null;
+  return doc(db, "wallet", user.uid);
+}
+
+async function ensureWallet(){
+  const ref = getWalletRef();
+  if (!ref) return;
+
+  const snap = await getDoc(ref);
+
+  if (!snap.exists()){
+    await setDoc(ref,{
+      balance:0,
+      plan:"none",
+      monthlyRemaining:0,
+      planExpires:null,
+      createdAt:new Date()
+    });
+  }
+}
+
+async function loadWallet(){
+  const ref = getWalletRef();
+  if (!ref) return;
+
+  const snap = await getDoc(ref);
+  if (!snap.exists()) return;
+
+  const w = snap.data();
+  balanceEl.innerText = w.balance || 0;
+  planEl.innerText = w.plan || "none";
+}
+
+/* BUTTONS */
+document.getElementById("add30").onclick = async ()=>{
+  const ref = getWalletRef();
+  const snap = await getDoc(ref);
+  const w = snap.data();
+
+  await updateDoc(ref,{ balance:(w.balance || 0) + 30 });
+  await loadWallet();
+};
+
+document.getElementById("add100").onclick = async ()=>{
+  const ref = getWalletRef();
+  const snap = await getDoc(ref);
+  const w = snap.data();
+
+  await updateDoc(ref,{ balance:(w.balance || 0) + 100 });
+  await loadWallet();
+};
+
+document.getElementById("buyBasic").onclick = async ()=>{
+  const ref = getWalletRef();
+
+  await updateDoc(ref,{
+    plan:"basic",
+    monthlyRemaining:10
+  });
+
+  await loadWallet();
+};
+
+document.getElementById("buyPro").onclick = async ()=>{
+  const ref = getWalletRef();
+
+  const expires = new Date();
+  expires.setDate(expires.getDate()+30);
+
+  await updateDoc(ref,{
+    plan:"pro",
+    planExpires:expires
+  });
+
+  await loadWallet();
+};
+
+/* AUTH */
 onAuthStateChanged(auth, async (user)=>{
   if(!user){
     window.location.href = "user_login.html";
@@ -140,6 +240,9 @@ onAuthStateChanged(auth, async (user)=>{
   }
 
   emailEl.innerText = user.email;
+
+  await ensureWallet();
+  await loadWallet();
 
   const q = query(
     collection(db,"search_logs"),
@@ -153,7 +256,6 @@ onAuthStateChanged(auth, async (user)=>{
     return;
   }
 
-  // Convert + sort newest first
   const logs = [];
   snap.forEach(doc => logs.push(doc.data()));
 
@@ -165,8 +267,8 @@ onAuthStateChanged(auth, async (user)=>{
     const div = document.createElement("div");
     div.className = "history-item";
 
-    const time = d.timestamp
-      ? new Date(d.timestamp.seconds * 1000).toLocaleString()
+    const time = d.timestamp?.toDate
+      ? d.timestamp.toDate().toLocaleString()
       : "";
 
     div.innerHTML = `
@@ -174,7 +276,6 @@ onAuthStateChanged(auth, async (user)=>{
         <b>${d.term}</b>
         <span class="time">${time}</span>
       </div>
-
       <span class="badge ${d.found ? "valid":"bad"}">
         ${d.found ? "VALID":"NOT FOUND"}
       </span>
@@ -184,6 +285,7 @@ onAuthStateChanged(auth, async (user)=>{
   });
 });
 
+/* NAV */
 window.goVerify = ()=>{
   window.location.href = "verify.html";
 };
