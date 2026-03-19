@@ -6,30 +6,117 @@
 <title>NBVS — Credential Verification Portal</title>
 
 <style>
-:root{--red:#ce1126;--yellow:#fcd116;--green:#006b3f;--bg:#f6f7f9;--muted:#555}
-body{font-family:"Segoe UI",Arial,sans-serif;background:var(--bg);margin:0;color:#222}
-header{background:linear-gradient(90deg,var(--red),var(--yellow),var(--green));
-padding:18px;text-align:center;color:#fff;font-weight:700}
-main{max-width:900px;margin:18px auto;padding:0 16px}
-.panel{background:#fff;padding:16px;border-radius:10px;
-box-shadow:0 6px 20px rgba(0,0,0,0.06);margin-bottom:16px}
-label{display:block;font-size:0.9rem;color:var(--muted);margin-bottom:6px}
-input{width:100%;padding:12px;border-radius:8px;border:1px solid #ccc;
-margin-bottom:12px;font-size:1rem}
-button{padding:12px;border-radius:8px;border:none;cursor:pointer;font-weight:700}
-.btn-green{background:var(--green);color:#fff}
-.btn-yellow{background:var(--yellow);color:#111}
-.btn-red{background:#ce1126;color:#fff}
-.record{
-  background:#fff;
-  border-left:6px solid var(--green);
-  padding:14px;
-  border-radius:12px;
-  margin-top:12px;
-  box-shadow:0 6px 18px rgba(0,0,0,0.08);
+:root{
+  --red:#ce1126;
+  --yellow:#fcd116;
+  --green:#046c4e;
+  --bg:#f4f6f9;
+  --card:#ffffff;
+  --muted:#6b7280;
 }
-.small{font-size:.9rem;color:var(--muted)}
-.row{display:flex;gap:12px;margin-top:12px}
+
+body{
+  font-family:"Inter",sans-serif;
+  background:var(--bg);
+  margin:0;
+  color:#111;
+}
+
+/* HEADER */
+header{
+  background:linear-gradient(90deg,var(--red),var(--yellow),var(--green));
+  padding:20px;
+  text-align:center;
+  color:#fff;
+  font-weight:700;
+  font-size:1.5rem;
+}
+
+/* LAYOUT */
+main{
+  max-width:800px;
+  margin:30px auto;
+  padding:0 16px;
+}
+
+.panel{
+  background:var(--card);
+  padding:20px;
+  border-radius:14px;
+  box-shadow:0 10px 30px rgba(0,0,0,0.08);
+  margin-bottom:20px;
+}
+
+/* INPUT */
+input{
+  width:100%;
+  padding:14px;
+  border-radius:10px;
+  border:1px solid #ddd;
+  font-size:1rem;
+}
+
+/* BUTTONS */
+button{
+  padding:14px;
+  border:none;
+  border-radius:10px;
+  cursor:pointer;
+  font-weight:700;
+}
+
+.btn-green{background:var(--green);color:#fff;}
+.btn-yellow{background:var(--yellow);color:#111;}
+.btn-red{background:var(--red);color:#fff;}
+
+.row{
+  display:flex;
+  gap:12px;
+  margin-top:14px;
+}
+
+/* RESULT CARD */
+.result-card{
+  border-radius:14px;
+  padding:18px;
+  margin-top:16px;
+  box-shadow:0 10px 25px rgba(0,0,0,0.08);
+}
+
+.valid{
+  border-left:6px solid var(--green);
+}
+
+.invalid{
+  border-left:6px solid var(--red);
+}
+
+/* STATUS BADGE */
+.badge{
+  display:inline-block;
+  padding:6px 10px;
+  border-radius:20px;
+  font-size:0.8rem;
+  font-weight:700;
+}
+
+.badge-valid{
+  background:#e6f7ed;
+  color:#046c4e;
+}
+
+.badge-invalid{
+  background:#fde8e8;
+  color:#ce1126;
+}
+
+/* TRUST BAR */
+.trust{
+  text-align:center;
+  font-size:0.85rem;
+  color:var(--muted);
+  margin-top:10px;
+}
 </style>
 </head>
 
