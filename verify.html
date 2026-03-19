@@ -269,13 +269,26 @@ console.log("Docs found:", docs.empty ? 0 : docs.docs.length);
   } else {
     const r = docs.docs[0].data();
     resultsArea.innerHTML = `
-      <div class="record">
-        <p><b>${r.graduateName}</b></p>
-        <p>${r.institutionName}</p>
-        <p>${r.qualification}</p>
-        <p>Status: ${r.status}</p>
-      </div>
-    `;
+  <div class="result-card valid">
+    <div class="badge badge-valid">VERIFIED</div>
+
+    <h3 style="margin:10px 0 6px">${r.graduateName}</h3>
+
+    <p><strong>Institution:</strong> ${r.institutionName}</p>
+    <p><strong>Qualification:</strong> ${r.qualification}</p>
+    <p><strong>Graduation Year:</strong> ${r.graduationYear || "—"}</p>
+
+    <hr style="margin:12px 0;border:none;border-top:1px solid #eee">
+
+    <p style="font-size:0.9rem;color:#555">
+      Verification ID: <strong>${term.toUpperCase()}</strong>
+    </p>
+
+    <p style="font-size:0.9rem;color:#555">
+      Verified by NBVS Ghana • Secure • Audit Logged
+    </p>
+  </div>
+`;
   }
 
   // log
