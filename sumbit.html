@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>NBVS — Submit for Verification</title>
+
+<style>
+body{font-family:Arial;background:#f6f7f9;margin:0;padding:40px}
+.card{max-width:500px;margin:auto;background:#fff;padding:24px;border-radius:12px;box-shadow:0 8px 20px rgba(0,0,0,0.08)}
+input,textarea{
+  width:100%;
+  padding:12px;
+  margin:10px 0;
+  border-radius:8px;
+  border:1px solid #ccc;
+}
+button{
+  width:100%;
+  padding:12px;
+  background:#046c4e;
+  color:#fff;
+  border:none;
+  border-radius:8px;
+  font-weight:700;
+  cursor:pointer;
+}
+#msg{margin-top:10px;font-size:14px}
+</style>
+</head>
+
+<body>
+
+<div class="card">
+  <h2>Submit Credentials</h2>
+
+  <input id="name" placeholder="Full Name">
+  <input id="institution" placeholder="Institution">
+  <input id="qualification" placeholder="Qualification">
+  <input id="year" placeholder="Graduation Year">
+
+  <button id="submitBtn">Submit for Verification</button>
+
+  <div id="msg"></div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
+import {
+  getAuth, onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
+import {
+  getFirestore, collection, addDoc, doc, getDoc
+} from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey:"AIzaSyCDh_qL3jiCMHROK0_Soul2Wsv3t3y4wv0",
+  authDomain:"nbvs-ghana.firebaseapp.com",
+  projectId:"nbvs-ghana",
+  storageBucket:"nbvs-ghana.firebasestorage.app",
+  messagingSenderId:"702636577113",
+  appId:"1:702636577113:web:8369b43a2aa43aeb95fc48"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+let userId = null;
+
+/* AUTH CHECK */
+onAuthStateChanged(auth, async (user)=>{
+  if(!user){
+    window.location.replace("user-login.html");
+    return;
+  }
+
+  userId = user.uid;
+
+  const u = await getDoc(doc(db,"users",userId));
+  if(!u.exists() || u.data().role !== "user"){
+    window.location.replace("user-login.html");
+  }
+});
+
+/* SUBMIT */
+document.getElementById("submitBtn").onclick = async ()=>{
+  const name = document.getElementById("name").value;
+  const institution = document.getElementById("institution").value;
+  const qualification = document.getElementById("qualification").value;
+  const year = document.getElementById("year").value;
+  const msg = document.getElementById("msg");
+
+  if(!name || !institution || !qualification){
+    msg.innerText = "Please fill all fields";
+    return;
+  }
+
+  await addDoc(collection(db,"submissions"),{
+    user:userId,
+    name,
+    institution,
+    qualification,
+    year,
+    status:"pending",
+    createdAt:new Date()
+  });
+
+  msg.innerText = "Submitted! Awaiting approval.";
+};
+</script>
+
+</body>
+</html>
