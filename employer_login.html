@@ -40,26 +40,28 @@ const firebaseConfig = {
 };
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
-
 /* 🔒 PREVENT LOOP */
 onAuthStateChanged(auth, (user)=>{
   if(user){
-    window.location.href = "employer_dashboard.html";
+    window.location.replace("employer-dashboard.html");
   }
 });
 
 /* LOGIN */
-window.login = async ()=>{
+async function login(){
   const email = document.getElementById("email").value;
   const password = document.getElementById("password").value;
 
   try{
     await signInWithEmailAndPassword(auth,email,password);
-    window.location.href = "employer-dashboard.html";
+    window.location.replace("employer-dashboard.html");
   }catch(e){
     alert(e.message);
   }
-};
+}
+
+/* CONNECT BUTTON */
+document.getElementById("loginBtn").onclick = login;
 </script>
 
 </body>
