@@ -22,7 +22,6 @@ body{
   color:#111;
 }
 
-/* HEADER */
 header{
   background:linear-gradient(90deg,var(--red),var(--yellow),var(--green));
   padding:18px;
@@ -32,21 +31,18 @@ header{
   font-size:1.4rem;
 }
 
-/* MAIN */
 .container{
   max-width:1100px;
   margin:30px auto;
   padding:0 16px;
 }
 
-/* GRID */
 .grid{
   display:grid;
   grid-template-columns:repeat(auto-fit,minmax(300px,1fr));
   gap:20px;
 }
 
-/* CARD */
 .card{
   background:var(--card);
   padding:20px;
@@ -72,7 +68,6 @@ header{
   margin-top:6px;
 }
 
-/* BUTTONS */
 .btn{
   padding:12px;
   border:none;
@@ -86,7 +81,6 @@ header{
 .btn-green{background:var(--green);color:#fff;}
 .btn-yellow{background:var(--yellow);color:#111;}
 .btn-red{background:var(--red);color:#fff;}
-.btn-dark{background:#222;color:#fff;}
 
 .table{
   width:100%;
@@ -100,17 +94,20 @@ header{
   text-align:left;
   font-size:0.9rem;
 }
+
 .empty{
   color:var(--muted);
   text-align:center;
   padding:20px;
 }
+
 .top{
   display:flex;
   justify-content:space-between;
   align-items:center;
   margin-bottom:20px;
 }
+
 .logout{
   background:#111;
   color:#fff;
@@ -119,7 +116,6 @@ header{
   font-size:0.88rem;
   cursor:pointer;
 }
-.logout:hover{opacity:0.8;}
 </style>
 </head>
 
@@ -130,13 +126,12 @@ header{
 <div class="container">
 
   <div class="top">
-    <h2 style="margin:0; font-size:1.4rem;">Welcome, <span id="userEmail"></span></h2>
+    <h2 style="margin:0;">Welcome, <span id="userEmail"></span></h2>
     <button id="logoutBtn" class="logout">Logout</button>
   </div>
 
   <div class="grid">
 
-    <!-- WALLET -->
     <div class="card">
       <h2>Your Wallet</h2>
       <div class="label">Balance</div>
@@ -147,7 +142,6 @@ header{
       <button class="btn btn-yellow" id="openVerify">Go to Verify</button>
     </div>
 
-    <!-- PLAN -->
     <div class="card">
       <h2>Your Plan</h2>
 
@@ -165,10 +159,9 @@ header{
       <button class="btn btn-red" id="buyPro">Buy Pro (30 days)</button>
     </div>
 
-    <!-- SEARCH LOGS -->
     <div class="card" style="grid-column:1/-1">
       <h2>Your Recent Searches</h2>
-      <table class="table" id="logTable">
+      <table class="table">
         <thead>
           <tr><th>Term</th><th>Found?</th><th>Time</th></tr>
         </thead>
@@ -181,15 +174,15 @@ header{
   </div>
 </div>
 
-
 <script type="module">
-/* FIREBASE */
+
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
 import {
   getAuth, onAuthStateChanged, signOut
 } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
 import {
-  getFirestore, doc, getDoc, updateDoc, collection, query, where, orderBy, getDocs, addDoc
+  getFirestore, doc, getDoc, setDoc, updateDoc,
+  collection, query, where, orderBy, getDocs, addDoc
 } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 
 /* CONFIG */
@@ -201,20 +194,10 @@ const firebaseConfig = {
   messagingSenderId:"702636577113",
   appId:"1:702636577113:web:8369b43a2aa43aeb95fc48"
 };
+
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
-
-let userId = null;
-
-/* DEVICE WALLET (anonymous wallet tied to device) */
-const DEVICE_KEY = "nbvs_deviceId";
-let deviceId = localStorage.getItem(DEVICE_KEY);
-if(!deviceId){
-  deviceId = "dev_" + Math.random().toString(36).slice(2,12);
-  localStorage.setItem(DEVICE_KEY,deviceId);
-}
-const walletRef = doc(db,"wallet",deviceId);
 
 /* ELEMENTS */
 const userEmail   = document.getElementById("userEmail");
@@ -223,14 +206,36 @@ const planTypeEl  = document.getElementById("planType");
 const remainingEl = document.getElementById("remaining");
 const logBody     = document.getElementById("logBody");
 
-/* HELPERS */
+let userId = null;
+let walletRef = null;
+
 function toNum(x){ return Number(x) || 0; }
 
-/* WALLET INIT */
+/* AUTH */
+onAuthStateChanged(auth, async user=>{
+  if(!user){
+    return window.location.replace("user-login.html");
+  }
+
+  userId = user.uid;
+  walletRef = doc(db,"wallet",userId);
+  userEmail.textContent = user.email;
+
+  const u = await getDoc(doc(db,"users",userId));
+  if(!u.exists() || (u.data().role||"") !== "user"){
+    return window.location.replace("user-login.html");
+  }
+
+  await ensureWallet();
+  await loadWallet();
+  await loadLogs();
+});
+
+/* CREATE WALLET IF MISSING */
 async function ensureWallet(){
   const snap = await getDoc(walletRef);
   if(!snap.exists()){
-    await updateDoc(walletRef,{
+    await setDoc(walletRef,{
       balance:0,
       plan:"none",
       monthlyRemaining:0,
@@ -243,8 +248,6 @@ async function ensureWallet(){
 /* LOAD WALLET */
 async function loadWallet(){
   const snap = await getDoc(walletRef);
-  if(!snap.exists()) return;
-
   const u = snap.data();
 
   balanceEl.textContent   = toNum(u.balance);
@@ -252,17 +255,16 @@ async function loadWallet(){
   remainingEl.textContent = toNum(u.monthlyRemaining);
 }
 
-/* LOAD LOGS */
-async function loadLogs(uid){
-  logBody.innerHTML = `<tr><td colspan="3" class="empty">Loading…</td></tr>`;
-
+/* LOAD SEARCH LOGS */
+async function loadLogs(){
   const q = query(
     collection(db,"search_logs"),
-    where("deviceId","==",deviceId),
+    where("user","==",userId),
     orderBy("timestamp","desc")
   );
 
   const snap = await getDocs(q);
+
   if(snap.empty){
     logBody.innerHTML = `<tr><td colspan="3" class="empty">No searches yet</td></tr>`;
     return;
@@ -283,64 +285,65 @@ async function loadLogs(uid){
   });
 }
 
-/* MONEY ADD */
+/* BUTTONS */
+document.getElementById("add30").onclick = ()=>addMoney(30);
+document.getElementById("add100").onclick = ()=>addMoney(100);
+
 async function addMoney(amount){
   const snap = await getDoc(walletRef);
   const bal = toNum(snap.data().balance);
+
   await updateDoc(walletRef,{balance: bal + amount});
+
   await addDoc(collection(db,"wallet_transactions"),{
-    deviceId,
+    user:userId,
     amount,
     type:"top_up",
     timestamp:new Date()
   });
+
   await loadWallet();
 }
 
-/* ON AUTH */
-onAuthStateChanged(auth, async user=>{
-  if(!user) return window.location.href="user-login.html";
-
-  userId = user.uid;
-  userEmail.textContent = user.email;
-
-  /* Check role */
-  const u = await getDoc(doc(db,"users",userId));
-  if(!u.exists() || (u.data().role||"").toLowerCase() !== "user"){
-    return window.location.href="user-login.html";
-  }
-
-  /* Load dashboard */
-  await ensureWallet();
-  await loadWallet();
-  await loadLogs();
-});
-
-/* BUTTONS */
-document.getElementById("add30").onclick = ()=>addMoney(30);
-document.getElementById("add100").onclick = ()=>addMoney(100);
 document.getElementById("buyBasic").onclick = async ()=>{
   const snap = await getDoc(walletRef);
   const u = snap.data();
+
   await updateDoc(walletRef,{
     plan:"basic",
     monthlyRemaining: toNum(u.monthlyRemaining) + 10
   });
+
   alert("Basic plan activated!");
   await loadWallet();
 };
+
 document.getElementById("buyPro").onclick = async ()=>{
   const exp = new Date(Date.now() + 30*24*60*60*1000);
+
   await updateDoc(walletRef,{
     plan:"pro",
     planExpires:exp.toISOString()
   });
+
   alert("Pro plan activated!");
   await loadWallet();
 };
 
 document.getElementById("openVerify").onclick = ()=>window.location.href="verify.html";
-document.getElementById("logoutBtn").onclick = ()=>signOut(auth);
+
+/* LOGOUT */
+document.getElementById("logoutBtn").onclick = async ()=>{
+  await signOut(auth);
+  window.location.replace("user-login.html");
+};
+
+/* PREVENT BACK BUTTON */
+window.history.pushState(null,null,window.location.href);
+window.onpopstate = function(){
+  window.location.replace("user-login.html");
+};
+
 </script>
 
 </body>
