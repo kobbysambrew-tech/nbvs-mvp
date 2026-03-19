@@ -28,43 +28,34 @@ button{width:100%;padding:10px;background:#006b3f;color:white;border:none;border
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
-import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
-import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
+import { getAuth, onAuthStateChanged, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
 
 const firebaseConfig = {
-  apiKey:"AIzaSyCDh_qL3jiCMHROK0_Soul2Wsv3t3y4wv0",
+  apiKey:"AIzaSy...",
   authDomain:"nbvs-ghana.firebaseapp.com",
-  projectId:"nbvs-ghana",
-  storageBucket:"nbvs-ghana.firebasestorage.app",
-  messagingSenderId:"702636577113",
-  appId:"1:702636577113:web:8369b43a2aa43aeb95fc48"
+  projectId:"nbvs-ghana"
 };
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
-const db = getFirestore(app);
 
-document.getElementById("loginBtn").onclick = async () => {
+/* 🔒 PREVENT LOOP */
+onAuthStateChanged(auth, (user)=>{
+  if(user){
+    window.location.href = "employer_dashboard.html";
+  }
+});
+
+/* LOGIN */
+window.login = async ()=>{
   const email = document.getElementById("email").value;
   const password = document.getElementById("password").value;
-  const msg = document.getElementById("msg");
 
-  try {
-    const userCred = await signInWithEmailAndPassword(auth, email, password);
-    const user = userCred.user;
-
-    const udoc = await getDoc(doc(db,"users",user.uid));
-    const role = (udoc.data().role || "").toLowerCase();
-
-    if (role !== "employer"){
-      msg.innerText = "Access denied (not employer)";
-      return;
-    }
-
+  try{
+    await signInWithEmailAndPassword(auth,email,password);
     window.location.href = "employer_dashboard.html";
-
-  } catch(e){
-    msg.innerText = "Login failed";
+  }catch(e){
+    alert(e.message);
   }
 };
 </script>
