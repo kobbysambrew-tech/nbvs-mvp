@@ -55,7 +55,7 @@ window.login = async ()=>{
 
   try{
     await signInWithEmailAndPassword(auth,email,password);
-    window.location.href = "employer_dashboard.html";
+    window.location.href = "employer-dashboard.html";
   }catch(e){
     alert(e.message);
   }
