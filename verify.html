@@ -20,23 +20,7 @@ button{padding:12px;border-radius:8px;border:none;cursor:pointer;font-weight:700
 .btn-green{background:var(--green);color:#fff}
 .btn-yellow{background:var(--yellow);color:#111}
 .btn-red{background:#ce1126;color:#fff}
-.record{background:#fff;border-left:5px solid var(--green);padding:12px;
-border-radius:8px;margin-top:12px}
-.small{font-size:.9rem;color:var(--muted)}
-.row{display:flex;gap:12px;margin-top:12px}
-.badge{
-  display:inline-block;
-  padding:3px 10px;
-  border-radius:999px;
-  border:1px solid rgba(0,0,0,0.12);
-  background:#f3f4f6;
-  font-size:0.8rem;
-  margin-left:8px;
-}
-.badge-ok{background:#ecfdf5;border-color:rgba(0,107,63,0.25);color:#065f46}
-.badge-warn{background:#fff7ed;border-color:rgba(234,88,12,0.25);color:#9a3412}
-.badge-bad{background:#fef2f2;border-color:rgba(220,38,38,0.25);color:#991b1b}
-  .record {
+.record{
   background:#fff;
   border-left:6px solid var(--green);
   padding:14px;
@@ -44,16 +28,19 @@ border-radius:8px;margin-top:12px}
   margin-top:12px;
   box-shadow:0 6px 18px rgba(0,0,0,0.08);
 }
+.small{font-size:.9rem;color:var(--muted)}
+.row{display:flex;gap:12px;margin-top:12px}
 </style>
 </head>
 
 <body>
 <header><h1>NBVS — Credential Verification</h1></header>
-<main id="app" style="display:none">
-  <div class="panel">
 
-    <label for="searchInput">Enter Verification ID</label>
-   <input id="searchInput" placeholder="e.g. NBVS-000123" />
+<main id="app" style="display:none">
+
+  <div class="panel">
+    <label>Enter Verification ID</label>
+    <input id="searchInput" placeholder="e.g. NBVS-000123" />
 
     <div style="display:flex;gap:12px;margin-top:12px;align-items:center">
       <div class="small" id="planLabel">Plan: —</div>
@@ -61,41 +48,30 @@ border-radius:8px;margin-top:12px}
     </div>
 
     <div class="row">
-     <button id="searchBtn" class="btn-green" style="flex:1">Verify Credential</button>
-      <button id="openWallet" class="btn-yellow" style="width:160px">Open Wallet</button>
+      <button id="searchBtn" class="btn-green" style="flex:1">Verify</button>
+      <button id="openWallet" class="btn-yellow" style="width:160px">Wallet</button>
     </div>
-
-   <p class="small" style="margin-top:10px">
-  Enter a valid NBVS verification ID to confirm credential authenticity.
-</p>
   </div>
 
   <div id="resultsArea"></div>
 
   <div class="panel">
-    <h3>Plans & Conversion</h3>
-    <div style="display:flex;gap:10px;margin-bottom:8px">
-      <button id="buyBasic" class="btn-green" style="flex:1">
-        Buy BASIC — 10 verifications — $3.99
-      </button>
-      <button id="buyPro" class="btn-red" style="flex:1">
-        Buy PRO — 30 days — $14.99
-      </button>
-    </div>
+    <h3>Plans</h3>
 
-    <div style="display:flex;gap:10px">
-      <button id="convertWallet" class="btn-yellow" style="flex:1">
-        Convert Wallet → Verifications (¢30 each)
-      </button>
-      <button id="refreshBtn" style="flex:1">Refresh</button>
-    </div>
+    <button id="buyBasic" class="btn-green" style="width:100%;margin-bottom:10px">
+      Buy BASIC (10 searches)
+    </button>
 
-    <p class="small" style="margin-top:8px">
-      Conversion uses whole multiples of ¢30; remainder stays in wallet.
-    </p>
+    <button id="buyPro" class="btn-red" style="width:100%;margin-bottom:10px">
+      Buy PRO (30 days)
+    </button>
+
+    <button id="convertWallet" class="btn-yellow" style="width:100%">
+      Convert Wallet → Searches
+    </button>
   </div>
-</main>
 
+</main>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
@@ -108,7 +84,6 @@ import {
   getAuth, onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
 
-/* ---------------- FIREBASE ---------------- */
 const firebaseConfig = {
   apiKey:"AIzaSyCDh_qL3jiCMHROK0_Soul2Wsv3t3y4wv0",
   authDomain:"nbvs-ghana.firebaseapp.com",
@@ -118,18 +93,9 @@ const firebaseConfig = {
   appId:"1:702636577113:web:8369b43a2aa43aeb95fc48"
 };
 
-const appFB = initializeApp(firebaseConfig);
-const db = getFirestore(appFB);
-const auth = getAuth(appFB);
-
-/* ---------------- CONSTANTS ---------------- */
-const SEARCH_COST = 30;
-
-function getWalletRef(){
-  const user = auth.currentUser;
-  if (!user) return null;
-  return doc(db, "wallet", user.uid);
-}
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const auth = getAuth(app);
 
 const appEl = document.getElementById("app");
 const searchBtn = document.getElementById("searchBtn");
@@ -138,153 +104,81 @@ const resultsArea = document.getElementById("resultsArea");
 const planLabel = document.getElementById("planLabel");
 const walletLabel = document.getElementById("walletLabel");
 
+const buyBasic = document.getElementById("buyBasic");
+const buyPro = document.getElementById("buyPro");
+const convertWallet = document.getElementById("convertWallet");
+const openWallet = document.getElementById("openWallet");
+
+const SEARCH_COST = 30;
+
 /* ---------------- WALLET ---------------- */
-async function ensureWallet(){
-  const walletRef = getWalletRef();
-  if (!walletRef) return;
+async function ensureWallet(uid){
+  const ref = doc(db,"wallet",uid);
+  const snap = await getDoc(ref);
 
-  const snap = await getDoc(walletRef);
-
-  if (!snap.exists()){
-    await setDoc(walletRef,{
+  if(!snap.exists()){
+    await setDoc(ref,{
       balance:0,
       plan:"none",
       monthlyRemaining:0,
-      planExpires:null,
-      createdAt:new Date()
+      planExpires:null
     });
   }
 }
 
-async function loadWallet(){
-  const walletRef = getWalletRef();
-  if (!walletRef) return null;
-
-  const snap = await getDoc(walletRef);
+async function loadWallet(uid){
+  const snap = await getDoc(doc(db,"wallet",uid));
   return snap.exists() ? snap.data() : null;
 }
 
-function formatPlanLabel(u){
-  if (u.plan === "pro" && u.planExpires){
-    return `Plan: PRO`;
-  }
-  if (u.plan === "basic"){
-    return `Plan: BASIC (${u.monthlyRemaining || 0} left)`;
-  }
-  return "Plan: none";
+function formatPlan(u){
+  if(u.plan === "pro") return "PRO PLAN";
+  if(u.plan === "basic") return `BASIC (${u.monthlyRemaining || 0})`;
+  return "No plan";
 }
 
-async function refreshUI(){
-  const u = await loadWallet();
-  if (!u) return;
+async function refresh(uid){
+  const w = await loadWallet(uid);
+  if(!w) return;
 
-  planLabel.innerText = formatPlanLabel(u);
-  walletLabel.innerText = `Balance: ¢${u.balance || 0}`;
+  walletLabel.innerText = `Balance: ¢${w.balance || 0}`;
+  planLabel.innerText = formatPlan(w);
+
   appEl.style.display = "block";
 }
 
-/* ---------------- DEDUCT MONEY ---------------- */
-async function deductSearch(){
-
-  const user = auth.currentUser;
-  if (!user){
-    alert("Login required");
-    return false;
-  }
-
-  const walletRef = doc(db,"wallet",user.uid);
-  const snap = await getDoc(walletRef);
-
-  if (!snap.exists()) return false;
-
-  const u = snap.data();
-  const now = new Date();
-
-  // PRO
-  if (u.plan === "pro" && u.planExpires){
-    if (new Date(u.planExpires) > now){
-      await addDoc(collection(db,"wallet_transactions"),{
-        userId:user.uid,
-        type:"verification (pro)",
-        amount:0,
-        timestamp:new Date()
-      });
-      return true;
-    }
-  }
-
-  // BASIC
-  if ((u.monthlyRemaining || 0) > 0){
-    await updateDoc(walletRef,{
-      monthlyRemaining: u.monthlyRemaining - 1
-    });
-
-    await addDoc(collection(db,"wallet_transactions"),{
-      userId:user.uid,
-      type:"verification (basic)",
-      amount:0,
-      timestamp:new Date()
-    });
-
-    return true;
-  }
-
-  // WALLET
-  if ((u.balance || 0) >= SEARCH_COST){
-    await updateDoc(walletRef,{
-      balance: u.balance - SEARCH_COST
-    });
-
-    await addDoc(collection(db,"wallet_transactions"),{
-      userId:user.uid,
-      type:"verification",
-      amount:-SEARCH_COST,
-      timestamp:new Date()
-    });
-
-    return true;
-  }
-
-  return false;
-}
-
 /* ---------------- SEARCH ---------------- */
-async function performSearch(term){
-  const snap = await getDocs(
-    query(collection(db,"records"),
-    where("verificationId","==", term.toUpperCase()),
-    limit(1))
-  );
-  return snap.docs;
-}
-
-/* ---------------- BUTTON ---------------- */
-searchBtn.onclick = async () => {
+async function search(uid){
 
   const term = searchInput.value.trim();
-  if (!term){
-    resultsArea.innerHTML = "Enter ID";
-    return;
+  if(!term) return;
+
+  const walletRef = doc(db,"wallet",uid);
+  const snap = await getDoc(walletRef);
+  const w = snap.data();
+
+  // deduct
+  if(w.monthlyRemaining > 0){
+    await updateDoc(walletRef,{monthlyRemaining: w.monthlyRemaining - 1});
   }
-
-  resultsArea.innerHTML = "Checking wallet...";
-
-  const ok = await deductSearch();
-
-  if (!ok){
+  else if(w.balance >= SEARCH_COST){
+    await updateDoc(walletRef,{balance: w.balance - SEARCH_COST});
+  }
+  else{
     resultsArea.innerHTML = "❌ Not enough balance";
     return;
   }
 
-  resultsArea.innerHTML = "Searching...";
+  const docs = await getDocs(
+    query(collection(db,"records"),
+    where("verificationId","==",term.toUpperCase()),
+    limit(1))
+  );
 
-  const docs = await performSearch(term);
-
-  if (!docs.length){
+  if(!docs.length){
     resultsArea.innerHTML = "No record found";
   } else {
-    const r = docs[0].data();
-
+    const r = docs.docs[0].data();
     resultsArea.innerHTML = `
       <div class="record">
         <p><b>${r.graduateName}</b></p>
@@ -294,25 +188,71 @@ searchBtn.onclick = async () => {
       </div>
     `;
   }
-// 🔥 ADD THIS BLOCK RIGHT HERE
-await addDoc(collection(db,"search_logs"),{
-  term,
-  userId: auth.currentUser.uid, // THIS IS THE FIX
-  found: docs.length > 0,
-  timestamp: new Date()
-});
-  await refreshUI();
-};
 
-/* ---------------- INIT ---------------- */
+  await addDoc(collection(db,"search_logs"),{
+    userId:uid,
+    term,
+    timestamp:new Date()
+  });
+
+  await refresh(uid);
+}
+
+/* ---------------- BUTTONS ---------------- */
 onAuthStateChanged(auth, async (user)=>{
-  if(user){
-    await ensureWallet();
-    await refreshUI();
-  } else {
-    alert("Login as employer first");
+  if(!user){
     window.location.href = "employer_login.html";
+    return;
   }
+
+  const uid = user.uid;
+
+  await ensureWallet(uid);
+  await refresh(uid);
+
+  searchBtn.onclick = ()=> search(uid);
+
+  buyBasic.onclick = async ()=>{
+    const ref = doc(db,"wallet",uid);
+    const w = (await getDoc(ref)).data();
+
+    await updateDoc(ref,{
+      plan:"basic",
+      monthlyRemaining:(w.monthlyRemaining || 0) + 10
+    });
+
+    await refresh(uid);
+  };
+
+  buyPro.onclick = async ()=>{
+    const ref = doc(db,"wallet",uid);
+
+    await updateDoc(ref,{
+      plan:"pro",
+      planExpires:new Date(Date.now()+30*86400000)
+    });
+
+    await refresh(uid);
+  };
+
+  convertWallet.onclick = async ()=>{
+    const ref = doc(db,"wallet",uid);
+    const w = (await getDoc(ref)).data();
+
+    const amount = Math.floor(w.balance / SEARCH_COST);
+
+    await updateDoc(ref,{
+      balance:w.balance - (amount*SEARCH_COST),
+      monthlyRemaining:(w.monthlyRemaining||0)+amount
+    });
+
+    await refresh(uid);
+  };
+
+  openWallet.onclick = ()=>{
+    window.location.href = "wallet.html";
+  };
+
 });
 </script>
 
