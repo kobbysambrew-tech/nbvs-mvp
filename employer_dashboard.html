@@ -125,100 +125,24 @@ h3{
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
-import { getFirestore, doc, getDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 
-/* ✅ FIXED FIREBASE CONFIG */
 const firebaseConfig = {
-  apiKey:"AIzaSyCDh_qL3jiCMHROK0_Soul2Wsv3t3y4wv0",
+  apiKey:"AIzaSy...",
   authDomain:"nbvs-ghana.firebaseapp.com",
-  projectId:"nbvs-ghana",
-  storageBucket:"nbvs-ghana.firebasestorage.app",
-  messagingSenderId:"702636577113",
-  appId:"1:702636577113:web:8369b43a2aa43aeb95fc48"
+  projectId:"nbvs-ghana"
 };
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
-const db = getFirestore(app);
 
-const balanceEl = document.getElementById("balance");
-const planEl = document.getElementById("plan");
-const activityEl = document.getElementById("activity");
-
-/* 🔐 AUTH + LOAD DATA */
-onAuthStateChanged(auth, async (user)=>{
+/* 🔒 PROTECT PAGE */
+onAuthStateChanged(auth, (user)=>{
   if(!user){
     window.location.href = "employer_login.html";
-    return;
   }
-
-  /* 💰 WALLET */
-  const snap = await getDoc(doc(db,"wallet",user.uid));
-
-  if(snap.exists()){
-    const w = snap.data();
-
-    balanceEl.innerText = `¢${w.balance || 0}`;
-
-    if(w.plan === "pro"){
-      planEl.innerText = "PRO PLAN";
-    } 
-    else if(w.plan === "basic"){
-      planEl.innerText = `BASIC (${w.monthlyRemaining || 0} left)`;
-    } 
-    else {
-      planEl.innerText = "No active plan";
-    }
-  }
-
-  /* 📊 ACTIVITY */
-  const q = query(
-    collection(db,"wallet_transactions"),
-    where("userId","==",user.uid)
-  );
-
-  const logs = [];
-  const snapLogs = await getDocs(q);
-
-  snapLogs.forEach(d=>logs.push(d.data()));
-
-  logs.sort((a,b)=> new Date(b.timestamp) - new Date(a.timestamp));
-
-  activityEl.innerHTML = "";
-
-  if(!logs.length){
-    activityEl.innerHTML = "<p>No activity yet.</p>";
-    return;
-  }
-
-  logs.slice(0,10).forEach(d=>{
-    const div = document.createElement("div");
-    div.className = "activity";
-
-    const time = d.timestamp
-      ? new Date(d.timestamp.seconds * 1000).toLocaleString()
-      : "";
-
-    div.innerHTML = `
-      <span>${d.type}</span>
-      <span class="small">${time}</span>
-    `;
-
-    activityEl.appendChild(div);
-  });
-
 });
 
-/* 🔗 NAVIGATION */
-window.goVerify = ()=>{
-  window.location.href = "verify.html";
-};
-
-window.goWallet = ()=>{
-  window.location.href = "wallet.html";
-};
-
-/* 🔓 LOGOUT */
+/* LOGOUT */
 window.logout = async ()=>{
   await signOut(auth);
   window.location.href = "employer_login.html";
