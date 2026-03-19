@@ -660,7 +660,7 @@ async function adminVerifySearch(forceNiaOnly){
       out.innerHTML = "<p>❌ Verification ID not found.</p>";
       await addDoc(collection(db,"search_logs"),{
         term:q,
-        user:currentUser.uid,
+        userId:currentUser.uid,
         found:false,
         timestamp:new Date(),
         platform:"admin"
@@ -1321,35 +1321,7 @@ async function refreshAll(){
 
 /* Expose for console debug */
 window.loadRecordsList=loadRecordsList;
-  import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
-import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 
-const db = getFirestore(app);
-
-onAuthStateChanged(auth, async (user) => {
-
-  if (!user) {
-    window.location.href = "dashboard.html"; // login page
-    return;
-  }
-
-  const snap = await getDoc(doc(db, "users", user.uid));
-
-  if (!snap.exists()) {
-    alert("No user record");
-    window.location.href = "dashboard.html";
-    return;
-  }
-
-  const role = snap.data().role;
-
-  // 🔥 ONLY ADMINS ALLOWED
-  if (role !== "admin" && role !== "staff" && role !== "superadmin") {
-    window.location.href = "employer_dashboard.html";
-    return;
-  }
-
-});
 
 </script>
 </body>
