@@ -151,7 +151,6 @@ async function refresh(uid){
 async function search(uid){
 const term = searchInput.value.trim();
 console.log("Searching for:", term);
-  const term = searchInput.value.trim();
   if(!term) return;
 
   const walletRef = doc(db,"wallet",uid);
