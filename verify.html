@@ -175,7 +175,7 @@ console.log("Searching for:", term);
     where("verificationId","==",term.toUpperCase()),
     limit(1))
   );
-
+console.log("Docs found:", docs.empty ? 0 : docs.docs.length);
   const found = !docs.empty;
 
   if(!found){
