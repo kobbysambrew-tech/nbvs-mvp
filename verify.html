@@ -111,7 +111,7 @@ const openWallet = document.getElementById("openWallet");
 
 const SEARCH_COST = 30;
 
-/* ---------------- WALLET ---------------- */
+/* WALLET */
 async function ensureWallet(uid){
   const ref = doc(db,"wallet",uid);
   const snap = await getDoc(ref);
@@ -147,7 +147,7 @@ async function refresh(uid){
   appEl.style.display = "block";
 }
 
-/* ---------------- SEARCH ---------------- */
+/* SEARCH */
 async function search(uid){
 
   const term = searchInput.value.trim();
@@ -175,7 +175,9 @@ async function search(uid){
     limit(1))
   );
 
-  if(!docs.length){
+  const found = !docs.empty;
+
+  if(!found){
     resultsArea.innerHTML = "No record found";
   } else {
     const r = docs.docs[0].data();
@@ -189,23 +191,32 @@ async function search(uid){
     `;
   }
 
+  // log
   await addDoc(collection(db,"search_logs"),{
-    userId:uid,
+    user: uid,
     term,
+    found,
     timestamp:new Date()
   });
 
   await refresh(uid);
 }
 
-/* ---------------- BUTTONS ---------------- */
+/* AUTH */
 onAuthStateChanged(auth, async (user)=>{
   if(!user){
-    window.location.href = "employer_login.html";
+    window.location.replace("employer-login.html");
     return;
   }
 
   const uid = user.uid;
+
+  // 🔒 ROLE CHECK
+  const userDoc = await getDoc(doc(db,"users",uid));
+  if(!userDoc.exists() || userDoc.data().role !== "employer"){
+    window.location.replace("employer-login.html");
+    return;
+  }
 
   await ensureWallet(uid);
   await refresh(uid);
@@ -250,7 +261,7 @@ onAuthStateChanged(auth, async (user)=>{
   };
 
   openWallet.onclick = ()=>{
-    window.location.href = "wallet.html";
+    window.location.href = "employer-dashboard.html";
   };
 
 });
