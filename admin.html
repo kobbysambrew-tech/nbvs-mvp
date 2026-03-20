@@ -854,13 +854,18 @@ async function approveSubmission(id){
     graduationYear:d.year || "",
     status:"valid",
     createdAt:new Date()
+    console.log("Record created");
   });
 
  await updateDoc(ref,{
   status:"approved"
 });
 
+try{
   await logAudit("approve_submission",{id,newId});
+}catch(e){
+  console.warn("audit failed", e.message);
+}
 
   alert("Approved → " + newId);
 
@@ -873,7 +878,11 @@ async function rejectSubmission(id){
   status:"rejected"
 });
 
+  try{
   await logAudit("reject_submission",{id});
+}catch(e){
+  console.warn("audit failed", e.message);
+}
 
   loadSubmissions();
 }
