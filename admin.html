@@ -847,6 +847,7 @@ async function approveSubmission(id){
   const newId = generateVerificationId();
 
   await addDoc(collection(db,"records"),{
+    userId: d.user,
     verificationId:newId,
     graduateName:d.name,
     institutionName:d.institution,
