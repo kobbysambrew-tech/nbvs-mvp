@@ -226,6 +226,11 @@ input,select,textarea{
       </div>
       <div id="records-list" style="margin-top:8px">Loading…</div>
     </div>
+
+    <div class="panel">
+  <h3>Pending Submissions</h3>
+  <div id="approvalList">Loading...</div>
+</div>
   </section>
 
   <!-- USERS -->
@@ -399,7 +404,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/fireba
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
 import {
   getFirestore, collection, doc, getDoc, getDocs, query, where,
-  addDoc, updateDoc, deleteDoc, orderBy, limit
+ addDoc, updateDoc, deleteDoc, orderBy, limit, setDoc
 } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 import { getAnalytics, isSupported as analyticsSupported } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-analytics.js";
 
@@ -783,7 +788,88 @@ async function deleteRecordById(idOverride){
   await logAudit("delete_record",{id});
   loadRecordsList();
 }
+/* ============================================================
+   SUBMISSION APPROVALS
+   ============================================================ */
 
+async function loadSubmissions(){
+  const list = document.getElementById("approvalList");
+  if(!list) return;
+
+  list.innerHTML = "Loading...";
+
+  const snap = await getDocs(collection(db,"submissions"));
+
+  if(snap.empty){
+    list.innerHTML = "<p class='small'>No pending submissions</p>";
+    return;
+  }
+
+  list.innerHTML = "";
+
+  snap.forEach(docSnap=>{
+    const d = docSnap.data();
+
+    const div = document.createElement("div");
+    div.className = "record";
+
+    div.innerHTML = `
+      <div style="display:flex;justify-content:space-between">
+        <div>
+          <p><b>${d.name}</b></p>
+          <p>${d.institution}</p>
+          <p>${d.qualification}</p>
+          <p class="small">Year: ${d.year || "—"}</p>
+        </div>
+
+        <div style="text-align:right">
+          <button class="btn btn-green" data-approve="${docSnap.id}">Approve</button>
+          <button class="btn btn-red" data-reject="${docSnap.id}">Reject</button>
+        </div>
+      </div>
+    `;
+
+    list.appendChild(div);
+
+    div.querySelector("[data-approve]").onclick = ()=>approveSubmission(docSnap.id);
+    div.querySelector("[data-reject]").onclick = ()=>rejectSubmission(docSnap.id);
+  });
+}
+
+async function approveSubmission(id){
+  const ref = doc(db,"submissions",id);
+  const snap = await getDoc(ref);
+  const d = snap.data();
+
+  const newId = generateVerificationId();
+
+  await addDoc(collection(db,"records"),{
+    verificationId:newId,
+    graduateName:d.name,
+    institutionName:d.institution,
+    qualification:d.qualification,
+    graduationYear:d.year || "",
+    status:"valid",
+    createdAt:new Date()
+  });
+
+  await deleteDoc(ref);
+
+  await logAudit("approve_submission",{id,newId});
+
+  alert("Approved → " + newId);
+
+  loadSubmissions();
+  loadRecordsList();
+}
+
+async function rejectSubmission(id){
+  await deleteDoc(doc(db,"submissions",id));
+
+  await logAudit("reject_submission",{id});
+
+  loadSubmissions();
+}
 /* ============================================================
    RECORD LIST
    ============================================================ */
@@ -1317,6 +1403,7 @@ async function refreshAll(){
   await loadSearchLogs();
   await loadAuditLogs();
   await renderAnalytics();
+  await loadSubmissions();
 }
 
 /* Expose for console debug */
