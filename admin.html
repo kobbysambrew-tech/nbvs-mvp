@@ -798,7 +798,10 @@ async function loadSubmissions(){
 
   list.innerHTML = "Loading...";
 
-  const snap = await getDocs(collection(db,"submissions"));
+ const snap = await getDocs(query(
+  collection(db,"submissions"),
+  where("status","==","pending")
+));
 
   if(snap.empty){
     list.innerHTML = "<p class='small'>No pending submissions</p>";
@@ -853,7 +856,9 @@ async function approveSubmission(id){
     createdAt:new Date()
   });
 
-  await deleteDoc(ref);
+ await updateDoc(ref,{
+  status:"approved"
+});
 
   await logAudit("approve_submission",{id,newId});
 
@@ -864,7 +869,9 @@ async function approveSubmission(id){
 }
 
 async function rejectSubmission(id){
-  await deleteDoc(doc(db,"submissions",id));
+  await updateDoc(doc(db,"submissions",id),{
+  status:"rejected"
+});
 
   await logAudit("reject_submission",{id});
 
