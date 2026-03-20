@@ -120,7 +120,8 @@ import {
   getAuth, signInWithEmailAndPassword 
 } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
 import {
-  getFirestore, doc, getDoc
+  getFirestore, doc, getDoc,
+  collection, query, where, getDocs
 } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -149,6 +150,7 @@ document.getElementById("loginBtn").onclick = async ()=>{
     const res = await signInWithEmailAndPassword(auth,email,password);
     const user = res.user;
 
+    // 🔍 get user role
     const snap = await getDoc(doc(db,"users",user.uid));
     if(!snap.exists()){
       alert("Account not found.");
@@ -156,12 +158,27 @@ document.getElementById("loginBtn").onclick = async ()=>{
     }
 
     const role = (snap.data().role || "").toLowerCase();
+
     if(role !== "user"){
       alert("This login is for regular users only.");
       return;
     }
 
-    window.location.href = "sumbit.html";
+    // 🔍 check if user has approved record
+    const q = query(
+      collection(db,"records"),
+      where("userId","==", user.uid)
+    );
+
+    const recordSnap = await getDocs(q);
+
+    if(!recordSnap.empty){
+      // ✅ APPROVED → go to ID page
+      window.location.href = "user-verification.html";
+    } else {
+      // ❌ NOT APPROVED → go to submit
+      window.location.href = "submit.html";
+    }
 
   }catch(err){
     alert(err.message);
