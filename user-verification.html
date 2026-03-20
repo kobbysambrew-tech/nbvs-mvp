@@ -5,111 +5,93 @@
 <title>NBVS — My Verification</title>
 
 <style>
+:root{
+  --green:#046c4e;
+  --red:#dc2626;
+  --bg:#f4f6f9;
+}
+
 body{
-  font-family:Arial;
-  background:#f6f7f9;
   margin:0;
+  font-family:Inter,Arial;
+  background:var(--bg);
 }
 
 header{
   background:linear-gradient(90deg,#ce1126,#fcd116,#046c4e);
-  color:#fff;
   padding:20px;
+  color:#fff;
   text-align:center;
   font-weight:700;
 }
 
 .container{
-  max-width:700px;
+  max-width:600px;
   margin:40px auto;
   padding:0 16px;
 }
 
 .card{
   background:#fff;
-  border-radius:14px;
   padding:24px;
-  box-shadow:0 10px 25px rgba(0,0,0,0.08);
+  border-radius:16px;
+  box-shadow:0 10px 30px rgba(0,0,0,0.08);
 }
 
-h2{
-  margin-top:0;
-}
-
-.label{
-  color:#666;
-  font-size:13px;
-}
-
-.value{
-  font-weight:700;
-  margin-bottom:12px;
-}
-
-.id-box{
-  background:#f1f1f1;
-  padding:14px;
-  border-radius:10px;
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  font-weight:700;
-  margin-top:10px;
-}
-
-button{
-  background:#046c4e;
-  color:#fff;
-  border:none;
-  padding:10px 14px;
-  border-radius:8px;
-  cursor:pointer;
+.id{
+  font-size:1.4rem;
+  font-weight:800;
+  margin-bottom:10px;
 }
 
 .status{
   display:inline-block;
-  padding:6px 10px;
-  border-radius:6px;
-  font-size:12px;
+  padding:6px 12px;
+  border-radius:8px;
   font-weight:700;
+  margin-bottom:14px;
 }
 
-.valid{ background:#e6f6ec; color:#046c4e; }
-.pending{ background:#fff3cd; color:#856404; }
+.valid{ background:#ecfdf5;color:#065f46; }
+.revoked{ background:#fef2f2;color:#991b1b; }
 
-#msg{
-  margin-top:10px;
-  font-size:14px;
+.field{
+  margin-bottom:10px;
 }
+
+.label{
+  font-size:0.8rem;
+  color:#6b7280;
+}
+
+.value{
+  font-weight:600;
+}
+
 </style>
 </head>
 
 <body>
 
-<header>NBVS — My Verification</header>
+<header>NBVS — My Verified Credential</header>
 
 <div class="container">
-  <div class="card" id="content">
-    Loading...
+  <div class="card">
+
+    <div id="content">Loading...</div>
+
   </div>
 </div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
-import {
-  getAuth, onAuthStateChanged
-} from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
-import {
-  getFirestore, collection, query, where, getDocs
-} from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
+import { getFirestore, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey:"AIzaSyCDh_qL3jiCMHROK0_Soul2Wsv3t3y4wv0",
   authDomain:"nbvs-ghana.firebaseapp.com",
-  projectId:"nbvs-ghana",
-  storageBucket:"nbvs-ghana.firebasestorage.app",
-  messagingSenderId:"702636577113",
-  appId:"1:702636577113:web:8369b43a2aa43aeb95fc48"
+  projectId:"nbvs-ghana"
 };
 
 const app = initializeApp(firebaseConfig);
@@ -124,53 +106,49 @@ onAuthStateChanged(auth, async (user)=>{
     return;
   }
 
-  // 🔍 find record for this user
-  const q = query(collection(db,"records"),
-    where("graduateName","==", user.email)
+  const q = query(
+    collection(db,"records"),
+    where("userId","==", user.uid)
   );
 
   const snap = await getDocs(q);
 
   if(snap.empty){
-    content.innerHTML = `
-      <h2>No verification yet</h2>
-      <p>Your submission is still pending or not approved.</p>
-    `;
+    content.innerHTML = "<p>No verified credential yet.</p>";
     return;
   }
 
-  const d = snap.docs[0].data();
+  const r = snap.docs[0].data();
+
+  const statusClass = r.status === "valid" ? "valid" : "revoked";
 
   content.innerHTML = `
-    <h2>Your Verified Credential</h2>
-
-    <div class="label">Name</div>
-    <div class="value">${d.graduateName}</div>
-
-    <div class="label">Institution</div>
-    <div class="value">${d.institutionName}</div>
-
-    <div class="label">Qualification</div>
-    <div class="value">${d.qualification}</div>
-
-    <div class="label">Status</div>
-    <div class="status valid">VALID</div>
-
-    <div class="label">Your NBVS ID</div>
-    <div class="id-box">
-      <span id="vid">${d.verificationId}</span>
-      <button onclick="copyId()">Copy</button>
+    <div class="id">${r.verificationId}</div>
+    <div class="status ${statusClass}">
+      ${r.status.toUpperCase()}
     </div>
 
-    <div id="msg"></div>
+    <div class="field">
+      <div class="label">Full Name</div>
+      <div class="value">${r.graduateName}</div>
+    </div>
+
+    <div class="field">
+      <div class="label">Institution</div>
+      <div class="value">${r.institutionName}</div>
+    </div>
+
+    <div class="field">
+      <div class="label">Qualification</div>
+      <div class="value">${r.qualification}</div>
+    </div>
+
+    <div class="field">
+      <div class="label">Graduation Year</div>
+      <div class="value">${r.graduationYear}</div>
+    </div>
   `;
 });
-
-window.copyId = ()=>{
-  const text = document.getElementById("vid").innerText;
-  navigator.clipboard.writeText(text);
-  document.getElementById("msg").innerText = "Copied!";
-};
 </script>
 
 </body>
