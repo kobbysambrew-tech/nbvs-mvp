@@ -864,8 +864,8 @@ async function approveSubmission(id){
 
   alert("Approved → " + newId);
 
-  loadSubmissions();
-  loadRecordsList();
+ await loadSubmissions();
+await loadRecordsList();
 }
 
 async function rejectSubmission(id){
