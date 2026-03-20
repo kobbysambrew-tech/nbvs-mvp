@@ -7,7 +7,7 @@
 <style>
 body{font-family:Arial;background:#f6f7f9;margin:0;padding:40px}
 .card{max-width:500px;margin:auto;background:#fff;padding:24px;border-radius:12px;box-shadow:0 8px 20px rgba(0,0,0,0.08)}
-input,textarea{
+input{
   width:100%;
   padding:12px;
   margin:10px 0;
@@ -24,6 +24,10 @@ button{
   font-weight:700;
   cursor:pointer;
 }
+button:disabled{
+  background:#999;
+  cursor:not-allowed;
+}
 #msg{margin-top:10px;font-size:14px}
 </style>
 </head>
@@ -38,7 +42,8 @@ button{
   <input id="qualification" placeholder="Qualification">
   <input id="year" placeholder="Graduation Year">
 
-  <button id="submitBtn">Submit for Verification</button>
+  <!-- 🔒 disabled by default -->
+  <button id="submitBtn" disabled>Submit for Verification</button>
 
   <div id="msg"></div>
 </div>
@@ -52,6 +57,7 @@ import {
   getFirestore, collection, addDoc, doc, getDoc
 } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 
+/* CONFIG */
 const firebaseConfig = {
   apiKey:"AIzaSyCDh_qL3jiCMHROK0_Soul2Wsv3t3y4wv0",
   authDomain:"nbvs-ghana.firebaseapp.com",
@@ -61,13 +67,17 @@ const firebaseConfig = {
   appId:"1:702636577113:web:8369b43a2aa43aeb95fc48"
 };
 
+/* INIT */
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
 let userId = null;
 
-/* AUTH CHECK */
+const btn = document.getElementById("submitBtn");
+const msg = document.getElementById("msg");
+
+/* 🔒 AUTH CHECK */
 onAuthStateChanged(auth, async (user)=>{
   if(!user){
     window.location.replace("user-login.html");
@@ -79,33 +89,53 @@ onAuthStateChanged(auth, async (user)=>{
   const u = await getDoc(doc(db,"users",userId));
   if(!u.exists() || u.data().role !== "user"){
     window.location.replace("user-login.html");
+    return;
   }
+
+  // ✅ enable button AFTER auth loads
+  btn.disabled = false;
 });
 
-/* SUBMIT */
-document.getElementById("submitBtn").onclick = async ()=>{
-  const name = document.getElementById("name").value;
-  const institution = document.getElementById("institution").value;
-  const qualification = document.getElementById("qualification").value;
-  const year = document.getElementById("year").value;
-  const msg = document.getElementById("msg");
+/* 🚀 SUBMIT */
+btn.onclick = async ()=>{
+  if(!userId){
+    msg.innerText = "User not loaded. Refresh page.";
+    return;
+  }
+
+  const name = document.getElementById("name").value.trim();
+  const institution = document.getElementById("institution").value.trim();
+  const qualification = document.getElementById("qualification").value.trim();
+  const year = document.getElementById("year").value.trim();
 
   if(!name || !institution || !qualification){
     msg.innerText = "Please fill all fields";
     return;
   }
 
-  await addDoc(collection(db,"submissions"),{
-    user:userId,
-    name,
-    institution,
-    qualification,
-    year,
-    status:"pending",
-    createdAt:new Date()
-  });
+  try {
+    await addDoc(collection(db,"submissions"),{
+      user:userId,
+      name,
+      institution,
+      qualification,
+      year,
+      status:"pending",
+      createdAt:new Date()
+    });
 
-  msg.innerText = "Submitted! Awaiting approval.";
+    msg.innerText = "✅ Submitted! Awaiting approval.";
+
+    // optional clear form
+    document.getElementById("name").value = "";
+    document.getElementById("institution").value = "";
+    document.getElementById("qualification").value = "";
+    document.getElementById("year").value = "";
+
+  } catch(e){
+    console.error(e);
+    msg.innerText = "❌ Error: " + e.message;
+  }
 };
 </script>
 
