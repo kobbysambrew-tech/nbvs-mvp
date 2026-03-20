@@ -854,9 +854,9 @@ async function approveSubmission(id){
     graduationYear:d.year || "",
     status:"valid",
     createdAt:new Date()
-    console.log("Record created");
   });
-
+console.log("Record created");
+  
  await updateDoc(ref,{
   status:"approved"
 });
