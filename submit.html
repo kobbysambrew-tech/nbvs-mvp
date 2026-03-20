@@ -2,60 +2,183 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>NBVS — Submit for Verification</title>
+<title>NBVS — Submit Credentials</title>
 
 <style>
-body{font-family:Arial;background:#f6f7f9;margin:0;padding:40px}
-.card{max-width:500px;margin:auto;background:#fff;padding:24px;border-radius:12px;box-shadow:0 8px 20px rgba(0,0,0,0.08)}
+:root{
+  --red:#ce1126;
+  --yellow:#fcd116;
+  --green:#046c4e;
+  --accent:#004f2e;
+  --bg:#f4f6f9;
+  --card:#ffffff;
+  --text:#1f2937;
+  --muted:#6b7280;
+}
+
+*{
+  box-sizing:border-box;
+  font-family:"Inter",Arial,sans-serif;
+}
+
+body{
+  margin:0;
+  background:var(--bg);
+}
+
+/* HEADER */
+header{
+  background:linear-gradient(90deg,var(--red),var(--yellow),var(--green));
+  padding:22px;
+  text-align:center;
+  color:#fff;
+  font-weight:700;
+  font-size:1.4rem;
+}
+
+/* WRAPPER */
+.wrapper{
+  max-width:700px;
+  margin:40px auto;
+  padding:0 16px;
+}
+
+/* CARD */
+.card{
+  background:var(--card);
+  padding:28px;
+  border-radius:16px;
+  box-shadow:0 10px 30px rgba(0,0,0,0.08);
+}
+
+/* TITLE */
+h2{
+  margin:0 0 6px;
+}
+
+.subtitle{
+  color:var(--muted);
+  font-size:0.9rem;
+  margin-bottom:20px;
+}
+
+/* GRID */
+.grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+}
+
+/* INPUTS */
 input{
   width:100%;
-  padding:12px;
-  margin:10px 0;
-  border-radius:8px;
-  border:1px solid #ccc;
+  padding:13px;
+  border-radius:10px;
+  border:1px solid #e5e7eb;
+  font-size:0.95rem;
 }
+
+input:focus{
+  outline:none;
+  border:1px solid var(--green);
+  box-shadow:0 0 0 2px rgba(4,108,78,0.15);
+}
+
+/* FULL WIDTH */
+.full{
+  grid-column:1 / -1;
+}
+
+/* BUTTON */
 button{
   width:100%;
-  padding:12px;
-  background:#046c4e;
-  color:#fff;
+  padding:14px;
   border:none;
-  border-radius:8px;
+  border-radius:10px;
+  background:var(--green);
+  color:#fff;
   font-weight:700;
   cursor:pointer;
+  margin-top:12px;
 }
+
 button:disabled{
-  background:#999;
-  cursor:not-allowed;
+  background:#9ca3af;
 }
-#msg{margin-top:10px;font-size:14px}
+
+/* MESSAGE */
+#msg{
+  margin-top:12px;
+  padding:10px;
+  border-radius:8px;
+  font-size:0.9rem;
+}
+
+.success{
+  background:#ecfdf5;
+  color:#065f46;
+}
+
+.error{
+  background:#fef2f2;
+  color:#991b1b;
+}
+
+.trust{
+  margin-top:16px;
+  font-size:0.8rem;
+  color:var(--muted);
+  text-align:center;
+}
 </style>
 </head>
 
 <body>
 
-<div class="card">
-  <h2>Submit Credentials</h2>
+<header>NBVS — Credential Submission</header>
 
-  <input id="name" placeholder="Full Name">
-  <input id="institution" placeholder="Institution">
-  <input id="qualification" placeholder="Qualification">
-  <input id="year" placeholder="Graduation Year">
+<div class="wrapper">
+  <div class="card">
 
-  <!-- 🔒 disabled by default -->
-  <button id="submitBtn" disabled>Submit for Verification</button>
+    <h2>Submit Credentials</h2>
+    <div class="subtitle">
+      Fill in your official details. NBVS staff will verify and issue your verification ID.
+    </div>
 
-  <div id="msg"></div>
+    <div class="grid">
+
+      <input id="name" placeholder="Full Name" class="full">
+
+      <input id="nia" placeholder="National ID (optional)">
+      <input id="dob" placeholder="Date of Birth (optional)">
+
+      <input id="region" placeholder="Region">
+      <input id="address" placeholder="Address (optional)">
+
+      <input id="institution" placeholder="Institution Name" class="full">
+
+      <input id="qualification" placeholder="Qualification">
+      <input id="year" placeholder="Graduation Year">
+
+    </div>
+
+    <button id="submitBtn" disabled>
+      Submit for Verification
+    </button>
+
+    <div id="msg"></div>
+
+    <div class="trust">
+      🔐 Secure submission • Reviewed by NBVS • Fraud detection enabled
+    </div>
+
+  </div>
 </div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
-import {
-  getAuth, onAuthStateChanged
-} from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
-import {
-  getFirestore, collection, addDoc, doc, getDoc
-} from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
+import { getFirestore, collection, addDoc, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 
 /* CONFIG */
 const firebaseConfig = {
@@ -77,7 +200,7 @@ let userId = null;
 const btn = document.getElementById("submitBtn");
 const msg = document.getElementById("msg");
 
-/* 🔒 AUTH CHECK */
+/* AUTH CHECK */
 onAuthStateChanged(auth, async (user)=>{
   if(!user){
     window.location.replace("user-login.html");
@@ -92,49 +215,49 @@ onAuthStateChanged(auth, async (user)=>{
     return;
   }
 
-  // ✅ enable button AFTER auth loads
   btn.disabled = false;
 });
 
-/* 🚀 SUBMIT */
+/* SUBMIT */
 btn.onclick = async ()=>{
   if(!userId){
-    msg.innerText = "User not loaded. Refresh page.";
+    msg.className="error";
+    msg.innerText="User not loaded. Refresh.";
     return;
   }
 
-  const name = document.getElementById("name").value.trim();
-  const institution = document.getElementById("institution").value.trim();
-  const qualification = document.getElementById("qualification").value.trim();
-  const year = document.getElementById("year").value.trim();
+  const data = {
+    user:userId,
+    name:document.getElementById("name").value.trim(),
+    nia:document.getElementById("nia").value.trim(),
+    dob:document.getElementById("dob").value.trim(),
+    region:document.getElementById("region").value.trim(),
+    address:document.getElementById("address").value.trim(),
+    institution:document.getElementById("institution").value.trim(),
+    qualification:document.getElementById("qualification").value.trim(),
+    year:document.getElementById("year").value.trim(),
+    status:"pending",
+    createdAt:new Date()
+  };
 
-  if(!name || !institution || !qualification){
-    msg.innerText = "Please fill all fields";
+  if(!data.name || !data.institution || !data.qualification){
+    msg.className="error";
+    msg.innerText="Fill required fields";
     return;
   }
 
-  try {
-    await addDoc(collection(db,"submissions"),{
-      user:userId,
-      name,
-      institution,
-      qualification,
-      year,
-      status:"pending",
-      createdAt:new Date()
-    });
+  try{
+    await addDoc(collection(db,"submissions"), data);
 
-    msg.innerText = "✅ Submitted! Awaiting approval.";
+    msg.className="success";
+    msg.innerText="✅ Submitted successfully. Awaiting approval.";
 
-    // optional clear form
-    document.getElementById("name").value = "";
-    document.getElementById("institution").value = "";
-    document.getElementById("qualification").value = "";
-    document.getElementById("year").value = "";
+    document.querySelectorAll("input").forEach(i=>i.value="");
 
-  } catch(e){
+  }catch(e){
     console.error(e);
-    msg.innerText = "❌ Error: " + e.message;
+    msg.className="error";
+    msg.innerText="❌ " + e.message;
   }
 };
 </script>
