@@ -218,19 +218,18 @@ btn.onclick = async ()=>{
 
   btn.disabled = true;
   msg.innerText = "Submitting...";
-
-  const data = {
-    user:userId,
-    name:document.getElementById("name").value.trim(),
-    dob:document.getElementById("dob").value.trim(),
-    region:document.getElementById("region").value.trim(),
-    address:document.getElementById("address").value.trim(),
-    institution:document.getElementById("institution").value.trim(),
-    qualification:document.getElementById("qualification").value.trim(),
-    year:document.getElementById("year").value.trim(),
-    status:"pending",
-    createdAt:new Date()
-  };
+const data = {
+  userId:userId,
+  name:document.getElementById("name").value.trim(),
+  dob:document.getElementById("dob").value.trim(),
+  region:document.getElementById("region").value.trim(),
+  address:document.getElementById("address").value.trim(),
+  institution:document.getElementById("institution").value.trim(),
+  qualification:document.getElementById("qualification").value.trim(),
+  year:document.getElementById("year").value.trim(),
+  status:"pending",
+  createdAt:new Date()
+};
 
   /* REQUIRED VALIDATION */
   if(
