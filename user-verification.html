@@ -113,7 +113,7 @@ onAuthStateChanged(auth, async (user)=>{
   }
 
   try {
-    // 1) approved record
+    // 1) Check approved record
     const recordQuery = query(
       collection(db,"records"),
       where("userId","==", user.uid),
@@ -156,27 +156,15 @@ onAuthStateChanged(auth, async (user)=>{
       return;
     }
 
-    // 2) pending submission
-    // First try userId
-    const pendingByUserId = query(
+    // 2) Check pending submission
+    const submissionQuery = query(
       collection(db,"submissions"),
-      where("userId","==", user.uid),
+      where("user","==", user.uid),
       where("status","==","pending"),
       limit(1)
     );
 
-    let submissionSnap = await getDocs(pendingByUserId);
-
-    // Fallback: older submissions may use "user" instead of "userId"
-    if(submissionSnap.empty){
-      const pendingByUser = query(
-        collection(db,"submissions"),
-        where("user","==", user.uid),
-        where("status","==","pending"),
-        limit(1)
-      );
-      submissionSnap = await getDocs(pendingByUser);
-    }
+    const submissionSnap = await getDocs(submissionQuery);
 
     if(!submissionSnap.empty){
       const s = submissionSnap.docs[0].data();
@@ -212,7 +200,7 @@ onAuthStateChanged(auth, async (user)=>{
       return;
     }
 
-    // 3) nothing submitted yet
+    // 3) Nothing submitted yet
     content.innerHTML = `
       <div class="field">
         <div class="label">No submission found</div>
@@ -224,7 +212,7 @@ onAuthStateChanged(auth, async (user)=>{
     content.innerHTML = `
       <div class="field">
         <div class="label">Error</div>
-        <div class="value">Something went wrong loading your verification status.</div>
+        <div class="value">${e.message}</div>
       </div>
     `;
   }
