@@ -86,12 +86,15 @@ header{
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
-import { getFirestore, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
+import { getFirestore, collection, query, where, getDocs, limit } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey:"AIzaSyCDh_qL3jiCMHROK0_Soul2Wsv3t3y4wv0",
   authDomain:"nbvs-ghana.firebaseapp.com",
-  projectId:"nbvs-ghana"
+  projectId:"nbvs-ghana",
+  storageBucket:"nbvs-ghana.firebasestorage.app",
+  messagingSenderId:"702636577113",
+  appId:"1:702636577113:web:8369b43a2aa43aeb95fc48"
 };
 
 const app = initializeApp(firebaseConfig);
@@ -106,46 +109,80 @@ onAuthStateChanged(auth, async (user)=>{
     return;
   }
 
-  const q = query(
+  // 1. First check if approved record exists
+  const recordQuery = query(
     collection(db,"records"),
-    where("userId","==", user.uid)
+    where("userId","==", user.uid),
+    limit(1)
   );
 
-  const snap = await getDocs(q);
+  const recordSnap = await getDocs(recordQuery);
 
-  if(snap.empty){
-    content.innerHTML = "<p>No verified credential yet.</p>";
+  if(!recordSnap.empty){
+    const r = recordSnap.docs[0].data();
+    const statusClass = r.status === "valid" ? "valid" : "revoked";
+
+    content.innerHTML = `
+      <div class="id">${r.verificationId}</div>
+      <div class="status ${statusClass}">
+        ${(r.status || "valid").toUpperCase()}
+      </div>
+
+      <div class="field">
+        <div class="label">Full Name</div>
+        <div class="value">${r.graduateName || "—"}</div>
+      </div>
+
+      <div class="field">
+        <div class="label">Institution</div>
+        <div class="value">${r.institutionName || "—"}</div>
+      </div>
+
+      <div class="field">
+        <div class="label">Qualification</div>
+        <div class="value">${r.qualification || "—"}</div>
+      </div>
+
+      <div class="field">
+        <div class="label">Graduation Year</div>
+        <div class="value">${r.graduationYear || "—"}</div>
+      </div>
+    `;
     return;
   }
 
-  const r = snap.docs[0].data();
+  // 2. If no record, check if submission is still pending
+  const submissionQuery = query(
+    collection(db,"submissions"),
+    where("userId","==", user.uid),
+    where("status","==","pending"),
+    limit(1)
+  );
 
-  const statusClass = r.status === "valid" ? "valid" : "revoked";
+  const submissionSnap = await getDocs(submissionQuery);
 
+  if(!submissionSnap.empty){
+    content.innerHTML = `
+      <div class="status pending">PENDING APPROVAL</div>
+
+      <div class="field">
+        <div class="label">Status</div>
+        <div class="value">Your credential submission has been received and is under review by NBVS staff.</div>
+      </div>
+
+      <div class="field">
+        <div class="label">Next Step</div>
+        <div class="value">Once approved, your NBVS verification ID will appear here.</div>
+      </div>
+    `;
+    return;
+  }
+
+  // 3. If neither exists, user has not submitted yet
   content.innerHTML = `
-    <div class="id">${r.verificationId}</div>
-    <div class="status ${statusClass}">
-      ${r.status.toUpperCase()}
-    </div>
-
     <div class="field">
-      <div class="label">Full Name</div>
-      <div class="value">${r.graduateName}</div>
-    </div>
-
-    <div class="field">
-      <div class="label">Institution</div>
-      <div class="value">${r.institutionName}</div>
-    </div>
-
-    <div class="field">
-      <div class="label">Qualification</div>
-      <div class="value">${r.qualification}</div>
-    </div>
-
-    <div class="field">
-      <div class="label">Graduation Year</div>
-      <div class="value">${r.graduationYear}</div>
+      <div class="label">No submission found</div>
+      <div class="value">You have not submitted your credentials yet.</div>
     </div>
   `;
 });
