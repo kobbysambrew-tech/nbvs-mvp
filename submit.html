@@ -26,7 +26,6 @@ body{
   background:var(--bg);
 }
 
-/* HEADER */
 header{
   background:linear-gradient(90deg,var(--red),var(--yellow),var(--green));
   padding:22px;
@@ -36,14 +35,12 @@ header{
   font-size:1.4rem;
 }
 
-/* WRAPPER */
 .wrapper{
   max-width:700px;
   margin:40px auto;
   padding:0 16px;
 }
 
-/* CARD */
 .card{
   background:var(--card);
   padding:28px;
@@ -51,7 +48,6 @@ header{
   box-shadow:0 10px 30px rgba(0,0,0,0.08);
 }
 
-/* TITLE */
 h2{
   margin:0 0 6px;
 }
@@ -62,14 +58,12 @@ h2{
   margin-bottom:20px;
 }
 
-/* GRID */
 .grid{
   display:grid;
   grid-template-columns:1fr 1fr;
   gap:10px;
 }
 
-/* INPUTS */
 input{
   width:100%;
   padding:13px;
@@ -84,12 +78,10 @@ input:focus{
   box-shadow:0 0 0 2px rgba(4,108,78,0.15);
 }
 
-/* FULL WIDTH */
 .full{
   grid-column:1 / -1;
 }
 
-/* BUTTON */
 button{
   width:100%;
   padding:14px;
@@ -106,7 +98,6 @@ button:disabled{
   background:#9ca3af;
 }
 
-/* MESSAGE */
 #msg{
   margin-top:12px;
   padding:10px;
@@ -149,11 +140,10 @@ button:disabled{
 
       <input id="name" placeholder="Full Name" class="full">
 
-      <input id="nia" placeholder="National ID (optional)">
-      <input id="dob" placeholder="Date of Birth (optional)">
-
+      <input id="dob" placeholder="Date of Birth">
       <input id="region" placeholder="Region">
-      <input id="address" placeholder="Address (optional)">
+
+      <input id="address" placeholder="Address" class="full">
 
       <input id="institution" placeholder="Institution Name" class="full">
 
@@ -226,10 +216,12 @@ btn.onclick = async ()=>{
     return;
   }
 
+  btn.disabled = true;
+  msg.innerText = "Submitting...";
+
   const data = {
     user:userId,
     name:document.getElementById("name").value.trim(),
-    nia:document.getElementById("nia").value.trim(),
     dob:document.getElementById("dob").value.trim(),
     region:document.getElementById("region").value.trim(),
     address:document.getElementById("address").value.trim(),
@@ -240,9 +232,18 @@ btn.onclick = async ()=>{
     createdAt:new Date()
   };
 
-  if(!data.name || !data.institution || !data.qualification){
+  /* REQUIRED VALIDATION */
+  if(
+    !data.name ||
+    !data.dob ||
+    !data.address ||
+    !data.institution ||
+    !data.qualification ||
+    !data.year
+  ){
     msg.className="error";
-    msg.innerText="Fill required fields";
+    msg.innerText="Fill all required fields";
+    btn.disabled = false;
     return;
   }
 
@@ -259,6 +260,8 @@ btn.onclick = async ()=>{
     msg.className="error";
     msg.innerText="❌ " + e.message;
   }
+
+  btn.disabled = false;
 };
 </script>
 
